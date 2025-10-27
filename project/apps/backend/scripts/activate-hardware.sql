@@ -1,0 +1,1 @@
+UPDATE "categories" SET "isActive" = TRUE WHERE "name" = 'HARDWARE';
