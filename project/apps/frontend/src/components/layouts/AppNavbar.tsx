@@ -230,6 +230,12 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
     },
     // Workflow & Search
     {
+      label: 'Workflows',
+      icon: IconSettings,
+      href: '/admin/workflows',
+      show: hasRole('ADMIN'),
+    },
+    {
       label: tTickets('slaLevel'),
       icon: IconClock,
       href: '/admin/sla',

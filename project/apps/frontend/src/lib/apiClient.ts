@@ -828,6 +828,36 @@ export const integrationsApi = {
     ),
 };
 
+// ===== WORKFLOWS API =====
+export const workflowsApi = {
+  getWorkflows: () =>
+    apiClient.get<ApiResponse<any[]>>('/workflows'),
+
+  getWorkflow: (id: string) =>
+    apiClient.get<ApiResponse<any>>(`/workflows/${id}`),
+
+  createWorkflow: (data: any) =>
+    apiClient.post<ApiResponse<any>>('/workflows', data),
+
+  updateWorkflow: (id: string, data: any) =>
+    apiClient.patch<ApiResponse<any>>(`/workflows/${id}`, data),
+
+  deleteWorkflow: (id: string) =>
+    apiClient.delete<ApiResponse<void>>(`/workflows/${id}`),
+
+  setDefaultWorkflow: (id: string) =>
+    apiClient.patch<ApiResponse<void>>(`/workflows/${id}/set-default`),
+
+  activateWorkflow: (id: string) =>
+    apiClient.patch<ApiResponse<void>>(`/workflows/${id}/activate`),
+
+  deactivateWorkflow: (id: string) =>
+    apiClient.patch<ApiResponse<void>>(`/workflows/${id}/deactivate`),
+
+  getDefaultWorkflow: () =>
+    apiClient.get<ApiResponse<any>>('/workflows/default'),
+};
+
 // ===== THEME SETTINGS API =====
 export const themeSettingsApi = {
   getThemeSettings: () =>

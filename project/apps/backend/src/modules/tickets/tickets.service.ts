@@ -22,6 +22,7 @@ import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
 import { SLAService } from '../../common/sla/sla.service';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { SystemConfigService } from '../../common/config/system-config.service';
+import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -80,7 +81,8 @@ export class TicketsService {
     private readonly elasticsearch: ElasticsearchService,
     private readonly slaService: SLAService,
     private readonly websocketGateway: WebSocketGateway,
-    private readonly systemConfigService: SystemConfigService
+    private readonly systemConfigService: SystemConfigService,
+    private readonly workflowExecutionService: WorkflowExecutionService
   ) {}
 
   /**
@@ -217,6 +219,17 @@ export class TicketsService {
     //   );
     // }
 
+    // Get default workflow
+    let defaultWorkflowId = null;
+    try {
+      const defaultWorkflow = await this.workflowExecutionService['workflowsService'].findDefault();
+      if (defaultWorkflow) {
+        defaultWorkflowId = defaultWorkflow.id;
+      }
+    } catch (error) {
+      this.logger.warn('No default workflow found, ticket will be created without workflow', 'TicketsService');
+    }
+
     // Create ticket
     const ticket = await this.prisma.ticket.create({
       data: {
@@ -233,6 +246,7 @@ export class TicketsService {
         assignedToId: assignedToId,
         dueDate,
         status: TicketStatus.NEW,
+        workflowId: defaultWorkflowId,
       },
       include: {
         requester: true,
@@ -797,6 +811,37 @@ export class TicketsService {
       );
     }
 
+    // Use workflow execution service if a workflow is assigned, otherwise use legacy validation
+    if (ticket.workflowId) {
+      try {
+        const result = await this.workflowExecutionService.executeTicketTransition(
+          id,
+          status,
+          userId,
+          userRole as any, // Cast to UserRole enum
+          resolution
+        );
+        
+        // Update in Elasticsearch
+        try {
+          await this.elasticsearch.updateTicket(result.ticket);
+        } catch (error) {
+          this.logger.error('Failed to update ticket in Elasticsearch', error);
+        }
+
+        this.logger.log(
+          `Ticket status updated via workflow: ${ticket.ticketNumber} to ${status}`,
+          'TicketsService'
+        );
+        
+        return result.ticket;
+      } catch (error) {
+        this.logger.error('Workflow execution failed, falling back to legacy validation', error);
+        // Fall through to legacy validation
+      }
+    }
+
+    // Legacy validation and update (for tickets without workflows)
     // Validate status transition
     if (!this.isValidStatusTransition(ticket.status, status)) {
       throw new BadRequestException(

@@ -119,6 +119,8 @@ model User {
   createdSubcategories Subcategory[]  @relation("SubcategoryCreator")
   savedSearches       SavedSearch[]
   auditLogs           AuditLog[]
+  createdWorkflows    Workflow[]
+  workflowExecutions  WorkflowExecution[]
 
   @@map("users")
 }
@@ -192,6 +194,9 @@ model Ticket {
   relatedTickets TicketRelation[] @relation("TicketRelations")
   relatedToTickets TicketRelation[] @relation("RelatedTicketRelations")
   customFields TicketCustomField[]
+  workflowId    String?
+  workflow      Workflow?       @relation(fields: [workflowId], references: [id])
+  workflowExecutions WorkflowExecution[]
 
   @@map("tickets")
 }
@@ -397,4 +402,133 @@ model Integration {
   updatedAt    DateTime @updatedAt
 
   @@map("integrations")
+}
+
+// Workflow Enums
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum WorkflowConditionType {
+  REQUIRES_COMMENT
+  REQUIRES_RESOLUTION
+  REQUIRES_ASSIGNEE
+  CUSTOM_FIELD_VALUE
+}
+
+enum WorkflowActionType {
+  SEND_NOTIFICATION
+  ASSIGN_USER
+  UPDATE_FIELD
+  SEND_EMAIL
+  CREATE_TASK
+}
+
+// Workflow Models
+model Workflow {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  isDefault   Boolean        @default(false)
+  isActive    Boolean        @default(true)
+  definition  Json?          // The workflow definition JSON
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdBy   String
+
+  // Relations
+  createdByUser User                @relation(fields: [createdBy], references: [id])
+  transitions   WorkflowTransition[]
+  executions    WorkflowExecution[]
+  tickets       Ticket[]
+
+  @@map("workflows")
+}
+
+model WorkflowTransition {
+  id          String   @id @default(uuid())
+  workflowId  String
+  fromState   String
+  toState     String
+  name        String
+  description String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workflow    Workflow             @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  conditions  WorkflowCondition[]
+  actions     WorkflowAction[]
+  permissions WorkflowPermission[]
+
+  @@map("workflow_transitions")
+}
+
+model WorkflowCondition {
+  id           String                @id @default(uuid())
+  transitionId String
+  type         WorkflowConditionType
+  value        String?
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+
+  // Relations
+  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_conditions")
+}
+
+model WorkflowAction {
+  id           String            @id @default(uuid())
+  transitionId String
+  type         WorkflowActionType
+  config       Json              @default("{}")
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+
+  // Relations
+  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_actions")
+}
+
+model WorkflowPermission {
+  id           String   @id @default(uuid())
+  transitionId String
+  role         UserRole
+  canExecute   Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_permissions")
+}
+
+model WorkflowExecution {
+  id           String   @id @default(uuid())
+  ticketId     String
+  workflowId   String
+  transitionId String?
+  fromState    String?
+  toState      String?
+  executedBy   String
+  comment      String?
+  executedAt   DateTime @default(now())
+  result       String?  // SUCCESS, FAILED, SKIPPED
+  errorMessage String?
+  metadata     Json?    // Additional execution data
+
+  // Relations
+  ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [executedBy], references: [id])
+
+  @@map("workflow_executions")
 }

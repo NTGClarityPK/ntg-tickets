@@ -11,6 +11,7 @@ import { ElasticsearchModule } from '../elasticsearch/elasticsearch.module';
 import { AuthModule } from '../auth/auth.module';
 import { SLAModule } from '../../common/sla/sla.module';
 import { WebSocketModule } from '../websocket/websocket.module';
+import { WorkflowsModule } from '../workflows/workflows.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
     AuthModule,
     SLAModule,
     WebSocketModule,
+    WorkflowsModule,
   ],
   providers: [TicketsService, PrismaService],
   controllers: [TicketsController],

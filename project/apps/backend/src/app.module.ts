@@ -24,6 +24,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { WorkflowsModule } from './modules/workflows/workflows.module';
 
 // Common modules
 import { LoggerModule } from './common/logger/logger.module';
@@ -85,6 +86,7 @@ import { SystemConfigModule } from './common/config/system-config.module';
     IntegrationsModule,
     CustomFieldsModule,
     AuditLogsModule,
+    WorkflowsModule,
   ],
 })
 export class AppModule {}

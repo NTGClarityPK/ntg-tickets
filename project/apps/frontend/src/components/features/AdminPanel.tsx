@@ -375,6 +375,12 @@ export function AdminPanel() {
               Theme Settings
             </Tabs.Tab>
             <Tabs.Tab
+              value='workflows'
+              leftSection={<IconSettings size={16} />}
+            >
+              Workflows
+            </Tabs.Tab>
+            <Tabs.Tab
               value='analytics'
               leftSection={<IconChartBar size={16} />}
             >
@@ -689,6 +695,44 @@ export function AdminPanel() {
                   </Card>
                 </Grid.Col>
               </Grid>
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value='workflows' pt='md'>
+            <Stack gap='md'>
+              <Title order={3}>Workflow Management</Title>
+              <Text size='sm' color='dimmed'>
+                Create and manage ticket workflows to define how tickets move through different states.
+              </Text>
+              
+              <Card withBorder>
+                <Stack gap='md'>
+                  <Group justify='space-between'>
+                    <Title order={4}>Workflows</Title>
+                    <Button
+                      leftSection={<IconSettings size={16} />}
+                      onClick={() => {
+                        // Navigate to workflows page
+                        window.location.href = '/admin/workflows';
+                      }}
+                    >
+                      Manage Workflows
+                    </Button>
+                  </Group>
+                  
+                  <Text size='sm' color='dimmed'>
+                    Use the visual workflow editor to create custom ticket processing flows. 
+                    Define states, transitions, conditions, and actions for your ticket system.
+                  </Text>
+                  
+                  <Alert color='blue' variant='light'>
+                    <Text size='sm'>
+                      <strong>Note:</strong> Workflow changes only affect new tickets. 
+                      Existing tickets will continue to follow their original workflow.
+                    </Text>
+                  </Alert>
+                </Stack>
+              </Card>
             </Stack>
           </Tabs.Panel>
         </Tabs>
