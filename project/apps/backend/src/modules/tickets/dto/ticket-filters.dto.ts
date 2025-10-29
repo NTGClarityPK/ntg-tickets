@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { TicketStatus, TicketPriority } from '@prisma/client';
+import { TicketPriority } from '@prisma/client';
 
 export class TicketFiltersDto {
   @ApiProperty({
@@ -30,15 +30,16 @@ export class TicketFiltersDto {
   limit?: number;
 
   @ApiProperty({
-    description: 'Filter by ticket status',
-    enum: TicketStatus,
+    description: 'Filter by ticket status (supports custom workflow statuses)',
+    type: [String],
+    example: ['NEW', 'OPEN', 'QA'],
     isArray: true,
     required: false,
   })
   @IsArray()
-  @IsEnum(TicketStatus, { each: true })
+  @IsString({ each: true })
   @IsOptional()
-  status?: TicketStatus[];
+  status?: string[];
 
   @ApiProperty({
     description: 'Filter by ticket priority',

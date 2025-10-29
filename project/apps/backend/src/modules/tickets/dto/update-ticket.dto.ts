@@ -1,18 +1,17 @@
 import { PartialType, ApiProperty } from '@nestjs/swagger';
 import { CreateTicketDto } from './create-ticket.dto';
-import { IsOptional, IsEnum } from 'class-validator';
-import { TicketStatus } from '@prisma/client';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateTicketDto extends PartialType(CreateTicketDto) {
   @ApiProperty({
-    description: 'Ticket status',
-    enum: TicketStatus,
-    example: TicketStatus.IN_PROGRESS,
+    description: 'Ticket status (supports custom workflow statuses)',
+    type: String,
+    example: 'IN_PROGRESS',
     required: false,
   })
-  @IsEnum(TicketStatus)
+  @IsString()
   @IsOptional()
-  status?: TicketStatus;
+  status?: string;
 
   @ApiProperty({
     description: 'Resolution details',

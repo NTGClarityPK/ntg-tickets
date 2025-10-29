@@ -36,12 +36,9 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Ticket, TicketStatus } from '../../types/unified';
+import { Ticket } from '../../types/unified';
 import { useUpdateTicketStatus } from '../../hooks/useTickets';
-import {
-  validateStatusUpdate,
-  // statusTransitionRules, // Removed unused import
-} from '../../lib/statusValidation';
+import { useCreateComment } from '../../hooks/useComments';
 import {
   showSuccessNotification,
   showErrorNotification,
@@ -74,10 +71,11 @@ export function TicketCard({
   const tTickets = useTranslations('tickets');
   const [statusModalOpened, setStatusModalOpened] = useState(false);
   const [newStatus, setNewStatus] = useState(ticket.status);
-  const [resolution, setResolution] = useState('');
+  const [statusComment, setStatusComment] = useState('');
   const { primaryLight, primaryLighter, primaryDarker, primaryDarkest } = useDynamicTheme();
 
   const updateStatusMutation = useUpdateTicketStatus();
+  const addCommentMutation = useCreateComment();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,28 +119,27 @@ export function TicketCard({
     !['RESOLVED', 'CLOSED'].includes(ticket.status);
 
   const handleStatusChange = async () => {
-    // Validate status transition
-    const validation = validateStatusUpdate(
-      ticket.status as TicketStatus,
-      newStatus as TicketStatus,
-      resolution
-    );
-
-    if (!validation.isValid) {
-      showErrorNotification(
-        'Invalid Status Update',
-        validation.errorMessage || 'Invalid status update'
-      );
-      return;
-    }
+    // Note: Status transition validation is now handled by the workflow system
 
     try {
       await updateStatusMutation.mutateAsync({
         id: ticket.id,
         status: newStatus,
-        resolution,
         currentStatus: ticket.status,
       });
+
+      // If a comment was provided, add it to the ticket comments
+      if (statusComment?.trim()) {
+        try {
+          await addCommentMutation.mutateAsync({
+            ticketId: ticket.id,
+            content: statusComment,
+            isInternal: false,
+          });
+        } catch {
+          // Don't block the status update if comment fails
+        }
+      }
 
       showSuccessNotification(
         'Status Updated',
@@ -155,7 +152,7 @@ export function TicketCard({
       }
 
       setStatusModalOpened(false);
-      setResolution('');
+      setStatusComment('');
     } catch (error) {
       showErrorNotification(
         'Update Failed',
@@ -364,7 +361,10 @@ export function TicketCard({
       {/* Status Change Modal */}
       <Modal
         opened={statusModalOpened}
-        onClose={() => setStatusModalOpened(false)}
+        onClose={() => {
+          setStatusModalOpened(false);
+          setStatusComment('');
+        }}
         title={tTickets('changeStatus')}
         size='md'
       >
@@ -386,31 +386,30 @@ export function TicketCard({
               setNewStatus((value as typeof ticket.status) || ticket.status)
             }
           />
-
-          {(newStatus === 'RESOLVED' || newStatus === 'CLOSED') && (
-            <Textarea
-              label='Resolution Notes'
-              placeholder='Enter resolution details...'
-              value={resolution}
-              onChange={event => setResolution(event.currentTarget.value)}
-              required={newStatus === 'RESOLVED'}
-            />
-          )}
+          
+          <Textarea
+            label='Comment'
+            description='Add a note about this status change (optional)'
+            placeholder='Add a comment about this status change...'
+            value={statusComment}
+            onChange={e => setStatusComment(e.target.value)}
+            minRows={2}
+          />
 
           <Group justify='flex-end'>
             <Button
               variant='outline'
-              onClick={() => setStatusModalOpened(false)}
+              onClick={() => {
+                setStatusModalOpened(false);
+                setStatusComment('');
+              }}
             >
               Cancel
             </Button>
             <Button
               onClick={handleStatusChange}
               loading={updateStatusMutation.isPending}
-              disabled={
-                (newStatus === 'RESOLVED' && !resolution.trim()) ||
-                updateStatusMutation.isPending
-              }
+              disabled={updateStatusMutation.isPending}
             >
               Update Status
             </Button>

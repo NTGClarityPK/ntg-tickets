@@ -1,58 +1,6 @@
 import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
-import { workflowsApi } from '../lib/apiClient';
-
-interface Workflow {
-  id: string;
-  name: string;
-  description?: string;
-  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
-  isDefault: boolean;
-  isActive: boolean;
-  definition?: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  createdByUser: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  transitions?: Array<{
-    id: string;
-    fromState: string;
-    toState: string;
-    name: string;
-    description?: string;
-    order: number;
-    isActive: boolean;
-    conditions: Array<{
-      id: string;
-      type: string;
-      value?: string;
-      isActive: boolean;
-    }>;
-    actions: Array<{
-      id: string;
-      type: string;
-      config: Record<string, unknown>;
-      isActive: boolean;
-    }>;
-    permissions: Array<{
-      id: string;
-      role: string;
-      canExecute: boolean;
-      isActive: boolean;
-    }>;
-  }>;
-}
-
-interface WorkflowData {
-  name: string;
-  description?: string;
-  isDefault?: boolean;
-  definition?: Record<string, unknown>;
-}
+import { workflowsApi, Workflow, WorkflowData } from '../lib/apiClient';
 
 
 export function useWorkflows() {
@@ -84,7 +32,8 @@ export function useWorkflows() {
       const response = await workflowsApi.createWorkflow(input);
       const newWorkflow = response.data.data;
       
-      setWorkflows(prev => [newWorkflow, ...prev]);
+      // Refetch all workflows to ensure status consistency
+      await fetchWorkflows();
       
       notifications.show({
         title: 'Success',
@@ -109,11 +58,8 @@ export function useWorkflows() {
       const response = await workflowsApi.updateWorkflow(id, input);
       const updatedWorkflow = response.data.data;
       
-      setWorkflows(prev =>
-        prev.map(workflow =>
-          workflow.id === id ? updatedWorkflow : workflow
-        )
-      );
+      // Refetch all workflows to ensure status consistency
+      await fetchWorkflows();
 
       notifications.show({
         title: 'Success',
@@ -137,7 +83,9 @@ export function useWorkflows() {
     try {
       await workflowsApi.deleteWorkflow(id);
       
-      setWorkflows(prev => prev.filter(workflow => workflow.id !== id));
+      // Refetch all workflows to ensure status consistency
+      // (deleting an active workflow activates the system default)
+      await fetchWorkflows();
       
       notifications.show({
         title: 'Success',
@@ -186,9 +134,12 @@ export function useWorkflows() {
     try {
       await workflowsApi.activateWorkflow(id);
 
+      // Deactivate all other workflows and activate the selected one
       setWorkflows(prev =>
         prev.map(workflow =>
-          workflow.id === id ? { ...workflow, status: 'ACTIVE' as const } : workflow
+          workflow.id === id 
+            ? { ...workflow, status: 'ACTIVE' as const } 
+            : { ...workflow, status: 'INACTIVE' as const }
         )
       );
 
@@ -212,11 +163,9 @@ export function useWorkflows() {
     try {
       await workflowsApi.deactivateWorkflow(id);
 
-      setWorkflows(prev =>
-        prev.map(workflow =>
-          workflow.id === id ? { ...workflow, status: 'INACTIVE' as const } : workflow
-        )
-      );
+      // Refetch all workflows to ensure status consistency
+      // (deactivating an active workflow activates the system default)
+      await fetchWorkflows();
 
       notifications.show({
         title: 'Success',

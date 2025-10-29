@@ -130,12 +130,13 @@ export function useWebSocket() {
       );
     });
 
-    newSocket.on('ticket_assigned', (ticket: TicketEventData) => {
-      showInfoNotification(
-        WEBSOCKET_CONFIG.NOTIFICATIONS.TICKET_ASSIGNED.TITLE,
-        `Ticket ${ticket.ticketNumber} has been assigned to you`
-      );
-    });
+    // Ticket assigned notification removed per user request
+    // newSocket.on('ticket_assigned', (ticket: TicketEventData) => {
+    //   showInfoNotification(
+    //     WEBSOCKET_CONFIG.NOTIFICATIONS.TICKET_ASSIGNED.TITLE,
+    //     `Ticket ${ticket.ticketNumber} has been assigned to you`
+    //   );
+    // });
 
     // Comment events
     newSocket.on('comment_added', ({ comment, ticket }: CommentEventData) => {

@@ -24,7 +24,6 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketFiltersDto } from './dto/ticket-filters.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
-import { TicketStatus } from '@prisma/client';
 
 @ApiTags('Tickets')
 @Controller('tickets')
@@ -256,7 +255,7 @@ export class TicketsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { status: TicketStatus; resolution?: string },
+    @Body() body: { status: string; resolution?: string; comment?: string },
     @Request() req
   ) {
     // Debug logging removed for production
@@ -266,7 +265,8 @@ export class TicketsController {
       body.status,
       body.resolution,
       req.user.id,
-      req.user.activeRole
+      req.user.activeRole,
+      body.comment,
     );
     return {
       data: ticket,

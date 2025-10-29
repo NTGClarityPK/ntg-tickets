@@ -26,60 +26,107 @@ export class WorkflowsController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createWorkflowDto: CreateWorkflowDto, @Request() req) {
-    return this.workflowsService.create(createWorkflowDto, req.user.id);
+  async create(@Body() createWorkflowDto: CreateWorkflowDto, @Request() req) {
+    console.log('📝 Creating workflow:', createWorkflowDto);
+    console.log('👤 User:', req.user);
+    const userId = req.user?.sub || req.user?.id;
+    console.log('👤 User ID:', userId);
+    try {
+      const result = await this.workflowsService.create(createWorkflowDto, userId);
+      console.log('✅ Workflow created successfully:', result.id);
+      return {
+        data: result,
+        message: 'Workflow created successfully',
+      };
+    } catch (error) {
+      console.error('❌ Error creating workflow:', error);
+      throw error;
+    }
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
-  findAll() {
-    return this.workflowsService.findAll();
+  async findAll() {
+    const workflows = await this.workflowsService.findAll();
+    return {
+      data: workflows,
+      message: 'Workflows retrieved successfully',
+    };
   }
 
   @Get('default')
-  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF)
-  findDefault() {
-    return this.workflowsService.findDefault();
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF, UserRole.END_USER)
+  async findDefault() {
+    const workflow = await this.workflowsService.findDefault();
+    return {
+      data: workflow,
+      message: 'Default workflow retrieved successfully',
+    };
   }
 
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
-  findOne(@Param('id') id: string) {
-    return this.workflowsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const workflow = await this.workflowsService.findOne(id);
+    return {
+      data: workflow,
+      message: 'Workflow retrieved successfully',
+    };
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateWorkflowDto: UpdateWorkflowDto,
     @Request() req,
   ) {
-    return this.workflowsService.update(id, updateWorkflowDto, req.user.id);
+    const userId = req.user?.sub || req.user?.id;
+    const workflow = await this.workflowsService.update(id, updateWorkflowDto, userId);
+    return {
+      data: workflow,
+      message: 'Workflow updated successfully',
+    };
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.workflowsService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.workflowsService.remove(id);
+    return {
+      data: null,
+      message: 'Workflow deleted successfully',
+    };
   }
 
   @Patch(':id/activate')
   @Roles(UserRole.ADMIN)
-  activate(@Param('id') id: string) {
-    return this.workflowsService.activate(id);
+  async activate(@Param('id') id: string) {
+    const workflow = await this.workflowsService.activate(id);
+    return {
+      data: workflow,
+      message: 'Workflow activated successfully',
+    };
   }
 
   @Patch(':id/deactivate')
   @Roles(UserRole.ADMIN)
-  deactivate(@Param('id') id: string) {
-    return this.workflowsService.deactivate(id);
+  async deactivate(@Param('id') id: string) {
+    const workflow = await this.workflowsService.deactivate(id);
+    return {
+      data: workflow,
+      message: 'Workflow deactivated successfully',
+    };
   }
 
   @Patch(':id/set-default')
   @Roles(UserRole.ADMIN)
-  setAsDefault(@Param('id') id: string) {
-    return this.workflowsService.setAsDefault(id);
+  async setAsDefault(@Param('id') id: string) {
+    const workflow = await this.workflowsService.setAsDefault(id);
+    return {
+      data: workflow,
+      message: 'Workflow set as default successfully',
+    };
   }
 
   // Transition management endpoints
@@ -136,12 +183,13 @@ export class WorkflowsController {
     },
     @Request() req,
   ) {
+    const userId = req.user?.sub || req.user?.id;
     return this.workflowsService.executeTransition(
       body.ticketId,
       workflowId,
       body.fromState,
       body.toState,
-      req.user.id,
+      userId,
       body.comment,
     );
   }

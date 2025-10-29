@@ -25,6 +25,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { Ticket } from '../../types/unified';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { useCanCreateTicket } from '../../hooks/useCanCreateTicket';
 
 export function EndUserDashboard() {
   const t = useTranslations('dashboard');
@@ -32,6 +33,7 @@ export function EndUserDashboard() {
   const router = useRouter();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
   const { primary } = useDynamicTheme();
+  const { canCreate: canCreateTicket } = useCanCreateTicket();
 
   const myTickets =
     tickets?.filter((ticket: Ticket) => ticket.requester.id === user?.id) || [];
@@ -138,14 +140,16 @@ export function EndUserDashboard() {
           >
             View All My Tickets
           </Button>
-          <Button
-            variant='outline'
-            leftSection={<IconTicket size={16} />}
-            onClick={() => router.push('/tickets/create')}
-            size='lg'
-          >
-            Create New Ticket
-          </Button>
+          {canCreateTicket && (
+            <Button
+              variant='outline'
+              leftSection={<IconTicket size={16} />}
+              onClick={() => router.push('/tickets/create')}
+              size='lg'
+            >
+              Create New Ticket
+            </Button>
+          )}
         </Group>
       </Stack>
     </Container>

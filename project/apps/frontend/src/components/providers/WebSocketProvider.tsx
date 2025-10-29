@@ -161,31 +161,32 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       );
 
       // Additional ticket-related events
-      socket.on(
-        'ticket_assigned',
-        (data: {
-          ticketId: string;
-          ticketTitle: string;
-          assigneeName: string;
-        }) => {
-          mantineNotifications.show({
-            title: 'Ticket Assigned',
-            message: `Ticket "${data.ticketTitle}" has been assigned to ${data.assigneeName}`,
-            color: 'red',
-          });
+      // Ticket assigned notification removed per user request
+      // socket.on(
+      //   'ticket_assigned',
+      //   (data: {
+      //     ticketId: string;
+      //     ticketTitle: string;
+      //     assigneeName: string;
+      //   }) => {
+      //     mantineNotifications.show({
+      //       title: 'Ticket Assigned',
+      //       message: `Ticket "${data.ticketTitle}" has been assigned to ${data.assigneeName}`,
+      //       color: 'red',
+      //     });
 
-          addNotification({
-            id: `ticket-assigned-${data.ticketId}-${Date.now()}`,
-            userId: user?.id || '',
-            ticketId: data.ticketId,
-            type: 'TICKET_ASSIGNED',
-            title: 'Ticket Assigned',
-            message: `Ticket "${data.ticketTitle}" has been assigned to ${data.assigneeName}`,
-            isRead: false,
-            createdAt: new Date(),
-          });
-        }
-      );
+      //     addNotification({
+      //       id: `ticket-assigned-${data.ticketId}-${Date.now()}`,
+      //       userId: user?.id || '',
+      //       ticketId: data.ticketId,
+      //       type: 'TICKET_ASSIGNED',
+      //       title: 'Ticket Assigned',
+      //       message: `Ticket "${data.ticketTitle}" has been assigned to ${data.assigneeName}`,
+      //       isRead: false,
+      //       createdAt: new Date(),
+      //     });
+      //   }
+      // );
 
       socket.on(
         'ticket_status_changed',

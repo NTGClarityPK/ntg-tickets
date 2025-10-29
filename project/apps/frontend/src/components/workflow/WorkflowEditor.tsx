@@ -15,8 +15,6 @@ import ReactFlow, {
   EdgeTypes,
   MarkerType,
   EdgeMarkerType,
-  applyNodeChanges,
-  applyEdgeChanges,
   Handle,
   Position,
   ConnectionMode,
@@ -110,6 +108,7 @@ interface WorkflowDefinition {
       roles: string[];
       conditions: string[];
       actions: string[];
+      isCreateTransition?: boolean;
     };
   }>;
 }
@@ -118,7 +117,7 @@ interface WorkflowData {
   id?: string;
   name: string;
   description?: string;
-  isDefault?: boolean;
+  status?: string;
   definition?: Record<string, unknown>;
 }
 
@@ -129,36 +128,44 @@ interface WorkflowEditorProps {
 }
 
 export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorProps) {
+  const isReadOnly = !onSave;
+  
   const [nodes, setNodes, onNodesChange] = useNodesState(
     (workflow?.definition as unknown as WorkflowDefinition)?.nodes || [
       {
+        id: 'create',
+        type: 'statusNode',
+        position: { x: 50, y: 100 },
+        data: { label: 'Create Ticket', color: '#4caf50', isInitial: true },
+      },
+      {
         id: 'new',
         type: 'statusNode',
-        position: { x: 100, y: 100 },
-        data: { label: 'New', color: '#ff9800', isInitial: true },
+        position: { x: 250, y: 100 },
+        data: { label: 'New', color: '#ff9800' },
       },
       {
         id: 'open',
         type: 'statusNode',
-        position: { x: 300, y: 100 },
+        position: { x: 450, y: 100 },
         data: { label: 'Open', color: '#2196f3' },
       },
       {
         id: 'in_progress',
         type: 'statusNode',
-        position: { x: 500, y: 100 },
+        position: { x: 650, y: 100 },
         data: { label: 'In Progress', color: '#9c27b0' },
       },
       {
         id: 'resolved',
         type: 'statusNode',
-        position: { x: 700, y: 100 },
+        position: { x: 850, y: 100 },
         data: { label: 'Resolved', color: '#4caf50' },
       },
       {
         id: 'closed',
         type: 'statusNode',
-        position: { x: 900, y: 100 },
+        position: { x: 1050, y: 100 },
         data: { label: 'Closed', color: '#9e9e9e' },
       },
     ]
@@ -167,6 +174,20 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
   const [edges, setEdges, onEdgesChange] = useEdgesState(
     (workflow?.definition as unknown as WorkflowDefinition)?.edges || [
       {
+        id: 'e0-create',
+        source: 'create',
+        target: 'new',
+        label: 'Create Ticket',
+        type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed },
+        data: {
+          roles: [],
+          conditions: [],
+          actions: [],
+          isCreateTransition: true, // Special flag
+        },
+      },
+      {
         id: 'e1',
         source: 'new',
         target: 'open',
@@ -174,9 +195,9 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         data: {
-          roles: ['SUPPORT_STAFF', 'SUPPORT_MANAGER'],
-          conditions: ['REQUIRES_COMMENT'],
-          actions: ['SEND_NOTIFICATION'],
+          roles: [],
+          conditions: [],
+          actions: [],
         },
       },
       {
@@ -187,9 +208,9 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         data: {
-          roles: ['SUPPORT_STAFF'],
+          roles: [],
           conditions: [],
-          actions: ['ASSIGN_TO_USER'],
+          actions: [],
         },
       },
       {
@@ -200,9 +221,9 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         data: {
-          roles: ['SUPPORT_STAFF'],
-          conditions: ['REQUIRES_RESOLUTION'],
-          actions: ['SEND_NOTIFICATION', 'CALCULATE_RESOLUTION_TIME'],
+          roles: [],
+          conditions: [],
+          actions: [],
         },
       },
       {
@@ -213,9 +234,9 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         data: {
-          roles: ['SUPPORT_STAFF', 'SUPPORT_MANAGER'],
+          roles: [],
           conditions: [],
-          actions: ['SEND_NOTIFICATION'],
+          actions: [],
         },
       },
     ]
@@ -227,7 +248,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
   const [showNodeModal, setShowNodeModal] = useState(false);
   const [workflowName, setWorkflowName] = useState(workflow?.name || '');
   const [workflowDescription, setWorkflowDescription] = useState(workflow?.description || '');
-  const [isDefault, setIsDefault] = useState(workflow?.isDefault || false);
+  const [isActive, setIsActive] = useState((workflow as { status?: string })?.status === 'ACTIVE');
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -308,6 +329,33 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
 
   const deleteNode = useCallback(
     (nodeId: string) => {
+      // Prevent deletion of the create node
+      if (nodeId === 'create') {
+        notifications.show({
+          title: 'Cannot Delete',
+          message: 'The "Create Ticket" state cannot be deleted as it is required for the workflow.',
+          color: 'red',
+        });
+        return;
+      }
+      // Prevent deletion of the new node
+      if (nodeId === 'new') {
+        notifications.show({
+          title: 'Cannot Delete',
+          message: 'The "New" status cannot be deleted as it is required for the workflow.',
+          color: 'red',
+        });
+        return;
+      }
+      // Prevent deletion of the closed node
+      if (nodeId === 'closed') {
+        notifications.show({
+          title: 'Cannot Delete',
+          message: 'The "Closed" status cannot be deleted as it is required for the workflow.',
+          color: 'red',
+        });
+        return;
+      }
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
       setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
     },
@@ -317,9 +365,19 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
 
   const deleteEdge = useCallback(
     (edgeId: string) => {
+      // Prevent deletion of the create transition
+      const edge = edges.find(e => e.id === edgeId);
+      if (edge?.data?.isCreateTransition) {
+        notifications.show({
+          title: 'Cannot Delete',
+          message: 'The "Create Ticket" transition cannot be deleted as it is required for the workflow.',
+          color: 'red',
+        });
+        return;
+      }
       setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
     },
-    [setEdges]
+    [setEdges, edges]
   );
 
   const handleSave = useCallback(() => {
@@ -335,7 +393,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
     const workflowData = {
       name: workflowName,
       description: workflowDescription,
-      isDefault,
+      status: isActive ? 'ACTIVE' : 'INACTIVE',
       definition: {
         nodes: nodes.map((node) => ({
           id: node.id,
@@ -356,7 +414,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
     };
 
     onSave?.(workflowData);
-  }, [workflowName, workflowDescription, isDefault, nodes, edges, onSave]);
+  }, [workflowName, workflowDescription, isActive, nodes, edges, onSave]);
 
   const availableRoles = [
     { value: 'END_USER', label: 'End User' },
@@ -377,14 +435,18 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
     <Container size="xl">
       <Stack gap="md">
         <Group justify="space-between">
-          <Title order={2}>Workflow Editor</Title>
+          <Title order={2}>{isReadOnly ? 'Workflow Viewer' : 'Workflow Editor'}</Title>
           <Group>
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} leftSection={<IconCheck size={16} />}>
-              Save Workflow
-            </Button>
+            {onCancel && (
+              <Button variant="outline" onClick={onCancel}>
+                {isReadOnly ? 'Close' : 'Cancel'}
+              </Button>
+            )}
+            {onSave && (
+              <Button onClick={handleSave} leftSection={<IconCheck size={16} />}>
+                Save Workflow
+              </Button>
+            )}
           </Group>
         </Group>
 
@@ -396,12 +458,15 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 placeholder="Enter workflow name"
                 value={workflowName}
                 onChange={(e) => setWorkflowName(e.target.value)}
+                readOnly={isReadOnly}
                 style={{ flex: 1 }}
               />
               <Switch
-                label="Set as Default"
-                checked={isDefault}
-                onChange={(e) => setIsDefault(e.currentTarget.checked)}
+                label="Activate"
+                description="Make this workflow active immediately"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.currentTarget.checked)}
+                disabled={isReadOnly}
               />
             </Group>
             <Textarea
@@ -409,6 +474,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               placeholder="Enter workflow description"
               value={workflowDescription}
               onChange={(e) => setWorkflowDescription(e.target.value)}
+              readOnly={isReadOnly}
               rows={2}
             />
           </Stack>
@@ -418,29 +484,34 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={4}>Workflow Diagram</Title>
-              <Button
-                size="sm"
-                leftSection={<IconPlus size={16} />}
-                onClick={addNode}
-              >
-                Add State
-              </Button>
+              {!isReadOnly && (
+                <Button
+                  size="sm"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={addNode}
+                >
+                  Add State
+                </Button>
+              )}
             </Group>
 
             <div style={{ height: '600px', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onNodeClick={onNodeClick}
-                onEdgeClick={onEdgeClick}
+                onNodesChange={isReadOnly ? undefined : onNodesChange}
+                onEdgesChange={isReadOnly ? undefined : onEdgesChange}
+                onConnect={isReadOnly ? undefined : onConnect}
+                onNodeClick={isReadOnly ? undefined : onNodeClick}
+                onEdgeClick={isReadOnly ? undefined : onEdgeClick}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
                 fitView
                 attributionPosition="bottom-left"
+                nodesDraggable={!isReadOnly}
+                nodesConnectable={!isReadOnly}
+                elementsSelectable={!isReadOnly}
               >
                 <Controls />
                 <MiniMap />
@@ -450,7 +521,9 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
 
             <Alert color="blue" variant="light">
               <Text size="sm">
-                Click states to edit or click arrows to configure transitions.
+                {isReadOnly
+                  ? 'This is a read-only view of the workflow. You cannot make changes.'
+                  : 'Click states to edit or click arrows to configure transitions.'}
               </Text>
             </Alert>
           </Stack>
@@ -465,9 +538,32 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         >
           {selectedNode && (
             <Stack gap="md">
+              {selectedNode.id === 'create' && (
+                <Alert color="blue" variant="light">
+                  <Text size="sm">
+                    The "Create Ticket" state is required and cannot be renamed or deleted.
+                  </Text>
+                </Alert>
+              )}
+              {selectedNode.id === 'new' && (
+                <Alert color="blue" variant="light">
+                  <Text size="sm">
+                    The "New" status is required and cannot be renamed or deleted.
+                  </Text>
+                </Alert>
+              )}
+              {selectedNode.id === 'closed' && (
+                <Alert color="blue" variant="light">
+                  <Text size="sm">
+                    The "Closed" status is required and cannot be renamed or deleted.
+                  </Text>
+                </Alert>
+              )}
+              
               <TextInput
                 label="State Name"
                 value={selectedNode.data?.label || ''}
+                disabled={selectedNode.id === 'create' || selectedNode.id === 'new' || selectedNode.id === 'closed'}
                 onChange={(e) => {
                   const newLabel = e.target.value;
                   const updatedNode = {
@@ -499,17 +595,19 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               />
 
               <Group justify="flex-end">
-                <Button
-                  variant="outline"
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={() => {
-                    deleteNode(selectedNode.id);
-                    setShowNodeModal(false);
-                  }}
-                >
-                  Delete State
-                </Button>
+                {selectedNode.id !== 'create' && selectedNode.id !== 'new' && selectedNode.id !== 'closed' && (
+                  <Button
+                    variant="outline"
+                    color="red"
+                    leftSection={<IconTrash size={16} />}
+                    onClick={() => {
+                      deleteNode(selectedNode.id);
+                      setShowNodeModal(false);
+                    }}
+                  >
+                    Delete State
+                  </Button>
+                )}
                 <Button onClick={() => setShowNodeModal(false)}>
                   Close
                 </Button>
@@ -522,28 +620,38 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         <Modal
           opened={showEdgeModal}
           onClose={() => setShowEdgeModal(false)}
-          title="Configure Transition"
+          title={selectedEdge?.data?.isCreateTransition ? "Configure Ticket Creation" : "Configure Transition"}
           size="lg"
         >
           {selectedEdge && (
             <Stack gap="md">
-              <TextInput
-                label="Transition Name"
-                value={String(selectedEdge.label || '')}
-                onChange={(e) => {
-                  const newLabel = e.target.value;
-                  const updatedEdge = {
-                    ...selectedEdge,
-                    label: newLabel
-                  };
-                  setSelectedEdge(updatedEdge);
-                  updateEdge(selectedEdge.id, { label: newLabel });
-                }}
-              />
+              {selectedEdge.data?.isCreateTransition && (
+                <Alert color="blue" variant="light">
+                  <Text size="sm">
+                    This is the ticket creation transition. Configure who can create tickets and what actions should occur.
+                  </Text>
+                </Alert>
+              )}
+              
+              {!selectedEdge.data?.isCreateTransition && (
+                <TextInput
+                  label="Transition Name"
+                  value={String(selectedEdge.label || '')}
+                  onChange={(e) => {
+                    const newLabel = e.target.value;
+                    const updatedEdge = {
+                      ...selectedEdge,
+                      label: newLabel
+                    };
+                    setSelectedEdge(updatedEdge);
+                    updateEdge(selectedEdge.id, { label: newLabel });
+                  }}
+                />
+              )}
 
               <MultiSelect
-                label="Allowed Roles"
-                placeholder="Select roles that can execute this transition"
+                label={selectedEdge.data?.isCreateTransition ? "Who can create tickets?" : "Allowed Roles"}
+                placeholder={selectedEdge.data?.isCreateTransition ? "Select roles that can create tickets" : "Select roles that can execute this transition"}
                 data={availableRoles}
                 value={selectedEdge.data?.roles || []}
                 onChange={(value) => {
@@ -558,26 +666,28 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 }}
               />
 
-              <MultiSelect
-                label="Conditions"
-                placeholder="Select conditions for this transition"
-                data={availableConditions}
-                value={selectedEdge.data?.conditions || []}
-                onChange={(value) => {
-                  const updatedEdge = {
-                    ...selectedEdge,
-                    data: { ...selectedEdge.data, conditions: value }
-                  };
-                  setSelectedEdge(updatedEdge);
-                  updateEdge(selectedEdge.id, {
-                    data: { ...selectedEdge.data, conditions: value },
-                  });
-                }}
-              />
+              {!selectedEdge.data?.isCreateTransition && (
+                <MultiSelect
+                  label="Conditions"
+                  placeholder="Select conditions for this transition"
+                  data={availableConditions}
+                  value={selectedEdge.data?.conditions || []}
+                  onChange={(value) => {
+                    const updatedEdge = {
+                      ...selectedEdge,
+                      data: { ...selectedEdge.data, conditions: value }
+                    };
+                    setSelectedEdge(updatedEdge);
+                    updateEdge(selectedEdge.id, {
+                      data: { ...selectedEdge.data, conditions: value },
+                    });
+                  }}
+                />
+              )}
 
               <MultiSelect
-                label="Actions"
-                placeholder="Select actions to execute on transition"
+                label={selectedEdge.data?.isCreateTransition ? "Actions on ticket creation" : "Actions"}
+                placeholder={selectedEdge.data?.isCreateTransition ? "Select actions to execute when ticket is created" : "Select actions to execute on transition"}
                 data={availableActions}
                 value={selectedEdge.data?.actions || []}
                 onChange={(value) => {
@@ -593,17 +703,19 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               />
 
               <Group justify="flex-end">
-                <Button
-                  variant="outline"
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={() => {
-                    deleteEdge(selectedEdge.id);
-                    setShowEdgeModal(false);
-                  }}
-                >
-                  Delete Transition
-                </Button>
+                {!selectedEdge.data?.isCreateTransition && (
+                  <Button
+                    variant="outline"
+                    color="red"
+                    leftSection={<IconTrash size={16} />}
+                    onClick={() => {
+                      deleteEdge(selectedEdge.id);
+                      setShowEdgeModal(false);
+                    }}
+                  >
+                    Delete Transition
+                  </Button>
+                )}
                 <Button onClick={() => setShowEdgeModal(false)}>
                   Close
                 </Button>

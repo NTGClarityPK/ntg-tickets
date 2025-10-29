@@ -17,6 +17,8 @@ enum UserRole {
   ADMIN
 }
 
+// Note: TicketStatus enum kept for backward compatibility
+// The tickets.status field now uses String to support custom workflow statuses
 enum TicketStatus {
   NEW
   OPEN
@@ -170,7 +172,7 @@ model Ticket {
   categoryId    String
   subcategoryId String?
   priority      TicketPriority @default(MEDIUM)
-  status        TicketStatus   @default(NEW)
+  status        String         @default("NEW") // Changed from TicketStatus enum to String to support custom workflow statuses
   impact        TicketImpact   @default(MODERATE)
   urgency       TicketUrgency  @default(NORMAL)
   slaLevel      SLALevel       @default(STANDARD)
@@ -196,6 +198,8 @@ model Ticket {
   customFields TicketCustomField[]
   workflowId    String?
   workflow      Workflow?       @relation(fields: [workflowId], references: [id])
+  workflowSnapshot Json?         // Snapshot of the workflow at ticket creation time
+  workflowVersion  Int?          // Version of the workflow when ticket was created
   workflowExecutions WorkflowExecution[]
 
   @@map("tickets")
@@ -434,9 +438,12 @@ model Workflow {
   status      WorkflowStatus @default(DRAFT)
   isDefault   Boolean        @default(false)
   isActive    Boolean        @default(true)
+  isSystemDefault Boolean    @default(false) // System default workflow - cannot be edited or deleted
+  version     Int            @default(1)
   definition  Json?          // The workflow definition JSON
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?      // Soft delete - for hiding from UI but keeping for old tickets
   createdBy   String
 
   // Relations

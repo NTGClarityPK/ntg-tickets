@@ -10,7 +10,6 @@ export default function WorkflowsPage() {
     createWorkflow,
     updateWorkflow,
     deleteWorkflow,
-    setDefaultWorkflow,
     activateWorkflow,
     deactivateWorkflow,
   } = useWorkflows();
@@ -22,7 +21,6 @@ export default function WorkflowsPage() {
       onCreateWorkflow={createWorkflow}
       onUpdateWorkflow={updateWorkflow}
       onDeleteWorkflow={deleteWorkflow}
-      onSetDefault={setDefaultWorkflow}
       onActivate={activateWorkflow}
       onDeactivate={deactivateWorkflow}
     />

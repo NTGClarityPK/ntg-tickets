@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import {
-  TicketStatus,
   TicketPriority,
   TicketCategory,
   Prisma,
@@ -240,7 +239,7 @@ export class ReportsService {
         // Handle comma-separated status values
         const statusArray = status
           .split(',')
-          .map(s => s.trim()) as TicketStatus[];
+          .map(s => s.trim());
         if (statusArray.length === 1) {
           where.status = statusArray[0];
         } else {
@@ -286,19 +285,15 @@ export class ReportsService {
           where: {
             ...where,
             status: {
-              in: [
-                TicketStatus.NEW,
-                TicketStatus.OPEN,
-                TicketStatus.IN_PROGRESS,
-              ],
+              in: ['NEW', 'OPEN', 'IN_PROGRESS'],
             },
           },
         }),
         this.prisma.ticket.count({
-          where: { ...where, status: TicketStatus.RESOLVED },
+          where: { ...where, status: 'RESOLVED' },
         }),
         this.prisma.ticket.count({
-          where: { ...where, status: TicketStatus.CLOSED },
+          where: { ...where, status: 'CLOSED' },
         }),
         this.getTicketsByCategory(where),
         this.getTicketsByPriority(where),
@@ -426,7 +421,7 @@ export class ReportsService {
     const resolvedTickets = await this.prisma.ticket.findMany({
       where: {
         ...where,
-        status: { in: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+        status: { in: ['RESOLVED', 'CLOSED'] },
         closedAt: { not: null },
       },
       select: {
@@ -452,7 +447,7 @@ export class ReportsService {
     const tickets = await this.prisma.ticket.findMany({
       where: {
         ...where,
-        status: { in: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+        status: { in: ['RESOLVED', 'CLOSED'] },
         dueDate: { not: null },
         closedAt: { not: null },
       },
@@ -478,7 +473,7 @@ export class ReportsService {
       where: {
         ...where,
         dueDate: { lt: new Date() },
-        status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+        status: { notIn: ['RESOLVED', 'CLOSED'] },
       },
     });
   }
@@ -589,7 +584,7 @@ export class ReportsService {
       const tickets = await this.prisma.ticket.findMany({
         where: {
           ...where,
-          status: { in: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+          status: { in: ['RESOLVED', 'CLOSED'] },
           closedAt: { not: null },
           createdAt: { gte: sixMonthsAgo },
         },
@@ -679,8 +674,8 @@ export class ReportsService {
         data.tickets += 1;
 
         if (
-          ticket.status === TicketStatus.RESOLVED ||
-          ticket.status === TicketStatus.CLOSED
+          ticket.status === 'RESOLVED' ||
+          ticket.status === 'CLOSED'
         ) {
           data.resolved += 1;
         }
@@ -734,7 +729,7 @@ export class ReportsService {
 
       const resolvedTickets = tickets.filter(
         t =>
-          t.status === TicketStatus.RESOLVED || t.status === TicketStatus.CLOSED
+          t.status === 'RESOLVED' || t.status === 'CLOSED'
       );
 
       // Calculate response time compliance (tickets responded to within SLA)
@@ -779,7 +774,7 @@ export class ReportsService {
       const tickets = await this.prisma.ticket.findMany({
         where: {
           assignedToId: userId,
-          status: { in: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+          status: { in: ['RESOLVED', 'CLOSED'] },
           closedAt: { not: null },
           createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
         },
@@ -810,7 +805,7 @@ export class ReportsService {
       const tickets = await this.prisma.ticket.findMany({
         where: {
           assignedToId: userId,
-          status: { in: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+          status: { in: ['RESOLVED', 'CLOSED'] },
           dueDate: { not: null },
           closedAt: { not: null },
           createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
@@ -856,7 +851,7 @@ export class ReportsService {
         // Handle comma-separated status values
         const statusArray = status
           .split(',')
-          .map(s => s.trim()) as TicketStatus[];
+          .map(s => s.trim());
         if (statusArray.length === 1) {
           where.status = statusArray[0];
         } else {
@@ -904,7 +899,7 @@ export class ReportsService {
         where: {
           ...where,
           dueDate: { lt: new Date() },
-          status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED] },
+          status: { notIn: ['RESOLVED', 'CLOSED'] },
         },
       });
 
@@ -952,7 +947,7 @@ export class ReportsService {
         // Handle comma-separated status values
         const statusArray = status
           .split(',')
-          .map(s => s.trim()) as TicketStatus[];
+          .map(s => s.trim());
         if (statusArray.length === 1) {
           where.status = statusArray[0];
         } else {

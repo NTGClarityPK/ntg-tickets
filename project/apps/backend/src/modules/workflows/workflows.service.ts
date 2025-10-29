@@ -10,41 +10,64 @@ export class WorkflowsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createWorkflowDto: CreateWorkflowDto, userId: string) {
-    const { definition, ...workflowData } = createWorkflowDto;
+    try {
+      console.log('🔧 WorkflowService.create called with:', { createWorkflowDto, userId });
+      
+      const { definition, ...workflowData } = createWorkflowDto;
 
-    // If this is set as default, unset other default workflows
-    if (workflowData.isDefault) {
-      await this.prisma.workflow.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
-      });
-    }
+      // If this is set as default, unset other default workflows
+      if (workflowData.isDefault) {
+        console.log('🔄 Unsetting other default workflows...');
+        await this.prisma.workflow.updateMany({
+          where: { isDefault: true },
+          data: { isDefault: false },
+        });
+      }
 
-    const workflow = await this.prisma.workflow.create({
-      data: {
-        ...workflowData,
-        definition: definition || {},
-        createdBy: userId,
-      },
-      include: {
-        createdByUser: {
-          select: { id: true, name: true, email: true },
+      // If this workflow is being created as ACTIVE, deactivate all other workflows
+      if (workflowData.status === WorkflowStatus.ACTIVE) {
+        console.log('🔄 Deactivating all other workflows since new workflow is ACTIVE...');
+        await this.prisma.workflow.updateMany({
+          where: { status: WorkflowStatus.ACTIVE },
+          data: { status: WorkflowStatus.INACTIVE },
+        });
+      }
+
+      console.log('💾 Creating workflow in database...');
+      const workflow = await this.prisma.workflow.create({
+        data: {
+          ...workflowData,
+          definition: definition || {},
+          createdBy: userId,
         },
-        transitions: {
-          include: {
-            conditions: true,
-            actions: true,
-            permissions: true,
+        include: {
+          createdByUser: {
+            select: { id: true, name: true, email: true },
+          },
+          transitions: {
+            include: {
+              conditions: true,
+              actions: true,
+              permissions: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return workflow;
+      console.log('✅ Workflow created successfully:', workflow.id);
+      return workflow;
+    } catch (error) {
+      console.error('❌ Error in WorkflowService.create:', error);
+      throw error;
+    }
   }
 
   async findAll() {
+    // Only return workflows that haven't been soft-deleted
     return this.prisma.workflow.findMany({
+      where: {
+        deletedAt: null,
+      },
       include: {
         createdByUser: {
           select: { id: true, name: true, email: true },
@@ -97,12 +120,17 @@ export class WorkflowsService {
   }
 
   async findDefault() {
+    // Return the currently ACTIVE workflow (there should only be one)
+    // This is what the frontend uses to check permissions
     return this.prisma.workflow.findFirst({
       where: { 
-        isDefault: true,
         status: WorkflowStatus.ACTIVE,
+        deletedAt: null, // Only return non-deleted workflows
       },
       include: {
+        createdByUser: {
+          select: { id: true, name: true, email: true },
+        },
         transitions: {
           include: {
             conditions: true,
@@ -118,6 +146,13 @@ export class WorkflowsService {
   async update(id: string, updateWorkflowDto: UpdateWorkflowDto, userId: string) {
     const existingWorkflow = await this.findOne(id);
 
+    // Prevent editing system default workflow
+    if (existingWorkflow.isSystemDefault) {
+      throw new BadRequestException(
+        'Cannot edit system default workflow. Create a new workflow instead.'
+      );
+    }
+
     // If this is set as default, unset other default workflows
     if (updateWorkflowDto.isDefault) {
       await this.prisma.workflow.updateMany({
@@ -126,6 +161,18 @@ export class WorkflowsService {
           id: { not: id },
         },
         data: { isDefault: false },
+      });
+    }
+
+    // If status is being changed to ACTIVE, deactivate all other workflows
+    if (updateWorkflowDto.status === WorkflowStatus.ACTIVE && existingWorkflow.status !== WorkflowStatus.ACTIVE) {
+      console.log('🔄 Status changing to ACTIVE, deactivating all other workflows...');
+      await this.prisma.workflow.updateMany({
+        where: { 
+          id: { not: id },
+          status: WorkflowStatus.ACTIVE,
+        },
+        data: { status: WorkflowStatus.INACTIVE },
       });
     }
 
@@ -157,25 +204,75 @@ export class WorkflowsService {
   async remove(id: string) {
     const workflow = await this.findOne(id);
 
+    // Prevent deleting system default workflow
+    if (workflow.isSystemDefault) {
+      throw new BadRequestException(
+        'Cannot delete system default workflow. It is required for the system to function.'
+      );
+    }
+
+    // If the workflow being deleted is active, we need to activate the system default
+    const wasActive = workflow.status === WorkflowStatus.ACTIVE;
+    if (wasActive) {
+      console.log('⚠️  Deleting active workflow. Activating system default workflow...');
+    }
+
     // Check if workflow is being used by any tickets
     const ticketCount = await this.prisma.ticket.count({
       where: { workflowId: id },
     });
 
+    let deletedWorkflow;
     if (ticketCount > 0) {
-      throw new BadRequestException(
-        `Cannot delete workflow. It is currently being used by ${ticketCount} ticket(s).`
-      );
+      // Soft delete: Hide from UI but keep in database for existing tickets
+      console.log(`⚠️  Workflow ${id} is used by ${ticketCount} tickets. Performing soft delete.`);
+      deletedWorkflow = await this.prisma.workflow.update({
+        where: { id },
+        data: { 
+          deletedAt: new Date(),
+          isDefault: false, // Can't be default if deleted
+          status: WorkflowStatus.INACTIVE, // Deactivate deleted workflows
+        },
+      });
+    } else {
+      // Hard delete if no tickets are using it
+      deletedWorkflow = await this.prisma.workflow.delete({
+        where: { id },
+      });
     }
 
-    return this.prisma.workflow.delete({
-      where: { id },
-    });
+    // If the deleted workflow was active, activate the system default
+    if (wasActive) {
+      const systemDefault = await this.prisma.workflow.findFirst({
+        where: { isSystemDefault: true },
+      });
+
+      if (systemDefault) {
+        console.log(`✅ Activating system default workflow: ${systemDefault.id}`);
+        await this.prisma.workflow.update({
+          where: { id: systemDefault.id },
+          data: { status: WorkflowStatus.ACTIVE },
+        });
+      }
+    }
+
+    return deletedWorkflow;
   }
 
   async activate(id: string) {
     const workflow = await this.findOne(id);
     
+    // Deactivate all other workflows (including system default) to ensure only one is active
+    console.log('🔄 Deactivating all other workflows before activating new one...');
+    await this.prisma.workflow.updateMany({
+      where: { 
+        id: { not: id },
+        status: WorkflowStatus.ACTIVE,
+      },
+      data: { status: WorkflowStatus.INACTIVE },
+    });
+    
+    console.log(`✅ Activating workflow: ${id}`);
     return this.prisma.workflow.update({
       where: { id },
       data: { status: WorkflowStatus.ACTIVE },
@@ -185,18 +282,50 @@ export class WorkflowsService {
   async deactivate(id: string) {
     const workflow = await this.findOne(id);
     
-    return this.prisma.workflow.update({
+    // Prevent deactivating system default workflow
+    if (workflow.isSystemDefault) {
+      throw new BadRequestException(
+        'Cannot deactivate system default workflow. It is required for the system to function.'
+      );
+    }
+    
+    // If the workflow being deactivated is currently active, we need to activate the system default
+    const wasActive = workflow.status === WorkflowStatus.ACTIVE;
+    
+    // Deactivate the workflow
+    const deactivatedWorkflow = await this.prisma.workflow.update({
       where: { id },
       data: { status: WorkflowStatus.INACTIVE },
     });
+    
+    // If the deactivated workflow was active, activate the system default
+    if (wasActive) {
+      console.log('⚠️  Deactivating active workflow. Activating system default workflow...');
+      const systemDefault = await this.prisma.workflow.findFirst({
+        where: { isSystemDefault: true },
+      });
+
+      if (systemDefault) {
+        console.log(`✅ Activating system default workflow: ${systemDefault.id}`);
+        await this.prisma.workflow.update({
+          where: { id: systemDefault.id },
+          data: { status: WorkflowStatus.ACTIVE },
+        });
+      }
+    }
+    
+    return deactivatedWorkflow;
   }
 
   async setAsDefault(id: string) {
     const workflow = await this.findOne(id);
 
-    // Unset other default workflows
+    // Unset other default workflows (but not system default)
     await this.prisma.workflow.updateMany({
-      where: { isDefault: true },
+      where: { 
+        isDefault: true,
+        isSystemDefault: false, // Don't unset system default
+      },
       data: { isDefault: false },
     });
 

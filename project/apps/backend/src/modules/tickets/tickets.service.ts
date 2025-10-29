@@ -8,7 +8,6 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import {
-  TicketStatus,
   TicketPriority,
   TicketImpact,
   TicketUrgency,
@@ -41,7 +40,7 @@ interface TicketFilters {
 }
 
 interface TicketUpdateData {
-  status?: TicketStatus;
+  status?: string;
   resolution?: string;
   title?: string;
   description?: string;
@@ -219,12 +218,24 @@ export class TicketsService {
     //   );
     // }
 
-    // Get default workflow
+    // Get default workflow and capture snapshot
     let defaultWorkflowId = null;
+    let workflowSnapshot = null;
+    let workflowVersion = null;
     try {
       const defaultWorkflow = await this.workflowExecutionService['workflowsService'].findDefault();
       if (defaultWorkflow) {
         defaultWorkflowId = defaultWorkflow.id;
+        // Capture the complete workflow definition at ticket creation time
+        workflowSnapshot = {
+          id: defaultWorkflow.id,
+          name: defaultWorkflow.name,
+          definition: defaultWorkflow.definition,
+          transitions: defaultWorkflow.transitions,
+          createdAt: defaultWorkflow.createdAt,
+        };
+        workflowVersion = defaultWorkflow.version || 1;
+        this.logger.log(`Captured workflow snapshot (v${workflowVersion}) for new ticket`, 'TicketsService');
       }
     } catch (error) {
       this.logger.warn('No default workflow found, ticket will be created without workflow', 'TicketsService');
@@ -245,8 +256,10 @@ export class TicketsService {
         requesterId: userId,
         assignedToId: assignedToId,
         dueDate,
-        status: TicketStatus.NEW,
+        status: 'NEW',
         workflowId: defaultWorkflowId,
+        workflowSnapshot: workflowSnapshot as any, // Store snapshot for future use
+        workflowVersion: workflowVersion,
       },
       include: {
         requester: true,
@@ -354,13 +367,11 @@ export class TicketsService {
 
     const where: Prisma.TicketWhereInput = {};
 
-    // Apply role-based filtering
-    if (userRole === 'END_USER') {
-      where.requesterId = userId;
-    } else if (userRole === 'SUPPORT_STAFF') {
-      where.OR = [{ assignedToId: userId }, { assignedToId: null }];
-    }
-    // SUPPORT_MANAGER and ADMIN can see all tickets
+    // NOTE: All roles can see all tickets on the "All Tickets" page
+    // Role-based filtering is only applied on the "My Tickets" page (findMyTickets method)
+    // This follows the requirement that:
+    // - "All Tickets" shows all tickets for everyone
+    // - "My Tickets" shows tickets created by or assigned to the user
 
     // Apply filters
     if (filters.status && filters.status.length > 0) {
@@ -521,12 +532,9 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    // Check permissions
-    if (userRole === 'END_USER' && ticket.requesterId !== userId) {
-      throw new ForbiddenException(
-        'Access denied: You can only view your own tickets'
-      );
-    }
+    // NOTE: All roles can view all tickets now (per requirements)
+    // The "My Tickets" page handles filtering for tickets created by or assigned to the user
+    // No permission check needed here - everyone can view all tickets
 
     // Transform custom fields to a simple key-value object
     const customFieldsObject: Record<string, string> = {};
@@ -764,10 +772,11 @@ export class TicketsService {
 
   async updateStatus(
     id: string,
-    status: TicketStatus,
+    status: string,
     resolution: string | undefined,
     userId: string,
-    userRole: string
+    userRole: string,
+    comment?: string,
   ) {
     this.logger.log(
       `Updating status of ticket ${id} to ${status} by user ${userId}`,
@@ -787,8 +796,8 @@ export class TicketsService {
     // END_USER can only reopen closed tickets (CLOSED → REOPENED)
     if (userRole === 'END_USER') {
       if (
-        ticket.status !== TicketStatus.CLOSED ||
-        status !== TicketStatus.REOPENED
+        ticket.status !== 'CLOSED' ||
+        status !== 'REOPENED'
       ) {
         throw new BadRequestException(
           'End users can only reopen closed tickets'
@@ -811,7 +820,7 @@ export class TicketsService {
       );
     }
 
-    // Use workflow execution service if a workflow is assigned, otherwise use legacy validation
+    // Use workflow execution service if a workflow is assigned
     if (ticket.workflowId) {
       try {
         const result = await this.workflowExecutionService.executeTicketTransition(
@@ -819,7 +828,8 @@ export class TicketsService {
           status,
           userId,
           userRole as any, // Cast to UserRole enum
-          resolution
+          comment,
+          resolution,
         );
         
         // Update in Elasticsearch
@@ -836,25 +846,22 @@ export class TicketsService {
         
         return result.ticket;
       } catch (error) {
-        this.logger.error('Workflow execution failed, falling back to legacy validation', error);
+        // If it's a validation error (BadRequestException) or permission error (ForbiddenException),
+        // we should propagate it to the user, not fall back to legacy validation
+        if (error instanceof BadRequestException || error instanceof ForbiddenException) {
+          this.logger.error(`Workflow validation failed: ${error.message}`);
+          throw error; // Rethrow to show user the validation error
+        }
+        
+        // Only fall back to legacy validation for technical errors
+        this.logger.error('Workflow execution encountered technical error, falling back to legacy validation', error);
         // Fall through to legacy validation
       }
     }
 
     // Legacy validation and update (for tickets without workflows)
-    // Validate status transition
-    if (!this.isValidStatusTransition(ticket.status, status)) {
-      throw new BadRequestException(
-        `Invalid status transition from ${ticket.status} to ${status}`
-      );
-    }
-
-    // Require resolution for resolved tickets
-    if (status === TicketStatus.RESOLVED && !resolution) {
-      throw new BadRequestException(
-        'Resolution is required for resolved tickets'
-      );
-    }
+    // Note: Status transition validation is now handled by the workflow system
+    // The frontend checks workflow permissions before allowing transitions
 
     const updateData: Prisma.TicketUpdateInput = {
       status,
@@ -865,7 +872,7 @@ export class TicketsService {
       updateData.resolution = resolution;
     }
 
-    if (status === TicketStatus.CLOSED) {
+    if (status === 'CLOSED') {
       updateData.closedAt = new Date();
     }
 
@@ -984,7 +991,6 @@ export class TicketsService {
         where: { id },
         data: {
           assignedToId,
-          status: TicketStatus.OPEN,
           updatedAt: new Date(),
         },
         include: {
@@ -1115,33 +1121,71 @@ export class TicketsService {
     return this.slaService.getBreachedSLATickets();
   }
 
-  private isValidStatusTransition(
-    currentStatus: TicketStatus,
-    newStatus: TicketStatus
-  ): boolean {
-    const validTransitions: Record<TicketStatus, TicketStatus[]> = {
-      [TicketStatus.NEW]: [TicketStatus.OPEN, TicketStatus.CLOSED],
-      [TicketStatus.OPEN]: [
-        TicketStatus.IN_PROGRESS,
-        TicketStatus.ON_HOLD,
-        TicketStatus.CLOSED,
-      ],
-      [TicketStatus.IN_PROGRESS]: [
-        TicketStatus.ON_HOLD,
-        TicketStatus.RESOLVED,
-        TicketStatus.CLOSED,
-      ],
-      [TicketStatus.ON_HOLD]: [TicketStatus.IN_PROGRESS, TicketStatus.CLOSED],
-      [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.REOPENED],
-      [TicketStatus.CLOSED]: [TicketStatus.REOPENED],
-      [TicketStatus.REOPENED]: [
-        TicketStatus.OPEN,
-        TicketStatus.IN_PROGRESS,
-        TicketStatus.CLOSED,
-      ],
-    };
+  // DEPRECATED: This method is no longer used. Status transitions are now controlled by the workflow system.
+  // Keeping it commented out for reference in case of rollback needs.
+  // private isValidStatusTransition(
+  //   currentStatus: TicketStatus,
+  //   newStatus: TicketStatus
+  // ): boolean {
+  //   const validTransitions: Record<TicketStatus, TicketStatus[]> = {
+  //     ['NEW']: ['OPEN', 'CLOSED'],
+  //     ['OPEN']: [
+  //       'IN_PROGRESS',
+  //       TicketStatus.ON_HOLD,
+  //       'CLOSED',
+  //     ],
+  //     ['IN_PROGRESS']: [
+  //       TicketStatus.ON_HOLD,
+  //       'RESOLVED',
+  //       'CLOSED',
+  //     ],
+  //     [TicketStatus.ON_HOLD]: ['IN_PROGRESS', 'CLOSED'],
+  //     ['RESOLVED']: ['CLOSED', 'REOPENED'],
+  //     ['CLOSED']: ['REOPENED'],
+  //     ['REOPENED']: [
+  //       'OPEN',
+  //       'IN_PROGRESS',
+  //       'CLOSED',
+  //     ],
+  //   };
+  //   return validTransitions[currentStatus]?.includes(newStatus) || false;
+  // }
 
-    return validTransitions[currentStatus]?.includes(newStatus) || false;
+  /**
+   * Get tickets created by or assigned to the current user (for "My Tickets" page)
+   */
+  async findMyTickets(userId: string, userRole: string) {
+    this.logger.log(
+      `Getting "My Tickets" for user ${userId} with role ${userRole}`,
+      'TicketsService'
+    );
+
+    // Show tickets created by OR assigned to the user
+    const tickets = await this.prisma.ticket.findMany({
+      where: {
+        OR: [
+          { requesterId: userId },
+          { assignedToId: userId },
+        ],
+      },
+      include: {
+        requester: true,
+        assignedTo: true,
+        category: true,
+        subcategory: true,
+        _count: {
+          select: {
+            comments: true,
+            attachments: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return tickets;
   }
 
   async getMyTickets(userId: string, filters: TicketFilters) {
@@ -1402,33 +1446,6 @@ export class TicketsService {
     return changes;
   }
 
-  async findMyTickets(userId: string, userRole: string) {
-    // Build where clause based on user role
-    let whereClause;
-    if (userRole === 'END_USER') {
-      // End users can only see tickets they created
-      whereClause = { requesterId: userId };
-    } else if (
-      ['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)
-    ) {
-      // Support staff can see tickets they created or are assigned to
-      whereClause = { OR: [{ requesterId: userId }, { assignedToId: userId }] };
-    } else {
-      throw new BadRequestException('Invalid user role');
-    }
-
-    return this.prisma.ticket.findMany({
-      where: whereClause,
-      include: {
-        requester: { select: { id: true, name: true, email: true } },
-        assignedTo: { select: { id: true, name: true, email: true } },
-        category: true,
-        subcategory: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
   async findAssignedTickets(userId: string, userRole: string) {
     // Only support staff can see assigned tickets
     if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
@@ -1468,9 +1485,9 @@ export class TicketsService {
             where: {
               status: {
                 in: [
-                  TicketStatus.NEW,
-                  TicketStatus.OPEN,
-                  TicketStatus.IN_PROGRESS,
+                  'NEW',
+                  'OPEN',
+                  'IN_PROGRESS',
                 ],
               },
               // Prefer staff who have worked on similar categories and subcategories
@@ -1526,7 +1543,7 @@ export class TicketsService {
 
       const ticketsToClose = await this.prisma.ticket.findMany({
         where: {
-          status: TicketStatus.RESOLVED,
+          status: 'RESOLVED',
           updatedAt: {
             lte: cutoffDate,
           },
@@ -1541,7 +1558,7 @@ export class TicketsService {
         await this.prisma.ticket.update({
           where: { id: ticket.id },
           data: {
-            status: TicketStatus.CLOSED,
+            status: 'CLOSED',
             closedAt: new Date(),
           },
         });

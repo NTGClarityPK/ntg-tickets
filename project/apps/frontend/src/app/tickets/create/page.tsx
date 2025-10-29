@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { notifications } from '@mantine/notifications';
 import { DynamicTicketForm } from '../../../components/forms/DynamicTicketForm';
-import { DynamicTicketFormValues, UserRole } from '../../../types/unified';
+import { DynamicTicketFormValues } from '../../../types/unified';
 import { ticketApi, CreateTicketInput } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../stores/useAuthStore';
+import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 
 export default function CreateTicketPage() {
   const router = useRouter();
   const { status } = useSession();
   const { user } = useAuthStore();
+  const { canCreate, loading: checkingPermission } = useCanCreateTicket();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,16 +25,21 @@ export default function CreateTicketPage() {
         color: 'red',
       });
       router.push('/auth/signin');
-    } else if (user && user.activeRole !== UserRole.END_USER) {
+    }
+  }, [status, router]);
+
+  // Check workflow-based permissions after hook has loaded
+  useEffect(() => {
+    if (!checkingPermission && user && !canCreate) {
       notifications.show({
         title: 'Access Denied',
         message:
-          'Only end users can create tickets. Please switch to your end user role.',
+          'You do not have permission to create tickets according to the current workflow configuration.',
         color: 'red',
       });
       router.push('/dashboard');
     }
-  }, [status, user, router]);
+  }, [checkingPermission, canCreate, user, router]);
 
   const handleSubmit = async (values: DynamicTicketFormValues) => {
     setLoading(true);
@@ -75,12 +82,16 @@ export default function CreateTicketPage() {
     }
   };
 
-  if (status === 'loading') {
+  if (status === 'loading' || checkingPermission) {
     return <div>Loading...</div>;
   }
 
   if (status === 'unauthenticated') {
     return <div>Redirecting to login...</div>;
+  }
+
+  if (!canCreate) {
+    return <div>Checking permissions...</div>;
   }
 
   return <DynamicTicketForm onSubmit={handleSubmit} loading={loading} />;

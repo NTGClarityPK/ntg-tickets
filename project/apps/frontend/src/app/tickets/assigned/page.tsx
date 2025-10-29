@@ -47,6 +47,7 @@ import { SimpleFiltersModal } from '../../../components/forms/SimpleFiltersModal
 import { useSearch } from '../../../hooks/useSearch';
 import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 
 function AssignedTicketsPageContent() {
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
@@ -69,6 +70,7 @@ function AssignedTicketsPageContent() {
   };
   const router = useRouter();
   const { user } = useAuthStore();
+  const { canCreate: canCreateTicket } = useCanCreateTicket();
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [simpleFiltersOpen, setSimpleFiltersOpen] = useState(false);
@@ -320,9 +322,11 @@ function AssignedTicketsPageContent() {
             <Text c='dimmed' ta='center'>
               No tickets match your current filters.
             </Text>
-            <Button onClick={() => router.push('/tickets/create')}>
-              Create New Ticket
-            </Button>
+            {canCreateTicket && (
+              <Button onClick={() => router.push('/tickets/create')}>
+                Create New Ticket
+              </Button>
+            )}
           </Stack>
         </Card>
       )}

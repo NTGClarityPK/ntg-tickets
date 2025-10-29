@@ -94,16 +94,6 @@ export function BulkActionsBar({
   }));
 
   const handleBulkStatusUpdate = () => {
-    // Validate that resolution is provided for RESOLVED status
-    if (newStatus === 'RESOLVED' && !bulkNote.trim()) {
-      notifications.show({
-        title: 'Validation Error',
-        message: 'Resolution is required for RESOLVED status',
-        color: 'red',
-      });
-      return;
-    }
-
     // Check for invalid status transitions
     const invalidTransitions: Array<{
       ticketNumber: string;
@@ -312,7 +302,7 @@ export function BulkActionsBar({
           <Textarea
             label={
               newStatus === 'RESOLVED'
-                ? 'Resolution (required)'
+                ? 'Resolution (optional)'
                 : 'Note (optional)'
             }
             placeholder={
@@ -323,7 +313,6 @@ export function BulkActionsBar({
             value={bulkNote}
             onChange={e => setBulkNote(e.target.value)}
             minRows={3}
-            required={newStatus === 'RESOLVED'}
           />
           <Group justify='flex-end'>
             <Button variant='outline' onClick={() => setStatusModalOpen(false)}>
@@ -332,7 +321,6 @@ export function BulkActionsBar({
             <Button
               onClick={handleBulkStatusUpdate}
               loading={isProcessing}
-              disabled={newStatus === 'RESOLVED' && !bulkNote.trim()}
             >
               Update Status
             </Button>

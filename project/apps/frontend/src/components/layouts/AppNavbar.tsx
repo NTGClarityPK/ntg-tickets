@@ -21,7 +21,6 @@ import {
   IconBell,
   IconFileText,
   IconClipboardList,
-  IconUserCheck,
   IconMail,
   IconClock,
   IconExclamationMark,
@@ -31,8 +30,6 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { useTicketsStore } from '../../stores/useTicketsStore';
 import { useNotificationsStore } from '../../stores/useNotificationsStore';
 import {
-  useMyTickets,
-  useAssignedTickets,
   useAllTicketsForCounting,
 } from '../../hooks/useTickets';
 import { useRouter, usePathname } from 'next/navigation';
@@ -41,6 +38,7 @@ import { ComponentType } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { useCanCreateTicket } from '../../hooks/useCanCreateTicket';
 
 interface AppNavbarProps {
   onMobileClose?: () => void;
@@ -57,10 +55,9 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
   const { user, hasRole, hasAnyRole } = useAuthStore();
   const { tickets } = useTicketsStore();
   const { unreadCount } = useNotificationsStore();
+  const { canCreate: canCreateTicket } = useCanCreateTicket();
 
   // Use React Query hooks for accurate counts
-  const { data: myTicketsData } = useMyTickets();
-  const { data: assignedTicketsData } = useAssignedTickets();
   const { data: allTicketsData } = useAllTicketsForCounting();
 
   // Navigation state for collapsible sections
@@ -71,16 +68,6 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
   const safeTickets = Array.isArray(tickets) ? tickets : [];
 
   // Use React Query data for accurate counts, fallback to store data
-  const myTickets =
-    myTicketsData ||
-    (user
-      ? safeTickets.filter((t: Ticket) => t.requester?.id === user.id)
-      : []);
-  const assignedTickets =
-    assignedTicketsData ||
-    (user
-      ? safeTickets.filter((t: Ticket) => t.assignedTo?.id === user.id)
-      : []);
   const allTickets = allTicketsData || safeTickets;
 
   // Debug logging removed for production
@@ -133,42 +120,17 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       label: tTickets('allTickets'),
       icon: IconTicket,
       href: '/tickets',
-      show: hasAnyRole(['SUPPORT_MANAGER', 'ADMIN']), // Only for managers and admins
+      show: true, // Show for all roles
       badge: allTickets.length,
-    },
-    {
-      label: 'New Tickets',
-      icon: IconFileText,
-      href: '/tickets/new',
-      show: hasRole('SUPPORT_MANAGER'), // Only for support managers
-      badge: safeTickets.filter((t: Ticket) => t.status === 'NEW').length,
     },
     {
       label: tTickets('myTickets'),
       icon: IconFileText,
       href: '/tickets/my',
-      show: hasRole('END_USER'), // Only for end users
-      badge: myTickets.length,
-    },
-    {
-      label: tTickets('assignedTickets'),
-      icon: IconUserCheck,
-      href: '/tickets/assigned',
-      show: hasRole('SUPPORT_STAFF'), // Only for support staff
-      badge: assignedTickets.length,
-    },
-    {
-      label: tTickets('overdueTickets'),
-      icon: IconClock,
-      href: '/tickets/overdue',
-      show: hasRole('SUPPORT_MANAGER'), // Only for support managers
-      badge: safeTickets.filter((t: Ticket) => {
-        if (!t.dueDate) return false;
-        return (
-          new Date(t.dueDate) < new Date() &&
-          !['RESOLVED', 'CLOSED'].includes(t.status)
-        );
-      }).length,
+      show: true, // Show for all roles - tickets created by or assigned to them
+      badge: user ? safeTickets.filter((t: Ticket) => 
+        t.requester?.id === user.id || t.assignedTo?.id === user.id
+      ).length : 0,
     },
     {
       label: tTickets('slaBreached'),
@@ -181,7 +143,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       label: tTickets('createTicket'),
       icon: IconPlus,
       href: '/tickets/create',
-      show: hasRole('END_USER'),
+      show: canCreateTicket, // Show based on workflow permissions
     },
   ];
 

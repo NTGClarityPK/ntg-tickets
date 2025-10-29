@@ -69,14 +69,6 @@ export const validateStatusUpdate = (
     }
   }
 
-  // Check if resolution is required for RESOLVED status
-  if (newStatus === TicketStatus.RESOLVED && !resolution?.trim()) {
-    return {
-      isValid: false,
-      errorMessage: 'Resolution is required when setting status to RESOLVED',
-    };
-  }
-
   return { isValid: true };
 };
 

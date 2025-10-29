@@ -27,7 +27,6 @@ import {
   IconTrash,
   IconCheck,
   IconX,
-  IconStar,
   IconStarFilled,
   IconSettings,
   IconEye,
@@ -36,58 +35,7 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { WorkflowEditor } from './WorkflowEditor';
-
-interface Workflow {
-  id: string;
-  name: string;
-  description?: string;
-  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
-  isDefault: boolean;
-  isActive: boolean;
-  definition?: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  createdByUser: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  transitions?: Array<{
-    id: string;
-    fromState: string;
-    toState: string;
-    name: string;
-    description?: string;
-    order: number;
-    isActive: boolean;
-    conditions: Array<{
-      id: string;
-      type: string;
-      value?: string;
-      isActive: boolean;
-    }>;
-    actions: Array<{
-      id: string;
-      type: string;
-      config: Record<string, unknown>;
-      isActive: boolean;
-    }>;
-    permissions: Array<{
-      id: string;
-      role: string;
-      canExecute: boolean;
-      isActive: boolean;
-    }>;
-  }>;
-}
-
-interface WorkflowData {
-  name: string;
-  description?: string;
-  isDefault?: boolean;
-  definition?: Record<string, unknown>;
-}
+import { Workflow, WorkflowData } from '../../lib/apiClient';
 
 interface WorkflowListProps {
   workflows: Workflow[];
@@ -95,7 +43,6 @@ interface WorkflowListProps {
   onCreateWorkflow: (workflow: WorkflowData) => void;
   onUpdateWorkflow: (id: string, workflow: WorkflowData) => void;
   onDeleteWorkflow: (id: string) => void;
-  onSetDefault: (id: string) => void;
   onActivate: (id: string) => void;
   onDeactivate: (id: string) => void;
 }
@@ -106,12 +53,13 @@ export function WorkflowList({
   onCreateWorkflow,
   onUpdateWorkflow,
   onDeleteWorkflow,
-  onSetDefault,
   onActivate,
   onDeactivate,
 }: WorkflowListProps) {
   const [showEditor, setShowEditor] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
+  const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -131,6 +79,11 @@ export function WorkflowList({
   const handleEditWorkflow = (workflow: Workflow) => {
     setEditingWorkflow(workflow);
     setShowEditor(true);
+  };
+
+  const handleViewWorkflow = (workflow: Workflow) => {
+    setViewingWorkflow(workflow);
+    setShowViewModal(true);
   };
 
   const handleSaveWorkflow = (workflowData: WorkflowData) => {
@@ -228,7 +181,14 @@ export function WorkflowList({
                         <Stack gap={4}>
                           <Group gap="xs">
                             <Text fw={500}>{workflow.name}</Text>
-                            {workflow.isDefault && (
+                            {workflow.isSystemDefault && (
+                              <Tooltip label="System Default - Cannot be edited or deleted">
+                                <Badge size="xs" color="gray" variant="outline">
+                                  System
+                                </Badge>
+                              </Tooltip>
+                            )}
+                            {workflow.isDefault && !workflow.isSystemDefault && (
                               <Tooltip label="Default Workflow">
                                 <IconStarFilled size={16} color="#ffd700" />
                               </Tooltip>
@@ -259,17 +219,19 @@ export function WorkflowList({
                       </Table.Td>
                       <Table.Td>
                         <Group gap="xs">
-                          <Tooltip label="Edit Workflow">
+                          <Tooltip label={workflow.isSystemDefault ? "System default cannot be edited" : "Edit Workflow"}>
                             <ActionIcon
                               variant="subtle"
-                              onClick={() => handleEditWorkflow(workflow)}
+                              onClick={() => !workflow.isSystemDefault && handleEditWorkflow(workflow)}
+                              disabled={workflow.isSystemDefault}
+                              style={{ cursor: workflow.isSystemDefault ? 'not-allowed' : 'pointer' }}
                             >
                               <IconEdit size={16} />
                             </ActionIcon>
                           </Tooltip>
                           
                           <Tooltip label="View Details">
-                            <ActionIcon variant="subtle">
+                            <ActionIcon variant="subtle" onClick={() => handleViewWorkflow(workflow)}>
                               <IconEye size={16} />
                             </ActionIcon>
                           </Tooltip>
@@ -281,28 +243,30 @@ export function WorkflowList({
                               </ActionIcon>
                             </Menu.Target>
                             <Menu.Dropdown>
-                              {!workflow.isDefault && (
-                                <Menu.Item
-                                  leftSection={<IconStar size={16} />}
-                                  onClick={() => onSetDefault(workflow.id)}
-                                >
-                                  Set as Default
-                                </Menu.Item>
-                              )}
-                              
-                              {workflow.status === 'ACTIVE' ? (
+                              {workflow.status === 'ACTIVE' && !workflow.isSystemDefault && (
                                 <Menu.Item
                                   leftSection={<IconX size={16} />}
                                   onClick={() => onDeactivate(workflow.id)}
                                 >
                                   Deactivate
                                 </Menu.Item>
-                              ) : (
+                              )}
+                              
+                              {workflow.status === 'INACTIVE' && (
                                 <Menu.Item
                                   leftSection={<IconCheck size={16} />}
                                   onClick={() => onActivate(workflow.id)}
                                 >
                                   Activate
+                                </Menu.Item>
+                              )}
+                              
+                              {workflow.status === 'ACTIVE' && workflow.isSystemDefault && (
+                                <Menu.Item
+                                  disabled
+                                  leftSection={<IconX size={16} />}
+                                >
+                                  Deactivate (System Default)
                                 </Menu.Item>
                               )}
                               
@@ -322,13 +286,24 @@ export function WorkflowList({
                               
                               <Divider />
                               
-                              <Menu.Item
-                                color="red"
-                                leftSection={<IconTrash size={16} />}
-                                onClick={() => setDeleteModalOpen(workflow.id)}
-                              >
-                                Delete
-                              </Menu.Item>
+                              {!workflow.isSystemDefault && (
+                                <Menu.Item
+                                  color="red"
+                                  leftSection={<IconTrash size={16} />}
+                                  onClick={() => setDeleteModalOpen(workflow.id)}
+                                >
+                                  Delete
+                                </Menu.Item>
+                              )}
+                              
+                              {workflow.isSystemDefault && (
+                                <Menu.Item
+                                  disabled
+                                  leftSection={<IconTrash size={16} />}
+                                >
+                                  Delete (System Default)
+                                </Menu.Item>
+                              )}
                             </Menu.Dropdown>
                           </Menu>
                         </Group>
@@ -394,7 +369,30 @@ export function WorkflowList({
             </Group>
           </Stack>
         </Modal>
+
+        {/* View Workflow Modal */}
+        <Modal
+          opened={showViewModal}
+          onClose={() => {
+            setShowViewModal(false);
+            setViewingWorkflow(null);
+          }}
+          title={viewingWorkflow ? `View Workflow: ${viewingWorkflow.name}` : 'View Workflow'}
+          size="95%"
+          centered
+        >
+          {viewingWorkflow && (
+            <WorkflowEditor
+              workflow={viewingWorkflow}
+              onCancel={() => {
+                setShowViewModal(false);
+                setViewingWorkflow(null);
+              }}
+            />
+          )}
+        </Modal>
       </Stack>
     </Container>
   );
 }
+

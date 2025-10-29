@@ -310,8 +310,8 @@ export const ticketApi = {
       assignedToId,
     }),
 
-  updateStatus: (id: string, status: string, resolution?: string) => {
-    const requestData = { status, resolution };
+  updateStatus: (id: string, status: string, resolution?: string, comment?: string) => {
+    const requestData = { status, resolution, comment };
     return apiClient.patch<ApiResponse<Ticket>>(
       `/tickets/${id}/status`,
       requestData
@@ -828,19 +828,73 @@ export const integrationsApi = {
     ),
 };
 
+// ===== WORKFLOW TYPES =====
+export interface Workflow {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
+  isDefault?: boolean;
+  isActive?: boolean;
+  isSystemDefault?: boolean;
+  definition?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  createdByUser: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  transitions?: Array<{
+    id: string;
+    fromState: string;
+    toState: string;
+    name: string;
+    description?: string;
+    order: number;
+    isActive: boolean;
+    conditions: Array<{
+      id: string;
+      type: string;
+      value?: string;
+      isActive: boolean;
+    }>;
+    actions: Array<{
+      id: string;
+      type: string;
+      config: Record<string, unknown>;
+      isActive: boolean;
+    }>;
+    permissions: Array<{
+      id: string;
+      role: string;
+      canExecute: boolean;
+      isActive: boolean;
+    }>;
+  }>;
+}
+
+export interface WorkflowData {
+  name: string;
+  description?: string;
+  status?: string;
+  definition?: Record<string, unknown>;
+}
+
 // ===== WORKFLOWS API =====
 export const workflowsApi = {
   getWorkflows: () =>
-    apiClient.get<ApiResponse<any[]>>('/workflows'),
+    apiClient.get<ApiResponse<Workflow[]>>('/workflows'),
 
   getWorkflow: (id: string) =>
-    apiClient.get<ApiResponse<any>>(`/workflows/${id}`),
+    apiClient.get<ApiResponse<Workflow>>(`/workflows/${id}`),
 
-  createWorkflow: (data: any) =>
-    apiClient.post<ApiResponse<any>>('/workflows', data),
+  createWorkflow: (data: WorkflowData) =>
+    apiClient.post<ApiResponse<Workflow>>('/workflows', data),
 
-  updateWorkflow: (id: string, data: any) =>
-    apiClient.patch<ApiResponse<any>>(`/workflows/${id}`, data),
+  updateWorkflow: (id: string, data: WorkflowData) =>
+    apiClient.patch<ApiResponse<Workflow>>(`/workflows/${id}`, data),
 
   deleteWorkflow: (id: string) =>
     apiClient.delete<ApiResponse<void>>(`/workflows/${id}`),
@@ -855,7 +909,7 @@ export const workflowsApi = {
     apiClient.patch<ApiResponse<void>>(`/workflows/${id}/deactivate`),
 
   getDefaultWorkflow: () =>
-    apiClient.get<ApiResponse<any>>('/workflows/default'),
+    apiClient.get<ApiResponse<Workflow>>('/workflows/default'),
 };
 
 // ===== THEME SETTINGS API =====

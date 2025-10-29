@@ -79,6 +79,7 @@ import {
 import { useCreateComment } from '../../../hooks/useComments';
 import { useUsers, useSupportStaff } from '../../../hooks/useUsers';
 import { useAuthStore } from '../../../stores/useAuthStore';
+import { useWorkflowTransitions } from '../../../hooks/useWorkflowTransitions';
 
 import { notifications } from '@mantine/notifications';
 import { formatDistanceToNow } from 'date-fns';
@@ -128,7 +129,7 @@ export default function TicketDetailPage() {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<TicketStatus>(TicketStatus.NEW);
-  const [resolution, setResolution] = useState('');
+  const [statusComment, setStatusComment] = useState(''); // Comment for status changes
   const [newComment, setNewComment] = useState('');
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [activeTab, setActiveTab] = useState<string | null>('details');
@@ -143,6 +144,14 @@ export default function TicketDetailPage() {
   const updateStatusMutation = useUpdateTicketStatus();
   const assignTicketMutation = useAssignTicket();
   const addCommentMutation = useCreateComment();
+  
+  // Get workflow-based transitions for the current ticket status
+  // Pass workflowSnapshot if ticket has one (for tickets created with older workflow versions)
+  const { 
+    availableStatuses, 
+    canTransitionToAny, 
+    loading: transitionsLoading 
+  } = useWorkflowTransitions(ticket?.status, ticket?.workflowSnapshot);
 
   // Helper function to resolve user ID to name
   const getUserName = (userId: string | null): string => {
@@ -176,54 +185,13 @@ export default function TicketDetailPage() {
     user?.activeRole as 'ADMIN'
   );
 
-  const handleReopenTicket = async () => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        id: ticketId,
-        status: 'REOPENED',
-        resolution: undefined,
-        currentStatus: ticket?.status || '',
-        userRole: user?.activeRole,
-      });
-      notifications.show({
-        title: 'Success',
-        message: 'Ticket reopened successfully',
-        color: 'green',
-      });
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to reopen ticket',
-        color: 'red',
-      });
-    }
-  };
-
   const handleStatusUpdate = async () => {
-    // Check if user is trying to resolve/close ticket but doesn't have permission
-    if (
-      (newStatus === 'RESOLVED' || newStatus === 'CLOSED') &&
-      user?.activeRole !== 'SUPPORT_STAFF' &&
-      user?.activeRole !== 'SUPPORT_MANAGER' &&
-      user?.activeRole !== 'ADMIN'
-    ) {
+    // Check if the user can transition to the selected status based on workflow
+    if (!availableStatuses.includes(newStatus)) {
       notifications.show({
         title: 'Access Denied',
         message:
-          'Only support staff, managers, and admins can resolve or close tickets',
-        color: 'red',
-      });
-      return;
-    }
-
-    // Check if end user is trying to do anything other than reopen closed tickets
-    if (
-      user?.activeRole === 'END_USER' &&
-      !(ticket?.status === 'CLOSED' && newStatus === 'REOPENED')
-    ) {
-      notifications.show({
-        title: 'Access Denied',
-        message: 'End users can only reopen closed tickets',
+          'You do not have permission to transition to this status according to the workflow configuration.',
         color: 'red',
       });
       return;
@@ -235,25 +203,41 @@ export default function TicketDetailPage() {
       await updateStatusMutation.mutateAsync({
         id: ticketId,
         status: newStatus,
-        resolution: resolution || undefined,
+        comment: statusComment || undefined,
         currentStatus: ticket?.status || '',
         userRole: user?.activeRole,
       });
+
+      // If a comment was provided, add it to the ticket comments
+      if (statusComment?.trim()) {
+        try {
+          await addCommentMutation.mutateAsync({
+            ticketId,
+            content: statusComment,
+            isInternal: false,
+          });
+        } catch {
+          // Don't block the status update if comment fails
+        }
+      }
+
       notifications.show({
         title: 'Success',
         message: 'Ticket status updated successfully',
         color: 'green',
       });
       setStatusModalOpen(false);
-      setResolution('');
+      setStatusComment('');
     } catch (error) {
-      // Error logging removed for production
+      // Extract error message from API response
+      const errorMessage = 
+        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || 
+        (error as Error)?.message || 
+        'Failed to update ticket status';
+      
       notifications.show({
         title: 'Error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to update ticket status',
+        message: errorMessage,
         color: 'red',
       });
     }
@@ -795,34 +779,28 @@ export default function TicketDetailPage() {
                     ))}
                   </>
                 )}
-                {canEdit && (
-                  <>
-                    {/* Show "Reopen Ticket" button for End Users with closed tickets */}
-                    {user?.activeRole === 'END_USER' &&
-                    ticket?.status === 'CLOSED' ? (
+                {!transitionsLoading && canTransitionToAny && (
                       <Button
                         variant='light'
                         size='sm'
-                        color='green'
-                        onClick={handleReopenTicket}
-                        loading={updateStatusMutation.isPending}
-                      >
-                        Reopen Ticket
+                    onClick={() => {
+                      setNewStatus(ticket.status as TicketStatus);
+                      setStatusComment('');
+                      setStatusModalOpen(true);
+                    }}
+                  >
+                    Update Status
                       </Button>
-                    ) : (
-                      /* Show "Update Status" button for other roles */
+                )}
+                {!transitionsLoading && !canTransitionToAny && (
                       <Button
                         variant='light'
                         size='sm'
-                        onClick={() => {
-                          setNewStatus(ticket.status as TicketStatus);
-                          setStatusModalOpen(true);
-                        }}
+                    disabled
+                    title="No transitions available from current status"
                       >
                         Update Status
                       </Button>
-                    )}
-                  </>
                 )}
               </Stack>
             </Card>
@@ -958,48 +936,42 @@ export default function TicketDetailPage() {
       {/* Status Update Modal */}
       <Modal
         opened={statusModalOpen}
-        onClose={() => setStatusModalOpen(false)}
+        onClose={() => {
+          setStatusModalOpen(false);
+          setStatusComment('');
+        }}
         title='Update Ticket Status'
         centered
       >
         <Stack gap='md'>
           <Select
             label='New Status'
-            data={
-              user?.activeRole === 'END_USER' && ticket?.status === 'CLOSED'
-                ? [{ value: 'REOPENED', label: 'Reopened' }]
-                : Object.values(TicketStatus).map(status => ({
+            placeholder='Select a status to transition to'
+            data={availableStatuses.map(status => ({
                     value: status,
-                    label: status?.replace('_', ' ') || status,
-                  }))
-            }
+              label: status.replace('_', ' '),
+            }))}
             value={newStatus}
             onChange={value => setNewStatus(value as TicketStatus)}
           />
-          {(newStatus === 'RESOLVED' || newStatus === 'CLOSED') && (
-            <Textarea
-              label={
-                <span>
-                  Resolution Notes <span style={{ color: 'red' }}>*</span>
-                </span>
-              }
-              placeholder='Describe how the issue was resolved...'
-              value={resolution}
-              onChange={e => setResolution(e.target.value)}
-              minRows={3}
-            />
-          )}
+          <Textarea
+            label='Comment'
+            description='Provide a reason or note for this status change (may be required by workflow)'
+            placeholder='Add a comment about this status change...'
+            value={statusComment}
+            onChange={e => setStatusComment(e.target.value)}
+            minRows={2}
+          />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setStatusModalOpen(false)}>
+            <Button variant='outline' onClick={() => {
+              setStatusModalOpen(false);
+              setStatusComment('');
+            }}>
               Cancel
             </Button>
             <Button
               onClick={handleStatusUpdate}
               loading={updateStatusMutation.isPending}
-              disabled={
-                (newStatus === 'RESOLVED' || newStatus === 'CLOSED') &&
-                !resolution?.trim()
-              }
             >
               Update Status
             </Button>

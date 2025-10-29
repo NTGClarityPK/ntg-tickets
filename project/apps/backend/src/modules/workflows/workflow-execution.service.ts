@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { WorkflowsService } from './workflows.service';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class WorkflowExecutionService {
@@ -12,10 +12,11 @@ export class WorkflowExecutionService {
 
   async executeTicketTransition(
     ticketId: string,
-    newStatus: TicketStatus,
+    newStatus: string,
     userId: string,
     userRole: UserRole,
     comment?: string,
+    resolution?: string,
   ) {
     // Get the ticket with its current workflow
     const ticket = await this.prisma.ticket.findUnique({
@@ -68,46 +69,100 @@ export class WorkflowExecutionService {
       });
     }
 
-    // Check if the transition is allowed
-    const canTransition = await this.workflowsService.canExecuteTransition(
-      workflow.id,
-      ticket.status,
-      newStatus,
-      userRole,
-    );
-
-    if (!canTransition) {
-      throw new ForbiddenException(
-        `Transition from ${ticket.status} to ${newStatus} is not allowed for your role`
-      );
-    }
-
-    // Find the transition details
-    const transition = await this.prisma.workflowTransition.findFirst({
-      where: {
-        workflowId: workflow.id,
+    // Find the transition details from the workflow definition (for visual workflows)
+    // or from the database table (for legacy workflows)
+    let transition = null;
+    let transitionConditions = [];
+    
+    // Check if workflow has a definition (visual workflow)
+    if (workflow.definition && workflow.definition['edges']) {
+      const definition = workflow.definition as any;
+      
+      // Normalize status names for comparison
+      const normalizeStatus = (status: string) => status.toLowerCase().replace(/\s+/g, '_');
+      const normalizedCurrentStatus = normalizeStatus(ticket.status);
+      const normalizedNewStatus = normalizeStatus(newStatus);
+      
+      // Find the edge/transition in the definition
+      const edge = definition.edges.find((e: any) => {
+        // Skip create transitions
+        if (e.source === 'create' || e.data?.isCreateTransition) {
+          return false;
+        }
+        
+        // Check if source matches current status
+        const edgeSource = normalizeStatus(e.source);
+        const edgeTarget = normalizeStatus(e.target);
+        
+        // Also check node labels
+        const sourceNode = definition.nodes?.find((n: any) => n.id === e.source);
+        const targetNode = definition.nodes?.find((n: any) => n.id === e.target);
+        
+        const sourceLabel = sourceNode?.data?.label ? normalizeStatus(sourceNode.data.label) : edgeSource;
+        const targetLabel = targetNode?.data?.label ? normalizeStatus(targetNode.data.label) : edgeTarget;
+        
+        return (edgeSource === normalizedCurrentStatus || sourceLabel === normalizedCurrentStatus) &&
+               (edgeTarget === normalizedNewStatus || targetLabel === normalizedNewStatus);
+      });
+      
+      if (!edge) {
+        throw new BadRequestException(`No transition defined from ${ticket.status} to ${newStatus} in the workflow`);
+      }
+      
+      // Check if user's role is allowed
+      const allowedRoles = edge.data?.roles || [];
+      if (!allowedRoles.includes(userRole)) {
+        throw new ForbiddenException(
+          `Transition from ${ticket.status} to ${newStatus} is not allowed for your role`
+        );
+      }
+      
+      // Extract conditions from edge data
+      const edgeConditions = edge.data?.conditions || [];
+      transitionConditions = edgeConditions.map((condition: string) => ({
+        type: condition,
+        isActive: true,
+      }));
+      
+      // Create a pseudo-transition object for compatibility
+      transition = {
+        id: `visual-${edge.id}`,
+        name: edge.label || `${ticket.status} to ${newStatus}`,
         fromState: ticket.status,
         toState: newStatus,
-        isActive: true,
-        permissions: {
-          some: {
-            role: userRole,
-            canExecute: true,
+        conditions: transitionConditions,
+        actions: [], // Visual workflows don't have actions yet
+      };
+    } else {
+      // Legacy: Check database table for transitions
+      transition = await this.prisma.workflowTransition.findFirst({
+        where: {
+          workflowId: workflow.id,
+          fromState: ticket.status,
+          toState: newStatus,
+          isActive: true,
+          permissions: {
+            some: {
+              role: userRole,
+              canExecute: true,
+            },
           },
         },
-      },
-      include: {
-        conditions: true,
-        actions: true,
-      },
-    });
+        include: {
+          conditions: true,
+          actions: true,
+        },
+      });
 
-    if (!transition) {
-      throw new BadRequestException('Transition not found or not allowed');
+      if (!transition) {
+        throw new BadRequestException('Transition not found or not allowed');
+      }
+      
+      transitionConditions = transition.conditions;
     }
 
-    // Check conditions
-    await this.validateTransitionConditions(ticket, transition.conditions);
+    // Check conditions (pass comment and resolution for validation)
+    await this.validateTransitionConditions(ticket, transitionConditions, comment, resolution);
 
     // Execute the transition
     const execution = await this.prisma.workflowExecution.create({
@@ -128,7 +183,7 @@ export class WorkflowExecutionService {
       data: {
         status: newStatus,
         updatedAt: new Date(),
-        ...(newStatus === TicketStatus.CLOSED && { closedAt: new Date() }),
+        ...(newStatus === 'CLOSED' && { closedAt: new Date() }),
       },
       include: {
         requester: {
@@ -157,6 +212,26 @@ export class WorkflowExecutionService {
       },
     });
 
+    // If a comment was provided, add it to the ticket
+    if (comment && comment.trim().length > 0) {
+      await this.prisma.comment.create({
+        data: {
+          ticketId,
+          userId,
+          content: comment,
+          isInternal: false, // Transition comments are visible to all
+        },
+      });
+    }
+
+    // If resolution was provided, update the ticket
+    if (resolution && resolution.trim().length > 0 && !ticket.resolution) {
+      await this.prisma.ticket.update({
+        where: { id: ticketId },
+        data: { resolution },
+      });
+    }
+
     return {
       ticket: updatedTicket,
       execution,
@@ -172,34 +247,58 @@ export class WorkflowExecutionService {
   private async validateTransitionConditions(
     ticket: any,
     conditions: any[],
+    comment?: string,
+    resolution?: string,
   ): Promise<void> {
     for (const condition of conditions) {
-      if (!condition.isRequired) continue;
+      if (!condition.isActive) continue;
 
       switch (condition.type) {
         case 'REQUIRES_COMMENT':
-          // This should be checked at the API level before calling this service
+          if (!comment || comment.trim().length === 0) {
+            throw new BadRequestException(
+              'A comment is required to perform this transition. Please provide a reason or note for the status change.'
+            );
+          }
           break;
         case 'REQUIRES_RESOLUTION':
-          if (!ticket.resolution) {
-            throw new BadRequestException('Resolution is required for this transition');
+          const currentResolution = resolution || ticket.resolution;
+          if (!currentResolution || currentResolution.trim().length === 0) {
+            throw new BadRequestException(
+              'A resolution description is required for this transition. Please describe how the issue was resolved.'
+            );
           }
           break;
         case 'REQUIRES_ASSIGNMENT':
           if (!ticket.assignedToId) {
-            throw new BadRequestException('Ticket must be assigned before this transition');
+            throw new BadRequestException(
+              'This ticket must be assigned to a team member before this transition can be performed.'
+            );
           }
           break;
         case 'REQUIRES_APPROVAL':
           // This would need to be implemented based on your approval system
+          // Check if ticket has an approval record
+          throw new BadRequestException(
+            'This transition requires approval from a manager or authorized person.'
+          );
           break;
         case 'PRIORITY_HIGH':
           if (ticket.priority !== 'HIGH' && ticket.priority !== 'CRITICAL') {
-            throw new BadRequestException('This transition requires high priority');
+            throw new BadRequestException(
+              'This transition can only be performed on high or critical priority tickets.'
+            );
           }
           break;
         case 'CUSTOM_FIELD_VALUE':
-          // This would need to be implemented based on your custom fields
+          // This would check specific custom field values
+          const requiredField = condition.value;
+          if (requiredField) {
+            // Implementation would depend on your custom fields structure
+            throw new BadRequestException(
+              `Required field "${requiredField}" must be filled before this transition.`
+            );
+          }
           break;
       }
     }

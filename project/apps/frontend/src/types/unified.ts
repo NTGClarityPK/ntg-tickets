@@ -146,6 +146,28 @@ export interface Ticket {
   resolutionTime?: number;
   customFields?: Record<string, string>;
   relatedTickets?: string[];
+  workflowSnapshot?: {
+    definition?: {
+      nodes?: Array<{
+        id: string;
+        data?: { label?: string };
+      }>;
+      edges?: Array<{
+        id: string;
+        source: string;
+        target: string;
+        label?: string;
+        data?: {
+          roles?: string[];
+          conditions?: string[];
+          actions?: string[];
+          isCreateTransition?: boolean;
+        };
+      }>;
+    };
+    status?: string;
+  }; // Snapshot of workflow when ticket was created
+  workflowVersion?: number; // Version of workflow when ticket was created
 }
 
 export interface CreateTicketInput {

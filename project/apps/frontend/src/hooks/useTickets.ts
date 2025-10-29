@@ -6,8 +6,6 @@ import {
   UpdateTicketInput,
   TicketFilters,
 } from '../lib/apiClient';
-import { validateStatusUpdate } from '../lib/statusValidation';
-import { TicketStatus } from '../types/unified';
 import { QUERY_CONFIG, PAGINATION_CONFIG } from '../lib/constants';
 import { useAuthStore } from '../stores/useAuthStore';
 
@@ -270,28 +268,19 @@ export function useUpdateTicketStatus() {
       id,
       status,
       resolution,
-      currentStatus,
-      userRole,
+      comment,
     }: {
       id: string;
       status: string;
       resolution?: string;
-      currentStatus: string;
+      comment?: string;
+      currentStatus?: string;
       userRole?: string;
     }) => {
-      // Validate status transition before making API call
-      const validation = validateStatusUpdate(
-        currentStatus as TicketStatus,
-        status as TicketStatus,
-        resolution,
-        userRole
-      );
-
-      if (!validation.isValid) {
-        throw new Error(validation.errorMessage);
-      }
-
-      const response = await ticketApi.updateStatus(id, status, resolution);
+      // Note: Status transition validation is now handled by the workflow system
+      // The frontend checks workflow permissions before allowing transitions
+      
+      const response = await ticketApi.updateStatus(id, status, resolution, comment);
       return response.data.data as Ticket;
     },
     onSuccess: (_, { id }) => {

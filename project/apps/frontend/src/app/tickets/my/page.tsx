@@ -47,6 +47,7 @@ import { SimpleFiltersModal } from '../../../components/forms/SimpleFiltersModal
 import { useSearch } from '../../../hooks/useSearch';
 import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 
 export default function MyTicketsPage() {
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
@@ -69,6 +70,7 @@ export default function MyTicketsPage() {
   };
   const router = useRouter();
   const { user } = useAuthStore();
+  const { canCreate: canCreateTicket } = useCanCreateTicket();
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [simpleFiltersOpen, setSimpleFiltersOpen] = useState(false);
@@ -86,11 +88,13 @@ export default function MyTicketsPage() {
   } = useSearch();
 
   const searchQuery = getSearchQuery();
+  // Fetch tickets where user is either the requester OR assigned to
   const ticketsQuery = {
     ...searchQuery,
     page: currentPage,
     limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
-    requesterId: [user?.id],
+    // Don't filter by requesterId here - we'll get both created and assigned tickets
+    // The backend should handle showing tickets relevant to the user
   };
 
   const {
@@ -103,7 +107,10 @@ export default function MyTicketsPage() {
   // Get total count of all tickets (no filters)
   const { data: totalTicketsCount } = useTotalTicketsCount();
 
-  let myTickets = ticketsData?.tickets || [];
+  // Filter tickets to show only those created by or assigned to the current user
+  let myTickets = (ticketsData?.tickets || []).filter((t: Ticket) => 
+    user && (t.requester?.id === user.id || t.assignedTo?.id === user.id)
+  );
   const pagination = ticketsData?.pagination;
 
   // Client-side filters for resolution time and SLA breach time (in hours)
@@ -175,14 +182,14 @@ export default function MyTicketsPage() {
       <Group justify='space-between' mb='xl'>
         <div>
           <Title order={1}>My Tickets</Title>
-          <Text c='dimmed'>Tickets created by you</Text>
+          <Text c='dimmed'>Tickets created by or assigned to you</Text>
           {hasActiveFilters() && (
             <Text size='sm' c='blue' mt='xs'>
               Showing {myTickets.length} of {totalTicketsCount || 0} tickets
             </Text>
           )}
         </div>
-        {user?.activeRole === 'END_USER' && (
+        {canCreateTicket && (
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => router.push('/tickets/create')}
@@ -328,7 +335,7 @@ export default function MyTicketsPage() {
             <Text c='dimmed' ta='center'>
               No tickets match your current filters.
             </Text>
-            {user?.activeRole === 'END_USER' && (
+            {canCreateTicket && (
               <Button onClick={() => router.push('/tickets/create')}>
                 Create your first ticket
               </Button>
