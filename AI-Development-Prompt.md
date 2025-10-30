@@ -13,8 +13,8 @@ Generate a complete, production-ready IT Ticket Management System called **NTG-T
 - **System Administrators:** Full system access, user management, system configuration, all permissions
 
 **Authentication Requirements:**
-- Email-based authentication using Clerk
-- Custom branded login interface with grouped fields
+- Email-based authentication using Clerk 
+- Custom branded login interface with grouped fields 
 - New user registration with role assignment prompts
 - JWT-based session management
 - Role-based access control throughout the application
