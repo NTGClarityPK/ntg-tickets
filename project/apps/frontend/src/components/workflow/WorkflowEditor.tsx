@@ -347,15 +347,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         });
         return;
       }
-      // Prevent deletion of the closed node
-      if (nodeId === 'closed') {
-        notifications.show({
-          title: 'Cannot Delete',
-          message: 'The "Closed" status cannot be deleted as it is required for the workflow.',
-          color: 'red',
-        });
-        return;
-      }
+      // "closed" node can now be deleted
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
       setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
     },
@@ -545,25 +537,11 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                   </Text>
                 </Alert>
               )}
-              {selectedNode.id === 'new' && (
-                <Alert color="blue" variant="light">
-                  <Text size="sm">
-                    The "New" status is required and cannot be renamed or deleted.
-                  </Text>
-                </Alert>
-              )}
-              {selectedNode.id === 'closed' && (
-                <Alert color="blue" variant="light">
-                  <Text size="sm">
-                    The "Closed" status is required and cannot be renamed or deleted.
-                  </Text>
-                </Alert>
-              )}
               
               <TextInput
                 label="State Name"
                 value={selectedNode.data?.label || ''}
-                disabled={selectedNode.id === 'create' || selectedNode.id === 'new' || selectedNode.id === 'closed'}
+                disabled={selectedNode.id === 'create'}
                 onChange={(e) => {
                   const newLabel = e.target.value;
                   const updatedNode = {
@@ -595,7 +573,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               />
 
               <Group justify="flex-end">
-                {selectedNode.id !== 'create' && selectedNode.id !== 'new' && selectedNode.id !== 'closed' && (
+                {selectedNode.id !== 'create' && selectedNode.id !== 'new' && (
                   <Button
                     variant="outline"
                     color="red"

@@ -222,6 +222,7 @@ export class TicketsService {
     let defaultWorkflowId = null;
     let workflowSnapshot = null;
     let workflowVersion = null;
+    let initialStatus = 'NEW'; // Default fallback status
     try {
       const defaultWorkflow = await this.workflowExecutionService['workflowsService'].findDefault();
       if (defaultWorkflow) {
@@ -236,6 +237,27 @@ export class TicketsService {
         };
         workflowVersion = defaultWorkflow.version || 1;
         this.logger.log(`Captured workflow snapshot (v${workflowVersion}) for new ticket`, 'TicketsService');
+        
+        // Extract the first state from the workflow definition
+        // Find the edge from 'create' node to get the initial status
+        if (defaultWorkflow.definition && defaultWorkflow.definition['edges']) {
+          const edges = defaultWorkflow.definition['edges'] as any[];
+          const createEdge = edges.find(edge => edge.source === 'create' || edge.data?.isCreateTransition === true);
+          if (createEdge && createEdge.target) {
+            // Find the target node to get its label
+            const nodes = defaultWorkflow.definition['nodes'] as any[];
+            const targetNode = nodes?.find(node => node.id === createEdge.target);
+            if (targetNode?.data?.label) {
+              // Convert the label to status format (e.g., "New" -> "NEW", "In Progress" -> "IN_PROGRESS")
+              initialStatus = targetNode.data.label.toUpperCase().replace(/\s+/g, '_');
+              this.logger.log(`Using workflow initial status: ${initialStatus}`, 'TicketsService');
+            } else {
+              // Fallback to using the node ID converted to uppercase
+              initialStatus = createEdge.target.toUpperCase();
+              this.logger.log(`Using workflow initial status from node ID: ${initialStatus}`, 'TicketsService');
+            }
+          }
+        }
       }
     } catch (error) {
       this.logger.warn('No default workflow found, ticket will be created without workflow', 'TicketsService');
@@ -256,7 +278,7 @@ export class TicketsService {
         requesterId: userId,
         assignedToId: assignedToId,
         dueDate,
-        status: 'NEW',
+        status: initialStatus,
         workflowId: defaultWorkflowId,
         workflowSnapshot: workflowSnapshot as any, // Store snapshot for future use
         workflowVersion: workflowVersion,
