@@ -42,6 +42,7 @@ import { RoleSelectionModal } from '../modals/RoleSelectionModal';
 import { useState } from 'react';
 import { getRoleColor, getRoleLabel } from '../../lib/roleConfig';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { Logo } from '../common/Logo';
 
 interface AppHeaderProps {
   onHelpClick?: () => void;
@@ -66,6 +67,7 @@ export function AppHeader({
   const markAsReadMutation = useMarkNotificationAsRead();
   const queryClient = useQueryClient();
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [logoImageError, setLogoImageError] = useState(false);
   const { primary, themeSettings, primaryLight, primaryLighter, primaryDark, primaryDarker, primaryDarkest } = useDynamicTheme();
 
   // Debug log
@@ -194,17 +196,26 @@ export function AppHeader({
             onClick={() => router.push('/')}
           >
             {/* Logo */}
-            <Image
-              src={
-                themeSettings?.logoData 
-                  ? `data:image/png;base64,${themeSettings.logoData}`
-                  : themeSettings?.logoUrl || '/logo.svg'
+            {(() => {
+              const logoSrc = themeSettings?.logoData 
+                ? `data:image/png;base64,${themeSettings.logoData}`
+                : themeSettings?.logoUrl || null;
+              
+              if (logoSrc && !logoImageError) {
+                return (
+                  <Image
+                    src={logoSrc}
+                    alt='NTG Ticket Logo'
+                    w={32}
+                    h={32}
+                    style={{ objectFit: 'contain', backgroundColor: 'transparent' }}
+                    onError={() => setLogoImageError(true)}
+                  />
+                );
               }
-              alt='NTG Ticket Logo'
-              w={32}
-              h={32}
-              style={{ objectFit: 'contain', backgroundColor: 'transparent' }}
-            />
+              
+              return <Logo size={32} variant="icon" />;
+            })()}
             {!isMobile && (
               <Text fw={700} size='lg' style={{ color: primary }}>
                 {siteName}
