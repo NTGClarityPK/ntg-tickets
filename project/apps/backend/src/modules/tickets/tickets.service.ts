@@ -7,13 +7,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import {
-  TicketPriority,
-  TicketImpact,
-  TicketUrgency,
-  SLALevel,
-  Prisma,
-} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { LoggerService } from '../../common/logger/logger.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -22,6 +16,7 @@ import { SLAService } from '../../common/sla/sla.service';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
+import { TicketQueryBuilder, getPaginationParams } from '../../common/utils/query-builder.util';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -44,10 +39,10 @@ interface TicketUpdateData {
   resolution?: string;
   title?: string;
   description?: string;
-  priority?: TicketPriority;
-  impact?: TicketImpact;
-  urgency?: TicketUrgency;
-  slaLevel?: SLALevel;
+  priority?: string;
+  impact?: string;
+  urgency?: string;
+  slaLevel?: string;
   categoryId?: string;
   subcategoryId?: string;
   assignedToId?: string;
@@ -387,72 +382,24 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const where: Prisma.TicketWhereInput = {};
+    // Build where clause using query builder utility
+    const where = new TicketQueryBuilder()
+      .addRoleFilter(userId, userRole)
+      .addStatusFilter(filters.status)
+      .addPriorityFilter(filters.priority)
+      .addCategoryFilter(filters.category)
+      .addAssignedToFilter(filters.assignedToId)
+      .addRequesterFilter(filters.requesterId)
+      .addSearchFilter(filters.search)
+      .addDateRangeFilter(filters.dateFrom, filters.dateTo)
+      .build();
 
-    // NOTE: All roles can see all tickets on the "All Tickets" page
-    // Role-based filtering is only applied on the "My Tickets" page (findMyTickets method)
-    // This follows the requirement that:
-    // - "All Tickets" shows all tickets for everyone
-    // - "My Tickets" shows tickets created by or assigned to the user
-
-    // Apply filters
-    if (filters.status && filters.status.length > 0) {
-      where.status = {
-        in: filters.status as (
-          | 'NEW'
-          | 'OPEN'
-          | 'IN_PROGRESS'
-          | 'ON_HOLD'
-          | 'RESOLVED'
-          | 'CLOSED'
-          | 'REOPENED'
-        )[],
-      };
-    }
-
-    if (filters.priority && filters.priority.length > 0) {
-      where.priority = {
-        in: filters.priority as ('LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL')[],
-      };
-    }
-
-    if (filters.category && filters.category.length > 0) {
-      where.categoryId = { in: filters.category };
-    }
-
-    if (filters.assignedTo && filters.assignedTo.length > 0) {
+    // Handle legacy assignedTo filter (for backward compatibility)
+    if (filters.assignedTo && filters.assignedTo.length > 0 && !filters.assignedToId) {
       where.assignedToId = { in: filters.assignedTo };
     }
 
-    if (filters.assignedToId && filters.assignedToId.length > 0) {
-      where.assignedToId = { in: filters.assignedToId };
-    }
-
-    if (filters.requesterId && filters.requesterId.length > 0) {
-      where.requesterId = { in: filters.requesterId };
-    }
-
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-        { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (filters.dateFrom || filters.dateTo) {
-      where.createdAt = {};
-      if (filters.dateFrom) {
-        where.createdAt.gte = new Date(filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        where.createdAt.lte = new Date(filters.dateTo);
-      }
-    }
-
-    const page = filters.page || 1;
-    const limit = Math.min(filters.limit || 20, 100);
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = getPaginationParams(filters);
 
     const [tickets, total] = await Promise.all([
       this.prisma.ticket.findMany({
@@ -885,7 +832,7 @@ export class TicketsService {
     // Note: Status transition validation is now handled by the workflow system
     // The frontend checks workflow permissions before allowing transitions
 
-    const updateData: Prisma.TicketUpdateInput = {
+    const updateData: Record<string, unknown> = {
       status,
       updatedAt: new Date(),
     };
@@ -1213,56 +1160,17 @@ export class TicketsService {
   async getMyTickets(userId: string, filters: TicketFilters) {
     this.logger.log(`Getting tickets for user ${userId}`, 'TicketsService');
 
-    const where: Prisma.TicketWhereInput = {
-      requesterId: userId,
-    };
+    // Build where clause using query builder utility
+    const where = new TicketQueryBuilder()
+      .addRequesterFilter([userId])
+      .addStatusFilter(filters.status)
+      .addPriorityFilter(filters.priority)
+      .addCategoryFilter(filters.category)
+      .addSearchFilter(filters.search)
+      .addDateRangeFilter(filters.dateFrom, filters.dateTo)
+      .build();
 
-    // Apply filters
-    if (filters.status && filters.status.length > 0) {
-      where.status = {
-        in: filters.status as (
-          | 'NEW'
-          | 'OPEN'
-          | 'IN_PROGRESS'
-          | 'ON_HOLD'
-          | 'RESOLVED'
-          | 'CLOSED'
-          | 'REOPENED'
-        )[],
-      };
-    }
-
-    if (filters.priority && filters.priority.length > 0) {
-      where.priority = {
-        in: filters.priority as ('LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL')[],
-      };
-    }
-
-    if (filters.category && filters.category.length > 0) {
-      where.categoryId = { in: filters.category };
-    }
-
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-        { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (filters.dateFrom || filters.dateTo) {
-      where.createdAt = {};
-      if (filters.dateFrom) {
-        where.createdAt.gte = new Date(filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        where.createdAt.lte = new Date(filters.dateTo);
-      }
-    }
-
-    const page = filters.page || 1;
-    const limit = Math.min(filters.limit || 20, 100);
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = getPaginationParams(filters);
 
     const [tickets, total] = await Promise.all([
       this.prisma.ticket.findMany({
@@ -1305,58 +1213,17 @@ export class TicketsService {
       'TicketsService'
     );
 
-    // Debug logging removed for production
+    // Build where clause using query builder utility
+    const where = new TicketQueryBuilder()
+      .addAssignedToFilter([userId])
+      .addStatusFilter(filters.status)
+      .addPriorityFilter(filters.priority)
+      .addCategoryFilter(filters.category)
+      .addSearchFilter(filters.search)
+      .addDateRangeFilter(filters.dateFrom, filters.dateTo)
+      .build();
 
-    const where: Prisma.TicketWhereInput = {
-      assignedToId: userId,
-    };
-
-    // Apply filters
-    if (filters.status && filters.status.length > 0) {
-      where.status = {
-        in: filters.status as (
-          | 'NEW'
-          | 'OPEN'
-          | 'IN_PROGRESS'
-          | 'ON_HOLD'
-          | 'RESOLVED'
-          | 'CLOSED'
-          | 'REOPENED'
-        )[],
-      };
-    }
-
-    if (filters.priority && filters.priority.length > 0) {
-      where.priority = {
-        in: filters.priority as ('LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL')[],
-      };
-    }
-
-    if (filters.category && filters.category.length > 0) {
-      where.categoryId = { in: filters.category };
-    }
-
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-        { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (filters.dateFrom || filters.dateTo) {
-      where.createdAt = {};
-      if (filters.dateFrom) {
-        where.createdAt.gte = new Date(filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        where.createdAt.lte = new Date(filters.dateTo);
-      }
-    }
-
-    const page = filters.page || 1;
-    const limit = Math.min(filters.limit || 20, 100);
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = getPaginationParams(filters);
 
     const [tickets, total] = await Promise.all([
       this.prisma.ticket.findMany({
@@ -1429,8 +1296,8 @@ export class TicketsService {
   }
 
   private trackChanges(
-    oldTicket: Prisma.TicketGetPayload<Record<string, never>>,
-    newTicket: Partial<Prisma.TicketUpdateInput>
+    oldTicket: any,
+    newTicket: Partial<Record<string, unknown>>
   ): Array<{ field: string; oldValue: string; newValue: string }> {
     const changes: Array<{
       field: string;
@@ -1475,6 +1342,7 @@ export class TicketsService {
         'Only support staff, managers, and admins can view assigned tickets'
       );
     }
+    // Return all assigned tickets without filters for internal use
     return this.getAssignedTickets(userId, {});
   }
 

@@ -83,47 +83,14 @@ export class TicketsController {
     description: 'User tickets retrieved successfully',
   })
   async getMyTickets(@Query() filters: TicketFiltersDto, @Request() req) {
-    const tickets = await this.ticketsService.findMyTickets(
+    const result = await this.ticketsService.getMyTickets(
       req.user.id,
-      req.user.activeRole
+      filters
     );
 
-    // Apply filters to the result
-    let filteredTickets = tickets;
-    if (filters.status && filters.status.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.status.includes(ticket.status)
-      );
-    }
-    if (filters.priority && filters.priority.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority)
-      );
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filteredTickets = filteredTickets.filter(ticket => 
-        ticket.title.toLowerCase().includes(searchLower) ||
-        ticket.description.toLowerCase().includes(searchLower) ||
-        ticket.ticketNumber.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
-
     return {
-      data: paginatedTickets,
-      pagination: {
-        page,
-        limit,
-        total: filteredTickets.length,
-        totalPages: Math.ceil(filteredTickets.length / limit),
-      },
+      data: result.data,
+      pagination: result.pagination,
       message: 'Your tickets retrieved successfully',
     };
   }
@@ -135,49 +102,14 @@ export class TicketsController {
     description: 'Assigned tickets retrieved successfully',
   })
   async getAssignedTickets(@Query() filters: TicketFiltersDto, @Request() req) {
-    // Debug logging removed for production
-
-    const result = await this.ticketsService.findAssignedTickets(
+    const result = await this.ticketsService.getAssignedTickets(
       req.user.id,
-      req.user.activeRole
+      filters
     );
 
-    // Apply filters to the result
-    let filteredTickets = result.data;
-    if (filters.status && filters.status.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.status.includes(ticket.status)
-      );
-    }
-    if (filters.priority && filters.priority.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority)
-      );
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filteredTickets = filteredTickets.filter(ticket => 
-        ticket.title.toLowerCase().includes(searchLower) ||
-        ticket.description.toLowerCase().includes(searchLower) ||
-        ticket.ticketNumber.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
-
     return {
-      data: paginatedTickets,
-      pagination: {
-        page,
-        limit,
-        total: filteredTickets.length,
-        totalPages: Math.ceil(filteredTickets.length / limit),
-      },
+      data: result.data,
+      pagination: result.pagination,
       message: 'Assigned tickets retrieved successfully',
     };
   }
