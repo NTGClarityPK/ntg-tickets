@@ -1,0 +1,153 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Attachment {
+  createdAt: DateTime!
+  fileUrl: String!
+  filename: String!
+  id: ID!
+  mimeType: String!
+  originalName: String!
+  size: Float!
+}
+
+type Comment {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  isInternal: Boolean!
+  updatedAt: DateTime!
+  user: User!
+}
+
+input CreateTicketInput {
+  category: String!
+  description: String!
+  impact: String! = "MODERATE"
+  priority: String! = "MEDIUM"
+  relatedTickets: [String!]
+  resolution: String
+  slaLevel: String! = "STANDARD"
+  subcategory: String!
+  title: String!
+  urgency: String! = "NORMAL"
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  assignTicket(assignedToId: String!, id: String!): Ticket!
+  createTicket(createTicketInput: CreateTicketInput!): Ticket!
+  deleteTicket(id: String!): Boolean!
+  updateTicket(id: String!, updateTicketInput: UpdateTicketInput!): Ticket!
+  updateTicketStatus(id: String!, resolution: String, status: String!): Ticket!
+}
+
+type Notification {
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  message: String!
+  title: String!
+  type: String!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  assignedTickets: [Ticket!]!
+  comments(ticketId: ID!): [Comment!]!
+  generateReport: String!
+  myTickets: [Ticket!]!
+  notifications(userId: ID!): [Notification!]!
+  overdueTickets: [Ticket!]!
+  ticket(id: String!): Ticket!
+  tickets(after: String, filters: TicketFiltersInput, first: Int! = 20): TicketConnection!
+  user(id: ID!): User
+  users: [User!]!
+}
+
+type Ticket {
+  assignedTo: User
+  attachments: [Attachment!]!
+  category: String!
+  closedAt: DateTime
+  comments: [Comment!]!
+  createdAt: DateTime!
+  description: String!
+  dueDate: DateTime
+  id: ID!
+  impact: String!
+  priority: String!
+  requester: User
+  resolution: String
+  resolutionTime: Int
+  responseTime: Int
+  slaCompliance: Float
+  slaLevel: String!
+  status: String!
+  subcategory: String!
+  ticketNumber: String!
+  title: String!
+  updatedAt: DateTime!
+  urgency: String!
+}
+
+type TicketConnection {
+  edges: [TicketEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TicketEdge {
+  cursor: String!
+  node: Ticket!
+}
+
+input TicketFiltersInput {
+  assignedToId: String
+  categoryId: String
+  createdAfter: String
+  createdBefore: String
+  limit: Int
+  page: Int
+  priority: [String!]
+  requesterId: String
+  search: String
+  status: [String!]
+  subcategoryId: String
+}
+
+input UpdateTicketInput {
+  assignedToId: String
+  categoryId: String
+  description: String
+  impact: String
+  priority: String
+  resolution: String
+  slaLevel: String
+  status: String
+  subcategoryId: String
+  title: String
+  urgency: String
+}
+
+type User {
+  avatar: String
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  isActive: Boolean!
+  name: String!
+  role: String!
+  updatedAt: DateTime!
+}

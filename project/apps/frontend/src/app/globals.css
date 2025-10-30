@@ -1,0 +1,1021 @@
+@import '@mantine/core/styles.css';
+@import '@mantine/charts/styles.css';
+@import '@mantine/notifications/styles.css';
+@import '@mantine/dates/styles.css';
+@import '@mantine/dropzone/styles.css';
+@import '@mantine/tiptap/styles.css';
+
+:root {
+  --mantine-color-scheme: light;
+  
+  /* Dynamic theme colors - will be updated by JavaScript */
+  --dynamic-primary: #f0940a;
+  --dynamic-primary-light: #f3a847;
+  --dynamic-primary-lighter: #f6b85a;
+  --dynamic-primary-lightest: #f9c86d;
+  --dynamic-primary-dark: #d67e08;
+  --dynamic-primary-darker: #bc6a07;
+  --dynamic-primary-darkest: #a25606;
+  
+  /* Background colors */
+  --dynamic-background: #ffffff;
+  --dynamic-surface: #f8f9fa;
+  --dynamic-surface-variant: #f1f3f4;
+  
+  /* Text colors */
+  --dynamic-text: #212529;
+  --dynamic-text-secondary: #6c757d;
+  --dynamic-text-muted: #adb5bd;
+  
+  /* Border colors */
+  --dynamic-border: #dee2e6;
+  --dynamic-border-light: #e9ecef;
+}
+
+[data-mantine-color-scheme='dark'] {
+  --mantine-color-scheme: dark;
+  
+  /* Dark mode dynamic theme colors */
+  --dynamic-background: #1a1a1a;
+  --dynamic-surface: #2d2d2d;
+  --dynamic-surface-variant: #3a3a3a;
+  
+  /* Text colors for dark mode */
+  --dynamic-text: #ffffff;
+  --dynamic-text-secondary: #b3b3b3;
+  --dynamic-text-muted: #808080;
+  
+  /* Border colors for dark mode */
+  --dynamic-border: #404040;
+  --dynamic-border-light: #4a4a4a;
+}
+
+/* Dark mode specific styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: var(--mantine-color-dark-7);
+  color: var(--mantine-color-dark-0);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--mantine-color-gray-1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-gray-4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-gray-5);
+}
+
+/* Dark mode scrollbar */
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-track {
+  background: var(--mantine-color-dark-6);
+}
+
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-dark-3);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* RTL Support */
+[dir='rtl'] {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Stack-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Group-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Button-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-TextInput-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-PasswordInput-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Textarea-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Select-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-MultiSelect-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-NumberInput-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-DateInput-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-TimeInput-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Textarea-root textarea {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-TextInput-root input {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-PasswordInput-root input {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-NumberInput-root input {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-DateInput-root input {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-TimeInput-root input {
+  text-align: right;
+}
+
+/* RTL Navigation */
+[dir='rtl'] .mantine-NavLink-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-NavLink-label {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-NavLink-icon {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+/* RTL Tables */
+[dir='rtl'] .data-table th,
+[dir='rtl'] .data-table td {
+  text-align: right;
+}
+
+/* RTL Forms */
+[dir='rtl'] .mantine-InputWrapper-label {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-InputWrapper-description {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-InputWrapper-error {
+  text-align: right;
+}
+
+/* RTL Modals */
+[dir='rtl'] .mantine-Modal-header {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Modal-title {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Modal-body {
+  text-align: right;
+}
+
+/* RTL Cards */
+[dir='rtl'] .mantine-Card-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Card-header {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Card-title {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Card-body {
+  text-align: right;
+}
+
+/* RTL Alerts */
+[dir='rtl'] .mantine-Alert-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Alert-title {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Alert-message {
+  text-align: right;
+}
+
+/* RTL Notifications */
+[dir='rtl'] .mantine-Notification-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Notification-title {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Notification-message {
+  text-align: right;
+}
+
+/* RTL Badges */
+[dir='rtl'] .mantine-Badge-root {
+  direction: rtl;
+}
+
+/* RTL Tooltips */
+[dir='rtl'] .mantine-Tooltip-root {
+  text-align: right;
+}
+
+/* RTL Popover */
+[dir='rtl'] .mantine-Popover-dropdown {
+  text-align: right;
+}
+
+/* RTL Dropdown */
+[dir='rtl'] .mantine-Dropdown-root {
+  text-align: right;
+}
+
+/* RTL Menu */
+[dir='rtl'] .mantine-Menu-dropdown {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Menu-item {
+  text-align: right;
+}
+
+/* RTL Pagination */
+[dir='rtl'] .mantine-Pagination-root {
+  direction: rtl;
+}
+
+/* RTL Breadcrumbs */
+[dir='rtl'] .mantine-Breadcrumbs-root {
+  direction: rtl;
+}
+
+/* RTL Tabs */
+[dir='rtl'] .mantine-Tabs-list {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Tabs-panel {
+  text-align: right;
+}
+
+/* RTL Accordion */
+[dir='rtl'] .mantine-Accordion-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Accordion-control {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Accordion-content {
+  text-align: right;
+}
+
+/* RTL Collapse */
+[dir='rtl'] .mantine-Collapse-root {
+  text-align: right;
+}
+
+/* RTL Timeline */
+[dir='rtl'] .mantine-Timeline-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Timeline-item {
+  text-align: right;
+}
+
+/* RTL Stepper */
+[dir='rtl'] .mantine-Stepper-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Stepper-step {
+  text-align: right;
+}
+
+/* RTL Progress */
+[dir='rtl'] .mantine-Progress-root {
+  direction: rtl;
+}
+
+/* RTL Slider */
+[dir='rtl'] .mantine-Slider-root {
+  direction: rtl;
+}
+
+/* RTL RangeSlider */
+[dir='rtl'] .mantine-RangeSlider-root {
+  direction: rtl;
+}
+
+/* RTL Switch */
+[dir='rtl'] .mantine-Switch-root {
+  direction: rtl;
+}
+
+/* RTL Checkbox */
+[dir='rtl'] .mantine-Checkbox-root {
+  direction: rtl;
+}
+
+/* RTL Radio */
+[dir='rtl'] .mantine-Radio-root {
+  direction: rtl;
+}
+
+/* RTL SegmentedControl */
+[dir='rtl'] .mantine-SegmentedControl-root {
+  direction: rtl;
+}
+
+/* RTL Toggle */
+[dir='rtl'] .mantine-Toggle-root {
+  direction: rtl;
+}
+
+/* RTL Chip */
+[dir='rtl'] .mantine-Chip-root {
+  direction: rtl;
+}
+
+/* RTL TagsInput */
+[dir='rtl'] .mantine-TagsInput-root {
+  direction: rtl;
+}
+
+/* RTL MultiSelect */
+[dir='rtl'] .mantine-MultiSelect-root {
+  direction: rtl;
+}
+
+/* RTL Combobox */
+[dir='rtl'] .mantine-Combobox-root {
+  direction: rtl;
+}
+
+/* RTL Autocomplete */
+[dir='rtl'] .mantine-Autocomplete-root {
+  direction: rtl;
+}
+
+/* RTL Spotlight */
+[dir='rtl'] .mantine-Spotlight-root {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Spotlight-search {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Spotlight-actions {
+  text-align: right;
+}
+
+/* RTL Drawer */
+[dir='rtl'] .mantine-Drawer-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Drawer-header {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Drawer-body {
+  text-align: right;
+}
+
+/* RTL AppShell */
+[dir='rtl'] .mantine-AppShell-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-AppShell-navbar {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-AppShell-header {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-AppShell-main {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-AppShell-aside {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-AppShell-footer {
+  text-align: right;
+}
+
+/* RTL Grid */
+[dir='rtl'] .mantine-Grid-root {
+  direction: rtl;
+}
+
+/* RTL SimpleGrid */
+[dir='rtl'] .mantine-SimpleGrid-root {
+  direction: rtl;
+}
+
+/* RTL Flex */
+[dir='rtl'] .mantine-Flex-root {
+  direction: rtl;
+}
+
+/* RTL Stack */
+[dir='rtl'] .mantine-Stack-root {
+  direction: rtl;
+}
+
+/* RTL Group */
+[dir='rtl'] .mantine-Group-root {
+  direction: rtl;
+}
+
+/* RTL Center */
+[dir='rtl'] .mantine-Center-root {
+  text-align: right;
+}
+
+/* RTL Container */
+[dir='rtl'] .mantine-Container-root {
+  text-align: right;
+}
+
+/* RTL Paper */
+[dir='rtl'] .mantine-Paper-root {
+  text-align: right;
+}
+
+/* RTL ScrollArea */
+[dir='rtl'] .mantine-ScrollArea-root {
+  direction: rtl;
+}
+
+/* RTL Skeleton */
+[dir='rtl'] .mantine-Skeleton-root {
+  direction: rtl;
+}
+
+/* RTL LoadingOverlay */
+[dir='rtl'] .mantine-LoadingOverlay-root {
+  text-align: right;
+}
+
+/* RTL Overlay */
+[dir='rtl'] .mantine-Overlay-root {
+  text-align: right;
+}
+
+/* RTL Transition */
+[dir='rtl'] .mantine-Transition-root {
+  direction: rtl;
+}
+
+/* RTL Affix */
+[dir='rtl'] .mantine-Affix-root {
+  direction: rtl;
+}
+
+/* RTL Anchor */
+[dir='rtl'] .mantine-Anchor-root {
+  text-align: right;
+}
+
+/* RTL BackgroundImage */
+[dir='rtl'] .mantine-BackgroundImage-root {
+  text-align: right;
+}
+
+/* RTL Blockquote */
+[dir='rtl'] .mantine-Blockquote-root {
+  text-align: right;
+}
+
+/* RTL Code */
+[dir='rtl'] .mantine-Code-root {
+  direction: rtl;
+}
+
+/* RTL Highlight */
+[dir='rtl'] .mantine-Highlight-root {
+  text-align: right;
+}
+
+/* RTL Kbd */
+[dir='rtl'] .mantine-Kbd-root {
+  direction: rtl;
+}
+
+/* RTL List */
+[dir='rtl'] .mantine-List-root {
+  text-align: right;
+}
+
+/* RTL Mark */
+[dir='rtl'] .mantine-Mark-root {
+  text-align: right;
+}
+
+/* RTL Spoiler */
+[dir='rtl'] .mantine-Spoiler-root {
+  text-align: right;
+}
+
+/* RTL Table */
+[dir='rtl'] .mantine-Table-root {
+  direction: rtl;
+}
+
+[dir='rtl'] .mantine-Table-th {
+  text-align: right;
+}
+
+[dir='rtl'] .mantine-Table-td {
+  text-align: right;
+}
+
+/* RTL Title */
+[dir='rtl'] .mantine-Title-root {
+  text-align: right;
+}
+
+/* RTL TypographyStylesProvider */
+[dir='rtl'] .mantine-TypographyStylesProvider-root {
+  text-align: right;
+}
+
+/* RTL UnstyledButton */
+[dir='rtl'] .mantine-UnstyledButton-root {
+  text-align: right;
+}
+
+/* RTL VisuallyHidden */
+[dir='rtl'] .mantine-VisuallyHidden-root {
+  text-align: right;
+}
+
+/* RTL Icon Flipping - Automatic directional icon flipping */
+[dir='rtl'] [data-icon='arrow-right'],
+[dir='rtl'] [data-icon='chevron-right'],
+[dir='rtl'] [data-icon='arrow-forward'],
+[dir='rtl'] [data-icon='chevron-forward'] {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] [data-icon='arrow-left'],
+[dir='rtl'] [data-icon='chevron-left'],
+[dir='rtl'] [data-icon='arrow-back'],
+[dir='rtl'] [data-icon='chevron-back'] {
+  transform: scaleX(-1);
+}
+
+/* RTL Icon classes for manual control */
+.rtl-flip {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .rtl-flip {
+  transform: scaleX(1);
+}
+
+/* RTL Button icons */
+[dir='rtl'] .mantine-Button-root [data-icon='arrow-right'],
+[dir='rtl'] .mantine-Button-root [data-icon='chevron-right'] {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .mantine-Button-root [data-icon='arrow-left'],
+[dir='rtl'] .mantine-Button-root [data-icon='chevron-left'] {
+  transform: scaleX(-1);
+}
+
+/* Custom utility classes */
+.text-gradient {
+  background: linear-gradient(
+    45deg,
+    var(--dynamic-primary),
+    var(--dynamic-primary-light)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-break {
+    page-break-before: always;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column;
+  }
+
+  .mobile-full-width {
+    width: 100%;
+  }
+
+  /* Improve table responsiveness */
+  .data-table {
+    font-size: 0.875rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  /* Improve form spacing on mobile */
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  /* Better modal spacing */
+  .mantine-Modal-content {
+    margin: 0.5rem;
+  }
+
+  /* Mobile navigation improvements */
+  .mantine-AppShell-navbar {
+    padding: 0.5rem;
+  }
+
+  .mantine-NavLink-root {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .mantine-NavLink-label {
+    font-size: 0.875rem;
+  }
+
+  .mantine-Badge-root {
+    font-size: 0.75rem;
+    min-width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* Collapsible sections */
+  .mantine-Collapse-content {
+    padding-left: 0.5rem;
+  }
+
+  /* Mobile-friendly buttons */
+  .mantine-Button-root {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Focus styles */
+.focus-visible {
+  outline: 2px solid var(--dynamic-primary);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--mantine-color-gray-2) 25%,
+    var(--mantine-color-gray-3) 50%,
+    var(--mantine-color-gray-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Custom component styles */
+.ticket-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ticket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+.notification-item {
+  transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .notification-item:hover {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* Status indicators */
+.status-new {
+  color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-0);
+}
+
+.status-open {
+  color: var(--mantine-color-orange-6);
+  background-color: var(--mantine-color-orange-0);
+}
+
+.status-in-progress {
+  color: var(--mantine-color-yellow-6);
+  background-color: var(--mantine-color-yellow-0);
+}
+
+.status-on-hold {
+  color: var(--mantine-color-gray-6);
+  background-color: var(--mantine-color-gray-0);
+}
+
+.status-resolved {
+  color: var(--mantine-color-green-6);
+  background-color: var(--mantine-color-green-0);
+}
+
+.status-closed {
+  color: var(--mantine-color-dark-6);
+  background-color: var(--mantine-color-dark-0);
+}
+
+.status-reopened {
+  color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-0);
+}
+
+/* Priority indicators */
+.priority-low {
+  color: var(--mantine-color-green-6);
+  background-color: var(--mantine-color-green-0);
+}
+
+.priority-medium {
+  color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-0);
+}
+
+.priority-high {
+  color: var(--mantine-color-orange-6);
+  background-color: var(--mantine-color-orange-0);
+}
+
+.priority-critical {
+  color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-0);
+}
+
+/* SLA indicators */
+.sla-standard {
+  color: var(--mantine-color-red-6);
+}
+
+.sla-premium {
+  color: var(--mantine-color-green-6);
+}
+
+.sla-critical {
+  color: var(--mantine-color-red-6);
+}
+
+/* Custom form styles */
+.form-section {
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-md);
+  padding: var(--mantine-spacing-md);
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+[data-mantine-color-scheme='dark'] .form-section {
+  border-color: var(--mantine-color-dark-4);
+}
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+/* Table styles */
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--mantine-spacing-sm);
+  text-align: left;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+.data-table th {
+  background-color: var(--mantine-color-gray-0);
+  font-weight: 600;
+}
+
+[data-mantine-color-scheme='dark'] .data-table th {
+  background-color: var(--mantine-color-dark-6);
+}
+
+[data-mantine-color-scheme='dark'] .data-table th,
+[data-mantine-color-scheme='dark'] .data-table td {
+  border-bottom-color: var(--mantine-color-dark-4);
+}
+
+/* Responsive utilities */
+@media (max-width: 576px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 577px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .tablet-optimize {
+    padding: 1rem;
+  }
+
+  .tablet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .desktop-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ticket-card {
+    border: 2px solid;
+  }
+
+  .status-new,
+  .status-open,
+  .status-in-progress,
+  .status-on-hold,
+  .status-resolved,
+  .status-closed,
+  .status-reopened {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Dark mode table contrast fixes */
+[data-mantine-color-scheme='dark'] div[style*="var(--mantine-color-gray-0)"] {
+  background-color: var(--mantine-color-gray-7) !important;
+}
+
+[data-mantine-color-scheme='dark'] div[style*="var(--mantine-color-gray-2)"] {
+  border-bottom-color: var(--mantine-color-gray-6) !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-in,
+  .animate-pulse {
+    animation: none;
+  }
+
+  .ticket-card {
+    transition: none;
+  }
+}
