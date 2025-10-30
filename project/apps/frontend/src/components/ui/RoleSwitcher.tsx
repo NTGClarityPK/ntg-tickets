@@ -116,7 +116,7 @@ export function RoleSwitcher({
       notifications.show({
         title: t('roleSwitched'),
         message: t('roleSwitchedMessage', { role: getRoleLabel(newRole) }),
-        color: 'green',
+        color: primaryLight,
       });
 
       // Force NextAuth to think the token is expired so it will refresh
@@ -142,7 +142,7 @@ export function RoleSwitcher({
       notifications.show({
         title: t('roleSwitchFailed'),
         message: t('roleSwitchFailedMessage'),
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setLoading(false);

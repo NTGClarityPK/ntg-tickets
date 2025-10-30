@@ -142,7 +142,7 @@ export default function SLAManagementPage() {
     notifications.show({
       title: 'SLA Policy Created',
       message: 'SLA policy has been created successfully',
-      color: 'green',
+      color: primaryLight,
     });
     setCreateModalOpen(false);
     createForm.reset();
@@ -166,7 +166,7 @@ export default function SLAManagementPage() {
     notifications.show({
       title: 'SLA Policy Updated',
       message: 'SLA policy has been updated successfully',
-      color: 'green',
+      color: primaryLight,
     });
     setEditModalOpen(false);
     setSelectedSLA(null);
@@ -179,7 +179,7 @@ export default function SLAManagementPage() {
     notifications.show({
       title: 'SLA Policy Deleted',
       message: 'SLA policy has been deleted successfully',
-      color: 'green',
+      color: primaryLight,
     });
     setDeleteModalOpen(false);
     setSelectedSLA(null);

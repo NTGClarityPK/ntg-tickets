@@ -192,7 +192,7 @@ export default function TicketDetailPage() {
         title: 'Access Denied',
         message:
           'You do not have permission to transition to this status according to the workflow configuration.',
-        color: 'red',
+        color: primaryDark,
       });
       return;
     }
@@ -224,7 +224,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Success',
         message: 'Ticket status updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setStatusModalOpen(false);
       setStatusComment('');
@@ -238,7 +238,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Error',
         message: errorMessage,
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -248,7 +248,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Error',
         message: 'Please select a user to assign the ticket to',
-        color: 'red',
+        color: primaryDark,
       });
       return;
     }
@@ -261,7 +261,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Success',
         message: 'Ticket assigned successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setAssignModalOpen(false);
       setSelectedAssignee(''); // Reset selection
@@ -269,7 +269,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to assign ticket',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -279,7 +279,7 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Error',
         message: 'Please enter a comment',
-        color: 'red',
+        color: primaryDark,
       });
       return;
     }
@@ -294,14 +294,14 @@ export default function TicketDetailPage() {
       notifications.show({
         title: 'Success',
         message: 'Comment added successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setNewComment('');
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to add comment',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setIsSubmittingComment(false);

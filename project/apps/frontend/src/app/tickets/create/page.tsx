@@ -9,8 +9,10 @@ import { DynamicTicketFormValues } from '../../../types/unified';
 import { ticketApi, CreateTicketInput } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CreateTicketPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const { status } = useSession();
   const { user } = useAuthStore();
@@ -22,11 +24,11 @@ export default function CreateTicketPage() {
       notifications.show({
         title: 'Authentication Required',
         message: 'Please log in to create a ticket',
-        color: 'red',
+        color: primaryDark,
       });
       router.push('/auth/signin');
     }
-  }, [status, router]);
+  }, [status, router, primaryDark]);
 
   // Check workflow-based permissions after hook has loaded
   useEffect(() => {
@@ -35,11 +37,11 @@ export default function CreateTicketPage() {
         title: 'Access Denied',
         message:
           'You do not have permission to create tickets according to the current workflow configuration.',
-        color: 'red',
+        color: primaryDark,
       });
       router.push('/dashboard');
     }
-  }, [checkingPermission, canCreate, user, router]);
+  }, [checkingPermission, canCreate, user, router, primaryDark]);
 
   const handleSubmit = async (values: DynamicTicketFormValues) => {
     setLoading(true);
@@ -64,7 +66,7 @@ export default function CreateTicketPage() {
       notifications.show({
         title: 'Success',
         message: 'Ticket created successfully',
-        color: 'green',
+        color: primaryLight,
       });
 
       // Redirect to the created ticket
@@ -75,7 +77,7 @@ export default function CreateTicketPage() {
         title: 'Error',
         message:
           error instanceof Error ? error.message : 'Failed to create ticket',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setLoading(false);

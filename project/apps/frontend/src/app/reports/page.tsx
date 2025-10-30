@@ -580,7 +580,7 @@ export default function ReportsPage() {
       notifications.show({
         title: 'Success',
         message: 'Report exported successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       // Error logging removed for production
@@ -817,7 +817,7 @@ export default function ReportsPage() {
         title: 'Success',
         message:
           'Administrative report exported successfully as Excel with structured sheets',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({

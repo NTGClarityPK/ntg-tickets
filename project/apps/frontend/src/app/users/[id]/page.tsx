@@ -82,14 +82,14 @@ export default function UserDetailPage() {
         notifications.show({
           title: 'Success',
           message: 'User deleted successfully',
-          color: 'green',
+          color: primaryLight,
         });
         router.push('/admin/users');
       } catch (error) {
         notifications.show({
           title: 'Error',
           message: 'Failed to delete user',
-          color: 'red',
+          color: primaryDark,
         });
       }
     }
@@ -270,7 +270,7 @@ export default function UserDetailPage() {
                     Status
                   </Text>
                   <Badge
-                    color={user.isActive ? 'green' : 'red'}
+                    color={user.isActive ? primaryLight : primaryDark}
                     variant='light'
                   >
                     {user.isActive ? 'Active' : 'Inactive'}

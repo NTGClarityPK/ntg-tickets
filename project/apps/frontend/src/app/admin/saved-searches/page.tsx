@@ -41,6 +41,7 @@ import {
 } from '../../../hooks/useSavedSearches';
 import { notifications } from '@mantine/notifications';
 import { SavedSearch, PopularSavedSearch } from '../../../types/unified';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 interface SavedSearchFormData {
   name: string;
@@ -60,6 +61,7 @@ interface SavedSearchFormData {
 }
 
 export default function SavedSearchesPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearch, setSelectedSearch] = useState<{
     id: string;
@@ -97,7 +99,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Success',
         message: 'Saved search created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       setFormData({
@@ -113,7 +115,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create saved search',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -128,7 +130,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Success',
         message: 'Saved search updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setEditModalOpen(false);
       refetch();
@@ -136,7 +138,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update saved search',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -148,7 +150,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Success',
         message: 'Saved search deleted successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setDeleteModalOpen(false);
       refetch();
@@ -156,7 +158,7 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete saved search',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -182,14 +184,14 @@ export default function SavedSearchesPage() {
       notifications.show({
         title: 'Success',
         message: 'Saved search duplicated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       refetch();
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to duplicate saved search',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

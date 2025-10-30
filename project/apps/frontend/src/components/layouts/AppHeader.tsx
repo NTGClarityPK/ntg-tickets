@@ -66,7 +66,7 @@ export function AppHeader({
   const markAsReadMutation = useMarkNotificationAsRead();
   const queryClient = useQueryClient();
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const { primary, themeSettings} = useDynamicTheme();
+  const { primary, themeSettings, primaryLight, primaryLighter, primaryDark, primaryDarker, primaryDarkest } = useDynamicTheme();
 
   // Debug log
   // Debug logging removed for production
@@ -144,7 +144,7 @@ export function AppHeader({
         message: tAuth('roleSwitchedMessage', {
           role: getRoleLabel(selectedRole),
         }),
-        color: 'green',
+        color: primaryLight,
       });
 
       setShowRoleModal(false);
@@ -172,7 +172,7 @@ export function AppHeader({
       notifications.show({
         title: tAuth('roleSwitchFailed'),
         message: tAuth('roleSwitchFailedMessage'),
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -371,7 +371,8 @@ export function AppHeader({
                       <Badge
                         size='xs'
                         color={getRoleColor(
-                          user?.activeRole || UserRole.END_USER
+                          user?.activeRole || UserRole.END_USER,
+                          { primaryLighter, primaryDark, primaryDarker, primaryDarkest }
                         )}
                       >
                         {getRoleLabelText(
@@ -394,7 +395,8 @@ export function AppHeader({
                   <Badge
                     size='xs'
                     color={getRoleColor(
-                      user?.activeRole || UserRole.END_USER
+                      user?.activeRole || UserRole.END_USER,
+                      { primaryLighter, primaryDark, primaryDarker, primaryDarkest }
                     )}
                   >
                     {getRoleLabelText(user?.activeRole || UserRole.END_USER)}

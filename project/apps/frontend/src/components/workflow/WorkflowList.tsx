@@ -36,6 +36,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { WorkflowEditor } from './WorkflowEditor';
 import { Workflow, WorkflowData } from '../../lib/apiClient';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface WorkflowListProps {
   workflows: Workflow[];
@@ -56,6 +57,7 @@ export function WorkflowList({
   onActivate,
   onDeactivate,
 }: WorkflowListProps) {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [showEditor, setShowEditor] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
@@ -104,11 +106,11 @@ export function WorkflowList({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'green';
+        return primaryLight;  // Use theme color instead of hardcoded green
       case 'DRAFT':
-        return 'yellow';
+        return primaryLight;  // Use theme color instead of hardcoded yellow
       case 'INACTIVE':
-        return 'red';
+        return primaryDark;   // Use theme color instead of hardcoded red
       default:
         return 'gray';
     }

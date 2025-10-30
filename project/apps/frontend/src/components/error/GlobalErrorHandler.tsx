@@ -4,8 +4,11 @@ import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconWifiOff } from '@tabler/icons-react';
 import { UI_CONFIG } from '@/lib/constants';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 export const GlobalErrorHandler = () => {
+  const { primaryLight, primaryDark } = useDynamicTheme();
+  
   useEffect(() => {
     // Handle unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -15,7 +18,7 @@ export const GlobalErrorHandler = () => {
       notifications.show({
         title: 'Error',
         message: 'An unexpected error occurred. Please try again.',
-        color: 'red',
+        color: primaryDark,
         icon: <IconAlertTriangle size={16} />,
         autoClose: 5000,
       });
@@ -36,7 +39,7 @@ export const GlobalErrorHandler = () => {
         notifications.show({
           title: 'Error',
           message: 'An unexpected error occurred. Please refresh the page.',
-          color: 'red',
+          color: primaryDark,
           icon: <IconAlertTriangle size={16} />,
           autoClose: UI_CONFIG.TOAST_DURATION.ERROR,
         });
@@ -48,7 +51,7 @@ export const GlobalErrorHandler = () => {
       notifications.show({
         title: 'Connection Restored',
         message: 'You are back online.',
-        color: 'green',
+        color: primaryLight,
         autoClose: UI_CONFIG.TOAST_DURATION.SUCCESS,
       });
     };
@@ -79,7 +82,7 @@ export const GlobalErrorHandler = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [primaryLight, primaryDark]);
 
   return null;
 };

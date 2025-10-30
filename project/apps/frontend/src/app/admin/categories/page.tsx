@@ -88,7 +88,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Success',
         message: 'Category created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       createForm.reset();
@@ -98,7 +98,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Error',
         message: `Failed to create category: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -114,7 +114,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Success',
         message: 'Category updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setEditModalOpen(false);
       setSelectedCategory(null);
@@ -123,7 +123,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update category',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -134,7 +134,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Success',
         message: 'Category deleted successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setDeleteModalOpen(false);
       setSelectedCategory(null);
@@ -142,7 +142,7 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete category',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

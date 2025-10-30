@@ -17,8 +17,10 @@ import { notifications } from '@mantine/notifications';
 import { UserForm } from '../../../components/forms/UserForm';
 import { useCreateUser } from '../../../hooks/useUsers';
 import { UserFormData, UserRole } from '../../../types/unified';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CreateUserPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('users');
   const router = useRouter();
   const createUserMutation = useCreateUser();
@@ -33,7 +35,7 @@ export default function CreateUserPage() {
       notifications.show({
         title: 'Success',
         message: 'User created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       router.push('/admin/users');
     } catch (error: unknown) {
@@ -42,7 +44,7 @@ export default function CreateUserPage() {
       notifications.show({
         title: 'Error',
         message: errorMessage,
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

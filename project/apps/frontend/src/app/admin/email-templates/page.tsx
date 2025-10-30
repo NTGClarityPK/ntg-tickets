@@ -63,7 +63,7 @@ const TEMPLATE_TYPES = EMAIL_TEMPLATE_TYPES;
 const AVAILABLE_VARIABLES = EMAIL_TEMPLATE_VARIABLES;
 
 export default function EmailTemplatesPage() {
-  const { primaryDark, primaryLighter, textMuted } = useDynamicTheme();
+  const { primaryDark, primaryLight, primaryLighter, textMuted } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<{
     id: string;
@@ -108,7 +108,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Success',
         message: 'Email template created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       resetForm();
@@ -117,7 +117,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create email template',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -135,7 +135,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Success',
         message: 'Email template updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setEditModalOpen(false);
       refetch();
@@ -143,7 +143,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update email template',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -155,7 +155,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Success',
         message: 'Email template deleted successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setDeleteModalOpen(false);
       refetch();
@@ -163,7 +163,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete email template',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -188,7 +188,7 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to preview template',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -199,14 +199,14 @@ export default function EmailTemplatesPage() {
       notifications.show({
         title: 'Success',
         message: 'Default templates created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       refetch();
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to create default templates',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

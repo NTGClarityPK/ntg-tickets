@@ -41,11 +41,10 @@ export const getStatusTransitionErrorMessage = (
 };
 
 // Function to validate status update with resolution requirement
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const validateStatusUpdate = (
   currentStatus: TicketStatus,
   newStatus: TicketStatus,
-  resolution?: string,
-  userRole?: string
 ): { isValid: boolean; errorMessage?: string } => {
   // Check if transition is valid
   if (!isValidStatusTransition(currentStatus, newStatus)) {
@@ -55,19 +54,8 @@ export const validateStatusUpdate = (
     };
   }
 
-  // Check role-based permissions
-  if (userRole === 'END_USER') {
-    // End users can only reopen closed tickets
-    if (
-      currentStatus !== TicketStatus.CLOSED ||
-      newStatus !== TicketStatus.REOPENED
-    ) {
-      return {
-        isValid: false,
-        errorMessage: 'End users can only reopen closed tickets',
-      };
-    }
-  }
+  // Role-based permissions are now handled by the workflow system
+  // No hardcoded role restrictions - all rules derived from active workflow
 
   return { isValid: true };
 };

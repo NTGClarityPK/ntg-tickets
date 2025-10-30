@@ -29,6 +29,7 @@ import {
   CustomFieldType,
 } from '../../../../../types/unified';
 import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useDynamicTheme } from '../../../../../hooks/useDynamicTheme';
 
 interface EditCustomFieldPageProps {
   params: {
@@ -39,6 +40,7 @@ interface EditCustomFieldPageProps {
 export default function EditCustomFieldPage({
   params,
 }: EditCustomFieldPageProps) {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: customField, isLoading } = useCustomField(params.id);
@@ -89,14 +91,14 @@ export default function EditCustomFieldPage({
       notifications.show({
         title: 'Success',
         message: 'Custom field updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       router.push('/admin/custom-fields');
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to update custom field',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setIsSubmitting(false);

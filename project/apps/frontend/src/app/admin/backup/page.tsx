@@ -42,8 +42,10 @@ import {
 } from '../../../hooks/useBackup';
 import { notifications } from '@mantine/notifications';
 import { FILE_CONSTANTS, FILE_SIZE_UNITS } from '../../../lib/constants';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function BackupPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [selectedBackup, setSelectedBackup] = useState<{
     id: string;
     name: string;
@@ -69,7 +71,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Success',
         message: 'Backup creation started successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       refetch();
@@ -77,7 +79,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create backup',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -89,7 +91,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Success',
         message: 'Backup restoration started successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setRestoreModalOpen(false);
       refetch();
@@ -97,7 +99,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to restore backup',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -109,7 +111,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Success',
         message: 'Backup deleted successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setDeleteModalOpen(false);
       refetch();
@@ -117,7 +119,7 @@ export default function BackupPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete backup',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

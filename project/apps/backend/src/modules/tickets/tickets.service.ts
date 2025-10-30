@@ -814,33 +814,8 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    // Validate user role can update ticket status
-    // END_USER can only reopen closed tickets (CLOSED → REOPENED)
-    if (userRole === 'END_USER') {
-      if (
-        ticket.status !== 'CLOSED' ||
-        status !== 'REOPENED'
-      ) {
-        throw new BadRequestException(
-          'End users can only reopen closed tickets'
-        );
-      }
-      // Check if the end user is the ticket requester
-      if (ticket.requesterId !== userId) {
-        throw new ForbiddenException(
-          'Access denied: You can only reopen your own tickets'
-        );
-      }
-    } else if (
-      !['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)
-    ) {
-      this.logger.error(
-        `Permission denied for user role: ${userRole}, expected: SUPPORT_STAFF, SUPPORT_MANAGER, or ADMIN`
-      );
-      throw new BadRequestException(
-        'Only support staff, managers, and admins can update ticket status'
-      );
-    }
+    // Permission checks are now handled by the workflow execution service
+    // No hardcoded role restrictions - all rules derived from active workflow
 
     // Use workflow execution service if a workflow is assigned
     if (ticket.workflowId) {

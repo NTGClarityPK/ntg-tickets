@@ -66,11 +66,13 @@ import {
   CreateCustomFieldInput,
   UpdateCustomFieldInput,
 } from '../../types/unified';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 // Union type for editing items
 type EditingItem = User | CustomField | EmailTemplate;
 
 export function AdminPanel() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('admin');
   const [activeTab, setActiveTab] = useState('users');
   const [showUserForm, setShowUserForm] = useState(false);
@@ -135,7 +137,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'User updated successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } else {
         // For creation, password is required
@@ -143,7 +145,7 @@ export function AdminPanel() {
           notifications.show({
             title: 'Error',
             message: 'Password is required for new users',
-            color: 'red',
+            color: primaryDark,
           });
           return;
         }
@@ -160,7 +162,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'User created successfully',
-          color: 'green',
+          color: primaryLight,
         });
       }
       setShowUserForm(false);
@@ -169,7 +171,7 @@ export function AdminPanel() {
       notifications.show({
         title: 'Error',
         message: 'Failed to submit user',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -186,7 +188,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Custom field updated successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } else {
         await createCustomFieldMutation.mutateAsync(
@@ -195,7 +197,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Custom field created successfully',
-          color: 'green',
+          color: primaryLight,
         });
       }
       setShowCustomFieldForm(false);
@@ -204,7 +206,7 @@ export function AdminPanel() {
       notifications.show({
         title: 'Error',
         message: 'Failed to submit custom field',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -223,7 +225,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Email template updated successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } else {
         await createEmailTemplateMutation.mutateAsync(
@@ -232,7 +234,7 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Email template created successfully',
-          color: 'green',
+          color: primaryLight,
         });
       }
       setShowEmailTemplateForm(false);
@@ -241,7 +243,7 @@ export function AdminPanel() {
       notifications.show({
         title: 'Error',
         message: 'Failed to submit email template',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -252,7 +254,7 @@ export function AdminPanel() {
       notifications.show({
         title: 'Success',
         message: 'System settings updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setShowSystemSettingsForm(false);
       setEditingItem(null);
@@ -260,7 +262,7 @@ export function AdminPanel() {
       notifications.show({
         title: 'Error',
         message: 'Failed to submit system settings',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -287,13 +289,13 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'User deleted successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } catch (error) {
         notifications.show({
           title: 'Error',
           message: 'Failed to delete user',
-          color: 'red',
+          color: primaryDark,
         });
       }
     }
@@ -306,13 +308,13 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Custom field deleted successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } catch (error) {
         notifications.show({
           title: 'Error',
           message: 'Failed to delete custom field',
-          color: 'red',
+          color: primaryDark,
         });
       }
     }
@@ -325,13 +327,13 @@ export function AdminPanel() {
         notifications.show({
           title: 'Success',
           message: 'Email template deleted successfully',
-          color: 'green',
+          color: primaryLight,
         });
       } catch (error) {
         notifications.show({
           title: 'Error',
           message: 'Failed to delete email template',
-          color: 'red',
+          color: primaryDark,
         });
       }
     }

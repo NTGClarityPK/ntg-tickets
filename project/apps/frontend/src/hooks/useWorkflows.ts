@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { workflowsApi, Workflow, WorkflowData } from '../lib/apiClient';
+import { useDynamicTheme } from './useDynamicTheme';
 
 
 export function useWorkflows() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export function useWorkflows() {
       notifications.show({
         title: 'Error',
         message: 'Failed to fetch workflows',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setLoading(false);
@@ -38,7 +40,7 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Workflow created successfully',
-        color: 'green',
+        color: primaryLight,
       });
 
       return newWorkflow;
@@ -47,7 +49,7 @@ export function useWorkflows() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -64,7 +66,7 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Workflow updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
 
       return updatedWorkflow;
@@ -73,7 +75,7 @@ export function useWorkflows() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -90,14 +92,14 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Workflow deleted successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       notifications.show({
         title: 'Error',
         message: 'Failed to delete workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -117,14 +119,14 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Default workflow updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       notifications.show({
         title: 'Error',
         message: 'Failed to set default workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -146,14 +148,14 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Workflow activated successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       notifications.show({
         title: 'Error',
         message: 'Failed to activate workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -170,14 +172,14 @@ export function useWorkflows() {
       notifications.show({
         title: 'Success',
         message: 'Workflow deactivated successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       notifications.show({
         title: 'Error',
         message: 'Failed to deactivate workflow',
-        color: 'red',
+        color: primaryDark,
       });
       throw new Error(errorMessage);
     }
@@ -185,6 +187,7 @@ export function useWorkflows() {
 
   useEffect(() => {
     fetchWorkflows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

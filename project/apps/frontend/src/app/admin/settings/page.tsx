@@ -36,8 +36,10 @@ import {
 } from '../../../hooks/useSystemSettings';
 import { notifications } from '@mantine/notifications';
 import { SYSTEM_DEFAULTS } from '../../../lib/constants';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SettingsPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('common');
   const tSettings = useTranslations('settings');
   const [activeTab, setActiveTab] = useState<string | null>('general');
@@ -54,14 +56,14 @@ export default function SettingsPage() {
       notifications.show({
         title: 'Success',
         message: 'Settings saved successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to save settings',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -79,13 +81,13 @@ export default function SettingsPage() {
       notifications.show({
         title: 'Success',
         message: 'Setting updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to update setting',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

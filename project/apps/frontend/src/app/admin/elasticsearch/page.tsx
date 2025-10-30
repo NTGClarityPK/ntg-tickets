@@ -39,8 +39,10 @@ import {
   useElasticsearchSuggestions,
 } from '../../../hooks/useElasticsearch';
 import { notifications } from '@mantine/notifications';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function ElasticsearchPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters] = useState({
     status: [] as string[],
@@ -70,13 +72,13 @@ export default function ElasticsearchPage() {
       notifications.show({
         title: 'Reindex Started',
         message: 'Elasticsearch reindexing has been started',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to start reindexing',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -90,13 +92,13 @@ export default function ElasticsearchPage() {
       notifications.show({
         title: 'Search Completed',
         message: `Found ${result.data?.length || 0} results`,
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Search failed',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -110,13 +112,13 @@ export default function ElasticsearchPage() {
       notifications.show({
         title: 'Suggestions Retrieved',
         message: `Found ${result.length} suggestions`,
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to get suggestions',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

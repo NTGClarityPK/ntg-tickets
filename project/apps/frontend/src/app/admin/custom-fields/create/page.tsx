@@ -24,8 +24,10 @@ import {
   CustomFieldType,
 } from '../../../../types/unified';
 import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function CreateCustomFieldPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const createCustomField = useCreateCustomField();
@@ -59,14 +61,14 @@ export default function CreateCustomFieldPage() {
       notifications.show({
         title: 'Success',
         message: 'Custom field created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       router.push('/admin/custom-fields');
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to create custom field',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setIsSubmitting(false);

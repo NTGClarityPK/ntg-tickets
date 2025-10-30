@@ -27,18 +27,12 @@ import {
   IconPlus,
 } from '@tabler/icons-react';
 import { usePermissions, Permission } from '../../hooks/usePermissions';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface PermissionsManagementProps {
   opened: boolean;
   onClose: () => void;
 }
-
-const roleColors: Record<string, string> = {
-  ADMIN: 'red',
-  SUPPORT_MANAGER: 'blue',
-  SUPPORT_STAFF: 'green',
-  END_USER: 'gray',
-};
 
 const roleIcons: Record<
   string,
@@ -54,6 +48,15 @@ export function PermissionsManagement({
   opened,
   onClose,
 }: PermissionsManagementProps) {
+  const { primaryLighter, primaryDark, primaryDarker, primaryDarkest } = useDynamicTheme();
+  
+  const roleColors: Record<string, string> = {
+    ADMIN: primaryDarkest,
+    SUPPORT_MANAGER: primaryDarker,
+    SUPPORT_STAFF: primaryDark,
+    END_USER: primaryLighter,
+  };
+  
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [permissionForm, setPermissionForm] = useState({
     name: '',

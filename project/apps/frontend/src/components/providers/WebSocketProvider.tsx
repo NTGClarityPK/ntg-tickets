@@ -10,12 +10,14 @@ import { Ticket, Comment } from '../../types/unified';
 import { useSession } from 'next-auth/react';
 import { io, Socket } from 'socket.io-client';
 import { API_CONFIG } from '@/lib/constants';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface WebSocketProviderProps {
   children: React.ReactNode;
 }
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const socketRef = useRef<Socket | null>(null);
   const { user, isAuthenticated } = useAuthStore();
   const {
@@ -102,7 +104,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           mantineNotifications.show({
             title: 'New Comment',
             message: `A new comment was added to ticket ${data.ticket.ticketNumber}`,
-            color: 'red',
+            color: primaryDark,
           });
         }
       );
@@ -114,7 +116,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           mantineNotifications.show({
             title: 'SLA Breach Alert',
             message: `SLA has been breached for ticket: ${data.ticketTitle}`,
-            color: 'red',
+            color: primaryDark,
             autoClose: false, // Don't auto-close critical alerts
           });
 
@@ -199,7 +201,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           mantineNotifications.show({
             title: 'Status Updated',
             message: `Ticket "${data.ticketTitle}" status changed from ${data.oldStatus} to ${data.newStatus}`,
-            color: 'green',
+            color: primaryLight,
           });
 
           addNotification({
@@ -237,6 +239,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     updateTicket,
     addTicket,
     session?.accessToken,
+    primaryDark,
+    primaryLight,
   ]);
 
   // Cleanup on unmount

@@ -31,8 +31,10 @@ import {
   TicketUrgency,
   SlaLevel,
 } from '../../../../types/unified';
+import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function EditTicketPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
   const { user } = useAuthStore();
@@ -77,14 +79,14 @@ export default function EditTicketPage() {
       notifications.show({
         title: 'Success',
         message: 'Ticket updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       router.push(`/tickets/${ticketId}`);
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to update ticket',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setIsSubmitting(false);

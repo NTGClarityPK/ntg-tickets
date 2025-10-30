@@ -110,14 +110,14 @@ export default function ProfilePage() {
       notifications.show({
         title: 'Success',
         message: 'Profile updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to update profile',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -127,7 +127,7 @@ export default function ProfilePage() {
     notifications.show({
       title: 'Info',
       message: 'Password change functionality needs backend implementation',
-      color: 'red',
+      color: primaryDark,
     });
   };
 
@@ -259,7 +259,7 @@ export default function ProfilePage() {
                         Status
                       </Text>
                       <Badge
-                        color={user.isActive ? 'green' : 'red'}
+                        color={user.isActive ? primaryLight : primaryDark}
                         variant='light'
                       >
                         {user.isActive ? 'Active' : 'Inactive'}

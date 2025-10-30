@@ -2,63 +2,30 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function createDefaultWorkflow() {
+async function updateDefaultWorkflow() {
   try {
-    console.log('🔍 Checking for existing workflows...');
+    console.log('🔍 Looking for system default workflow...');
     
-    // Check if any workflows exist
-    const workflowCount = await prisma.workflow.count();
-    
-    if (workflowCount > 0) {
-      console.log(`✅ Found ${workflowCount} workflow(s) in database`);
-      
-      // Check if system default exists
-      const systemDefault = await prisma.workflow.findFirst({
-        where: { isSystemDefault: true },
-      });
-      
-      if (systemDefault) {
-        console.log(`✅ System default workflow already exists: "${systemDefault.name}"`);
-        return;
-      } else {
-        console.log('⚠️  No system default found, marking oldest workflow as system default...');
-        const oldestWorkflow = await prisma.workflow.findFirst({
-          orderBy: { createdAt: 'asc' },
-        });
-        
-        if (oldestWorkflow) {
-          await prisma.workflow.update({
-            where: { id: oldestWorkflow.id },
-            data: { 
-              isSystemDefault: true,
-              isDefault: true,
-              status: 'ACTIVE',
-            },
-          });
-          console.log(`✅ Marked "${oldestWorkflow.name}" as system default`);
-        }
-        return;
-      }
-    }
-    
-    console.log('📝 No workflows found, creating system default workflow...');
-    
-    // Get the first admin user to set as creator
-    const adminUser = await prisma.user.findFirst({
-      where: {
-        roles: {
-          has: 'ADMIN',
-        },
+    // Find the system default workflow
+    const defaultWorkflow = await prisma.workflow.findFirst({
+      where: { 
+        OR: [
+          { isSystemDefault: true },
+          { isDefault: true }
+        ]
       },
     });
     
-    if (!adminUser) {
-      console.error('❌ No admin user found. Please create an admin user first.');
+    if (!defaultWorkflow) {
+      console.error('❌ No default workflow found. Please run create-default-workflow.ts first.');
       return;
     }
     
-    // Create default workflow definition
-    const defaultDefinition = {
+    console.log(`✅ Found default workflow: "${defaultWorkflow.name}" (ID: ${defaultWorkflow.id})`);
+    console.log('📝 Updating workflow with on_hold state and improved positioning...');
+    
+    // Create updated workflow definition with on_hold state and better positioning
+    const updatedDefinition = {
       nodes: [
         {
           id: 'create',
@@ -231,35 +198,44 @@ async function createDefaultWorkflow() {
       ],
     };
     
-    const workflow = await prisma.workflow.create({
+    // Update the workflow
+    await prisma.workflow.update({
+      where: { id: defaultWorkflow.id },
       data: {
-        name: 'Default Workflow',
-        description: 'System default workflow for ticket management. This workflow cannot be edited or deleted.',
-        status: 'ACTIVE',
-        isDefault: true,
-        isSystemDefault: true,
-        isActive: true,
-        version: 1,
-        definition: defaultDefinition as any,
-        createdBy: adminUser.id,
+        definition: updatedDefinition as any,
+        version: defaultWorkflow.version + 1,
       },
     });
     
-    console.log('✅ Successfully created system default workflow!');
-    console.log(`   ID: ${workflow.id}`);
-    console.log(`   Name: ${workflow.name}`);
-    console.log(`   Status: ${workflow.status}`);
-    console.log(`   Is System Default: ${workflow.isSystemDefault}`);
+    console.log('✅ Successfully updated default workflow!');
+    console.log('   Changes applied:');
+    console.log('   ✓ Reorganized layout: horizontal top row (Create→New→Open→Resolved→Closed)');
+    console.log('   ✓ Added REOPENED state (x:1100, y:280) as separate state');
+    console.log('   ✓ In Progress positioned below and right of Open (x:630, y:280)');
+    console.log('   ✓ On Hold positioned below In Progress (x:510, y:430)');
+    console.log('   ✓ Added "Put On Hold" transition (In Progress → On Hold)');
+    console.log('   ✓ Added "Resume Work" transition (On Hold → In Progress)');
+    console.log('   ✓ Clean layout with no overlapping transition lines');
+    console.log('   ✓ Updated workflow flow:');
+    console.log('       - END_USER creates ticket → NEW');
+    console.log('       - SUPPORT_MANAGER: NEW → OPEN');
+    console.log('       - SUPPORT_STAFF: OPEN → IN_PROGRESS');
+    console.log('       - SUPPORT_STAFF: IN_PROGRESS → RESOLVED or ON_HOLD');
+    console.log('       - SUPPORT_STAFF: ON_HOLD → IN_PROGRESS');
+    console.log('       - SUPPORT_STAFF: RESOLVED → CLOSED');
+    console.log('       - END_USER: CLOSED → REOPENED');
+    console.log('       - SUPPORT_STAFF: REOPENED → IN_PROGRESS');
+    console.log(`   ✓ Workflow version incremented to: ${defaultWorkflow.version + 1}`);
     
   } catch (error) {
-    console.error('❌ Error creating default workflow:', error);
+    console.error('❌ Error updating default workflow:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
   }
 }
 
-createDefaultWorkflow()
+updateDefaultWorkflow()
   .then(() => {
     console.log('✅ Done!');
     process.exit(0);
@@ -268,5 +244,4 @@ createDefaultWorkflow()
     console.error('❌ Failed:', error);
     process.exit(1);
   });
-
 

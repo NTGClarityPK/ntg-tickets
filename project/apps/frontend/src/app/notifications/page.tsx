@@ -32,6 +32,7 @@ import {
   useDeleteNotification,
 } from '../../hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 // Type for the actual data returned by useNotifications hook (matches API response)
 type NotificationData = {
@@ -53,16 +54,18 @@ const notificationIcons: Record<
   default: IconBell,
 };
 
-const notificationColors: Record<string, string> = {
-  ticket: 'red',
-  user: 'green',
-  system: 'gray',
-  warning: 'orange',
-  error: 'red',
-  default: 'red',
-};
-
 export default function NotificationsPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
+  
+  const notificationColors: Record<string, string> = {
+    ticket: primaryDark,
+    user: primaryLight,
+    system: 'gray',
+    warning: 'orange',
+    error: primaryDark,
+    default: primaryDark,
+  };
+
   const [activeTab, setActiveTab] = useState<string | null>('all');
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>(
     []
@@ -86,13 +89,13 @@ export default function NotificationsPage() {
       notifications.show({
         title: 'Success',
         message: 'Notification marked as read',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to mark notification as read',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -103,13 +106,13 @@ export default function NotificationsPage() {
       notifications.show({
         title: 'Success',
         message: 'Notification deleted',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete notification',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -123,13 +126,13 @@ export default function NotificationsPage() {
       notifications.show({
         title: 'Success',
         message: 'All notifications marked as read',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to mark all notifications as read',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -145,13 +148,13 @@ export default function NotificationsPage() {
       notifications.show({
         title: 'Success',
         message: 'Selected notifications deleted',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete selected notifications',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

@@ -70,11 +70,11 @@ export default function UsersPage() {
       notifications.show({
         title: 'Access Denied',
         message: 'Only administrators can manage users',
-        color: 'red',
+        color: primaryDark,
       });
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, router, primaryDark]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);

@@ -42,8 +42,10 @@ import {
   FILE_SIZE_UNITS,
   BACKUP_STATUS_OPTIONS,
 } from '../../../lib/constants';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function BackupsPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [selectedBackup, setSelectedBackup] = useState<Backup | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [restoreModalOpen, setRestoreModalOpen] = useState(false);
@@ -78,7 +80,7 @@ export default function BackupsPage() {
       notifications.show({
         title: 'Backup Created',
         message: 'Backup has been created successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       refetch();
@@ -86,7 +88,7 @@ export default function BackupsPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create backup',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -99,7 +101,7 @@ export default function BackupsPage() {
       notifications.show({
         title: 'Backup Restored',
         message: 'Backup has been restored successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setRestoreModalOpen(false);
       setSelectedBackup(null);
@@ -108,7 +110,7 @@ export default function BackupsPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to restore backup',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

@@ -168,7 +168,7 @@ export default function ThemeSettingsPage() {
       notifications.show({
         title: 'Success',
         message: 'Theme settings updated successfully',
-        color: 'green',
+        color: primary,
         icon: <IconCheck size={16} />,
       });
       queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
@@ -185,7 +185,7 @@ export default function ThemeSettingsPage() {
       notifications.show({
         title: 'Error',
         message: errorMessage,
-        color: 'red',
+        color: primary,
         icon: <IconX size={16} />,
       });
     },
@@ -231,7 +231,7 @@ export default function ThemeSettingsPage() {
       notifications.show({
         title: 'Error',
         message: errorMessage,
-        color: 'red',
+        color: primary,
         icon: <IconX size={16} />,
       });
     },
@@ -380,7 +380,7 @@ export default function ThemeSettingsPage() {
                           notifications.show({
                             title: 'File Too Large',
                             message: 'Logo file must be smaller than 2MB',
-                            color: 'red',
+                            color: primary,
                             icon: <IconX size={16} />,
                           });
                           return;

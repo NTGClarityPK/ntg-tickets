@@ -17,8 +17,10 @@ import { notifications } from '@mantine/notifications';
 import { UserForm } from '../../../../components/forms/UserForm';
 import { useUser, useUpdateUser } from '../../../../hooks/useUsers';
 import { UserFormData, UserRole } from '../../../../types/unified';
+import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function EditUserPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
   const userId = params.id as string;
@@ -38,14 +40,14 @@ export default function EditUserPage() {
       notifications.show({
         title: 'Success',
         message: 'User updated successfully',
-        color: 'green',
+        color: primaryLight,
       });
       router.push(`/users/${userId}`);
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to update user',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

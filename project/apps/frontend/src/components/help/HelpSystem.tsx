@@ -29,13 +29,14 @@ import {
   IconAlertTriangle,
 } from '@tabler/icons-react';
 import { RTLChevronRight } from '../ui/RTLIcon';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface HelpSystemProps {
   opened: boolean;
   onClose: () => void;
 }
 
-const getHelpSections = (t: (key: string) => string) => [
+const getHelpSections = (t: (key: string) => string, primaryLight: string, primaryDark: string) => [
   {
     id: 'getting-started',
     title: t('gettingStarted'),
@@ -67,7 +68,7 @@ const getHelpSections = (t: (key: string) => string) => [
         {
           status: 'NEW',
           description: t('newStatus'),
-          color: 'red',
+          color: primaryDark,
         },
         {
           status: 'OPEN',
@@ -82,12 +83,12 @@ const getHelpSections = (t: (key: string) => string) => [
         {
           status: 'ON_HOLD',
           description: t('onHoldStatus'),
-          color: 'yellow',
+          color: primaryLight,
         },
         {
           status: 'RESOLVED',
           description: t('resolvedStatus'),
-          color: 'green',
+          color: primaryLight,
         },
         {
           status: 'CLOSED',
@@ -275,13 +276,14 @@ const getQuickActions = (
 ];
 
 export function HelpSystem({ opened, onClose }: HelpSystemProps) {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('help');
   const tTickets = useTranslations('tickets');
   const [activeSection, setActiveSection] = useState<string | null>(
     'getting-started'
   );
 
-  const helpSections = getHelpSections(t);
+  const helpSections = getHelpSections(t, primaryLight, primaryDark);
   const quickActions = getQuickActions(tTickets, t);
 
   const handleQuickAction = (action: string, target: string) => {

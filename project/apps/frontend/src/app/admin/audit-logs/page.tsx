@@ -38,6 +38,7 @@ import {
 } from '@tabler/icons-react';
 import { useAuditLogs } from '../../../hooks/useAuditLogs';
 import { notifications } from '@mantine/notifications';
+import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 import { DatePickerInput } from '@mantine/dates';
 import {
@@ -62,6 +63,7 @@ const ACTION_OPTIONS = AUDIT_LOG_ACTIONS;
 const FIELD_OPTIONS = AUDIT_LOG_FIELDS;
 
 export default function AuditLogsPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<AuditLogFilters>({
     page: 1,
@@ -120,13 +122,13 @@ export default function AuditLogsPage() {
       notifications.show({
         title: 'Success',
         message: 'Audit logs exported successfully',
-        color: 'green',
+        color: primaryLight,
       });
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to export audit logs',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };

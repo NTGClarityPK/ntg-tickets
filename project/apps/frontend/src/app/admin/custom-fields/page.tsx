@@ -108,7 +108,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Field Added to Ticket Form',
         message: 'Custom field has been added to the ticket creation form',
-        color: 'green',
+        color: primaryLight,
       });
       setCreateModalOpen(false);
       createForm.reset();
@@ -116,7 +116,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to create custom field',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -132,7 +132,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Ticket Form Field Updated',
         message: 'Custom field has been updated in the ticket creation form',
-        color: 'green',
+        color: primaryLight,
       });
       setEditModalOpen(false);
       setSelectedField(null);
@@ -140,7 +140,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update custom field',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -153,7 +153,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Field Removed from Ticket Form',
         message: 'Custom field has been removed from the ticket creation form',
-        color: 'green',
+        color: primaryLight,
       });
       setDeleteModalOpen(false);
       setSelectedField(null);
@@ -161,7 +161,7 @@ export default function CustomFieldsPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to delete custom field',
-        color: 'red',
+        color: primaryDark,
       });
     }
   };
@@ -346,13 +346,13 @@ export default function CustomFieldsPage() {
                             notifications.show({
                               title: 'Ticket Form Field Updated',
                               message: `Field ${field.isActive ? 'hidden from' : 'shown in'} ticket creation form`,
-                              color: 'green',
+                              color: primaryLight,
                             });
                           } catch (error) {
                             notifications.show({
                               title: 'Error',
                               message: 'Failed to update field status',
-                              color: 'red',
+                              color: primaryDark,
                             });
                           }
                         }}

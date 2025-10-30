@@ -30,6 +30,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface UserSettings {
   // Appearance
@@ -56,6 +57,7 @@ interface UserSettings {
 }
 
 export default function SettingsPage() {
+  const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('settings');
   const { user } = useAuthStore();
   const { theme, setTheme } = useTheme();
@@ -104,14 +106,14 @@ export default function SettingsPage() {
       notifications.show({
         title: 'Success',
         message: 'Settings saved successfully',
-        color: 'green',
+        color: primaryLight,
       });
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       notifications.show({
         title: 'Error',
         message: 'Failed to save settings',
-        color: 'red',
+        color: primaryDark,
       });
     } finally {
       setIsLoading(false);
