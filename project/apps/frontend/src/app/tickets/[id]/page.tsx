@@ -82,7 +82,7 @@ import { useAuthStore } from '../../../stores/useAuthStore';
 import { useWorkflowTransitions } from '../../../hooks/useWorkflowTransitions';
 
 import { notifications } from '@mantine/notifications';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ROLE_GROUPS } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
@@ -451,10 +451,10 @@ export default function TicketDetailPage() {
                               </Text>
                               <Text size='xs' c='dimmed'>
                                 {comment.createdAt
-                                  ? formatDistanceToNow(
+                                  ? `${format(new Date(comment.createdAt), 'MMM dd, yyyy hh:mm a')} (${formatDistanceToNow(
                                       new Date(comment.createdAt),
                                       { addSuffix: true }
-                                    )
+                                    )})`
                                   : 'Unknown time'}
                               </Text>
                             </div>
@@ -499,10 +499,10 @@ export default function TicketDetailPage() {
                               </Text>
                               <Text size='xs' c='dimmed'>
                                 {comment.createdAt
-                                  ? formatDistanceToNow(
+                                  ? `${format(new Date(comment.createdAt), 'MMM dd, yyyy hh:mm a')} (${formatDistanceToNow(
                                       new Date(comment.createdAt),
                                       { addSuffix: true }
-                                    )
+                                    )})`
                                   : 'Unknown time'}
                               </Text>
                             </div>

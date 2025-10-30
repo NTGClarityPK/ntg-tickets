@@ -30,6 +30,7 @@ import { themeSettingsApi } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { Logo } from '../../../components/common/Logo';
 
 interface ThemeSettings {
   id?: string;
@@ -64,6 +65,7 @@ export default function ThemeSettingsPage() {
   const { primary } = useDynamicTheme();
   const [previewMode, setPreviewMode] = useState(false);
   const [previewColor, setPreviewColor] = useState<string>('');
+  const [logoImageError, setLogoImageError] = useState(false);
   const formInitialized = useRef(false);
 
   // Fetch current theme settings
@@ -386,6 +388,7 @@ export default function ThemeSettingsPage() {
                           return;
                         }
                         form.setFieldValue('logoFile', file);
+                        setLogoImageError(false); // Reset error state when new file is selected
                         // Clear logo URL when file is uploaded
                         if (file) {
                           form.setFieldValue('logoUrl', '');
@@ -408,24 +411,30 @@ export default function ThemeSettingsPage() {
                     )}
 
 
-                    {(form.values.logoFile || themeSettings?.logoData) && (
-                      <Card withBorder p="md">
-                        <Text size="sm" fw={500} mb="xs">
-                          Logo Preview
-                        </Text>
-                        <Image
-                          src={
-                            form.values.logoFile 
-                              ? URL.createObjectURL(form.values.logoFile)
-                              : (themeSettings?.logoData ? `data:image/png;base64,${themeSettings.logoData}` : '/logo.svg')
-                          }
-                          alt="Logo preview"
-                          height={60}
-                          fit="contain"
-                          fallbackSrc="/logo.svg"
-                        />
-                      </Card>
-                    )}
+                    <Card withBorder p="md">
+                      <Text size="sm" fw={500} mb="xs">
+                        Logo Preview
+                      </Text>
+                      {(() => {
+                        const logoSrc = form.values.logoFile 
+                          ? URL.createObjectURL(form.values.logoFile)
+                          : (themeSettings?.logoData ? `data:image/png;base64,${themeSettings.logoData}` : null);
+                        
+                        if (logoSrc && !logoImageError) {
+                          return (
+                            <Image
+                              src={logoSrc}
+                              alt="Logo preview"
+                              height={60}
+                              fit="contain"
+                              onError={() => setLogoImageError(true)}
+                            />
+                          );
+                        }
+                        
+                        return <Logo size={60} variant="icon" />;
+                      })()}
+                    </Card>
                   </Stack>
                 </Paper>
 
