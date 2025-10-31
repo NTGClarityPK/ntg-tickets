@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { FileStorageService } from '../../common/file-storage/file-storage.service';
 import { exec } from 'child_process';
 import { promisify } from 'util';

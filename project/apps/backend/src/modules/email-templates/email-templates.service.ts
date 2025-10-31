@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 
@@ -7,7 +7,7 @@ import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 export class EmailTemplatesService {
   private readonly logger = new Logger(EmailTemplatesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async create(createEmailTemplateDto: CreateEmailTemplateDto) {
     try {

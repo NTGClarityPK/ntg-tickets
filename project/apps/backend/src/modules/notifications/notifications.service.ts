@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { NotificationType } from '@prisma/client';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
 import { WebSocketService } from '../websocket/websocket.service';

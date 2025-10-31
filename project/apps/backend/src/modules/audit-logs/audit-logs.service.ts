@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { Prisma, AuditAction } from '@prisma/client';
 
 export interface AuditLogFilters {
@@ -46,7 +46,7 @@ export interface PaginatedAuditLogs {
 export class AuditLogsService {
   private readonly logger = new Logger(AuditLogsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   /**
    * Get audit logs with pagination and filters

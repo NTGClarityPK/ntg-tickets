@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { ValidationService } from '../../common/validation/validation.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';

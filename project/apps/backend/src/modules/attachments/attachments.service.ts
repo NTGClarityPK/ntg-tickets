@@ -4,8 +4,10 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { FileStorageService } from '../../common/file-storage/file-storage.service';
+import { SupabaseStorageService } from '../../common/file-storage/supabase-storage.service';
 import { VirusScanService } from '../virus-scan/virus-scan.service';
 // import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { UpdateAttachmentDto } from './dto/update-attachment.dto';
@@ -16,7 +18,9 @@ export class AttachmentsService {
 
   constructor(
     private prisma: PrismaService,
+    private supabase: SupabaseService,
     private fileStorage: FileStorageService,
+    private supabaseStorage: SupabaseStorageService,
     private virusScan: VirusScanService
   ) {}
 
@@ -124,11 +128,21 @@ export class AttachmentsService {
       );
     }
 
-    // Upload file to storage
-    const fileUrl = await this.fileStorage.uploadFile(file, {
-      folder: `tickets/${ticketId}`,
-      filename: file.originalname,
-    });
+    // Upload file to Supabase Storage (or fallback to old storage)
+    let fileUrl: string;
+    try {
+      fileUrl = await this.supabaseStorage.uploadFile(file, {
+        folder: `tickets/${ticketId}`,
+        filename: file.originalname,
+      });
+    } catch (error) {
+      // Fallback to old storage if Supabase fails
+      this.logger.warn('Supabase storage failed, falling back to old storage', error);
+      fileUrl = await this.fileStorage.uploadFile(file, {
+        folder: `tickets/${ticketId}`,
+        filename: file.originalname,
+      });
+    }
 
     // Create attachment record
     const attachment = await this.prisma.attachment.create({
@@ -254,14 +268,27 @@ export class AttachmentsService {
       throw new BadRequestException('Access denied');
     }
 
-    // Generate signed URL for download
-    const downloadUrl = await this.fileStorage.getSignedUrl(
-      attachment.fileUrl,
-      {
-        expiresIn: 3600,
-        responseContentDisposition: `attachment; filename="${attachment.filename}"`,
-      }
-    );
+    // Generate signed URL for download from Supabase Storage
+    let downloadUrl: string;
+    try {
+      downloadUrl = await this.supabaseStorage.getSignedUrl(
+        attachment.fileUrl,
+        {
+          expiresIn: 3600,
+          responseContentDisposition: `attachment; filename="${attachment.filename}"`,
+        }
+      );
+    } catch (error) {
+      // Fallback to old storage
+      this.logger.warn('Supabase storage signed URL failed, using fallback', error);
+      downloadUrl = await this.fileStorage.getSignedUrl(
+        attachment.fileUrl,
+        {
+          expiresIn: 3600,
+          responseContentDisposition: `attachment; filename="${attachment.filename}"`,
+        }
+      );
+    }
 
     return {
       downloadUrl,
@@ -344,11 +371,16 @@ export class AttachmentsService {
       );
     }
 
-    // Delete file from storage
+    // Delete file from Supabase Storage (or fallback to old storage)
     try {
-      await this.fileStorage.deleteFile(attachment.fileUrl);
+      await this.supabaseStorage.deleteFile(attachment.fileUrl);
     } catch (error) {
-      this.logger.warn('Failed to delete file from storage', error);
+      this.logger.warn('Supabase storage delete failed, trying fallback', error);
+      try {
+        await this.fileStorage.deleteFile(attachment.fileUrl);
+      } catch (fallbackError) {
+        this.logger.warn('Failed to delete file from storage', fallbackError);
+      }
     }
 
     // Delete attachment record
@@ -392,10 +424,19 @@ export class AttachmentsService {
       throw new BadRequestException('File type not previewable');
     }
 
-    // Generate preview URL
-    const previewUrl = await this.fileStorage.getSignedUrl(attachment.fileUrl, {
-      expiresIn: 3600,
-    });
+    // Generate preview URL from Supabase Storage
+    let previewUrl: string;
+    try {
+      previewUrl = await this.supabaseStorage.getSignedUrl(attachment.fileUrl, {
+        expiresIn: 3600,
+      });
+    } catch (error) {
+      // Fallback to old storage
+      this.logger.warn('Supabase storage preview URL failed, using fallback', error);
+      previewUrl = await this.fileStorage.getSignedUrl(attachment.fileUrl, {
+        expiresIn: 3600,
+      });
+    }
 
     return {
       previewUrl,

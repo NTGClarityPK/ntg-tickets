@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { UserRole } from '@prisma/client';
 
 export interface Permission {
@@ -20,7 +20,7 @@ export interface RolePermission {
 export class PermissionsService {
   private readonly logger = new Logger(PermissionsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   /**
    * Define role-based permissions

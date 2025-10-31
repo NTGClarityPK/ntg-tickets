@@ -4,7 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { CreateSavedSearchDto } from './dto/create-saved-search.dto';
 import { UpdateSavedSearchDto } from './dto/update-saved-search.dto';
 
@@ -12,7 +12,7 @@ import { UpdateSavedSearchDto } from './dto/update-saved-search.dto';
 export class SavedSearchesService {
   private readonly logger = new Logger(SavedSearchesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async create(createSavedSearchDto: CreateSavedSearchDto, userId: string) {
     try {

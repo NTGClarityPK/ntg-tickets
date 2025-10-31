@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { CustomFieldType } from '@prisma/client';
 import {
   CreateCustomFieldDto,
@@ -10,7 +10,7 @@ import {
 export class CustomFieldsService {
   private readonly logger = new Logger(CustomFieldsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async findAll(filters?: { category?: string; isActive?: boolean }) {
     try {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 
 export interface BusinessHours {
   start: number; // Hour in 24h format (0-23)
@@ -38,7 +38,7 @@ export class SLAService {
     },
   ];
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   /**
    * Calculate due date based on SLA level and priority

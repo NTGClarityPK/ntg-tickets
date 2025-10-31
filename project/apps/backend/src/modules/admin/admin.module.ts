@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
 
 @Module({

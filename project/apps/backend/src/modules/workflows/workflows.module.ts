@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { WorkflowsService } from './workflows.service';
 import { WorkflowsController } from './workflows.controller';

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { SLAService } from './sla.service';
 import { DatabaseModule } from '../../database/database.module';
 

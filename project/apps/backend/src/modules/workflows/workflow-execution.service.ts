@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { WorkflowsService } from './workflows.service';
 import { UserRole } from '@prisma/client';
 

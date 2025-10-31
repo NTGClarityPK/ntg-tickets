@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { SupabaseService } from '../../database/supabase.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -7,49 +7,63 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
     try {
       this.logger.log('Creating category with data:', JSON.stringify(createCategoryDto, null, 2));
       
-      const category = await this.prisma.category.create({
-        data: {
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .insert({
           name: createCategoryDto.name,
-          customName: createCategoryDto.customName,
+          custom_name: createCategoryDto.customName,
           description: createCategoryDto.description,
-          isActive: createCategoryDto.isActive ?? true,
-          createdBy: createCategoryDto.createdBy!,
-        },
-        include: {
-          subcategories: true,
-        },
-      });
+          is_active: createCategoryDto.isActive ?? true,
+          created_by: createCategoryDto.createdBy!,
+        })
+        .select(`
+          *,
+          subcategories:subcategories (*)
+        `)
+        .single();
+
+      if (error) {
+        this.logger.error('Error creating category:', error);
+        throw error;
+      }
 
       this.logger.log(`Category created successfully: ${category.name}`);
-      return category;
+      return this.mapCategory(category);
     } catch (error) {
       this.logger.error('Error creating category:', error);
-      this.logger.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
 
   async findAll() {
     try {
-      const categories = await this.prisma.category.findMany({
-        include: {
-          subcategories: {
-            orderBy: { name: 'asc' },
-          },
-        },
-        orderBy: [
-          { isActive: 'desc' }, // Active categories first
-          { name: 'asc' }
-        ],
-      });
+      const { data: categories, error } = await this.supabase.client
+        .from('categories')
+        .select(`
+          *,
+          subcategories:subcategories (*)
+        `)
+        .order('is_active', { ascending: false })
+        .order('name', { ascending: true });
 
-      return categories;
+      if (error) {
+        this.logger.error('Error finding categories:', error);
+        throw error;
+      }
+
+      // Sort subcategories
+      const sortedCategories = (categories || []).map(cat => ({
+        ...this.mapCategory(cat),
+        subcategories: (cat.subcategories || []).sort((a, b) => a.name.localeCompare(b.name)),
+      }));
+
+      return sortedCategories;
     } catch (error) {
       this.logger.error('Error finding categories:', error);
       throw error;
@@ -58,18 +72,30 @@ export class CategoriesService {
 
   async findActive() {
     try {
-      const categories = await this.prisma.category.findMany({
-        where: { isActive: true },
-        include: {
-          subcategories: {
-            where: { isActive: true },
-            orderBy: { name: 'asc' },
-          },
-        },
-        orderBy: { name: 'asc' },
-      });
+      const { data: categories, error } = await this.supabase.client
+        .from('categories')
+        .select(`
+          *,
+          subcategories:subcategories!inner (*)
+        `)
+        .eq('is_active', true)
+        .eq('subcategories.is_active', true)
+        .order('name', { ascending: true });
 
-      return categories;
+      if (error) {
+        this.logger.error('Error finding active categories:', error);
+        throw error;
+      }
+
+      // Filter and sort subcategories
+      const sortedCategories = (categories || []).map(cat => ({
+        ...this.mapCategory(cat),
+        subcategories: (cat.subcategories || [])
+          .filter(sub => sub.is_active)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      }));
+
+      return sortedCategories;
     } catch (error) {
       this.logger.error('Error finding active categories:', error);
       throw error;
@@ -78,21 +104,28 @@ export class CategoriesService {
 
   async findOne(id: string) {
     try {
-      const category = await this.prisma.category.findUnique({
-        where: { id },
-        include: {
-          subcategories: {
-            where: { isActive: true },
-            orderBy: { name: 'asc' },
-          },
-        },
-      });
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .select(`
+          *,
+          subcategories:subcategories (*)
+        `)
+        .eq('id', id)
+        .single();
 
-      if (!category) {
-        throw new Error('Category not found');
+      if (error || !category) {
+        throw new NotFoundException('Category not found');
       }
 
-      return category;
+      // Filter and sort subcategories
+      const sortedSubcategories = (category.subcategories || [])
+        .filter(sub => sub.is_active)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        ...this.mapCategory(category),
+        subcategories: sortedSubcategories,
+      };
     } catch (error) {
       this.logger.error('Error finding category:', error);
       throw error;
@@ -101,42 +134,61 @@ export class CategoriesService {
 
   async findByEnumName(name: string) {
     try {
-      const category = await this.prisma.category.findFirst({
-        where: {
-          name: name as
-            | 'HARDWARE'
-            | 'SOFTWARE'
-            | 'NETWORK'
-            | 'ACCESS'
-            | 'OTHER',
-        },
-        include: {
-          subcategories: {
-            where: { isActive: true },
-            orderBy: { name: 'asc' },
-          },
-        },
-      });
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .select(`
+          *,
+          subcategories:subcategories (*)
+        `)
+        .eq('name', name)
+        .limit(1)
+        .single();
 
-      return category;
+      if (error || !category) {
+        return null;
+      }
+
+      // Filter and sort subcategories
+      const sortedSubcategories = (category.subcategories || [])
+        .filter(sub => sub.is_active)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        ...this.mapCategory(category),
+        subcategories: sortedSubcategories,
+      };
     } catch (error) {
       this.logger.error('Error finding category by enum name:', error);
-      throw error;
+      return null;
     }
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     try {
-      const category = await this.prisma.category.update({
-        where: { id },
-        data: updateCategoryDto,
-        include: {
-          subcategories: true,
-        },
-      });
+      // Convert camelCase to snake_case for update
+      const updateData: any = {};
+      if (updateCategoryDto.customName !== undefined) updateData.custom_name = updateCategoryDto.customName;
+      if (updateCategoryDto.isActive !== undefined) updateData.is_active = updateCategoryDto.isActive;
+      if (updateCategoryDto.description !== undefined) updateData.description = updateCategoryDto.description;
+      updateData.updated_at = new Date().toISOString();
+
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .update(updateData)
+        .eq('id', id)
+        .select(`
+          *,
+          subcategories:subcategories (*)
+        `)
+        .single();
+
+      if (error) {
+        this.logger.error('Error updating category:', error);
+        throw error;
+      }
 
       this.logger.log(`Category updated: ${category.name}`);
-      return category;
+      return this.mapCategory(category);
     } catch (error) {
       this.logger.error('Error updating category:', error);
       throw error;
@@ -145,13 +197,20 @@ export class CategoriesService {
 
   async remove(id: string) {
     try {
-      const category = await this.prisma.category.update({
-        where: { id },
-        data: { isActive: false },
-      });
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        this.logger.error('Error deactivating category:', error);
+        throw error;
+      }
 
       this.logger.log(`Category deactivated: ${category.name}`);
-      return category;
+      return this.mapCategory(category);
     } catch (error) {
       this.logger.error('Error deactivating category:', error);
       throw error;
@@ -160,15 +219,19 @@ export class CategoriesService {
 
   async getSubcategoriesByCategory(categoryId: string) {
     try {
-      const subcategories = await this.prisma.subcategory.findMany({
-        where: {
-          categoryId,
-          isActive: true,
-        },
-        orderBy: { name: 'asc' },
-      });
+      const { data: subcategories, error } = await this.supabase.client
+        .from('subcategories')
+        .select('*')
+        .eq('category_id', categoryId)
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
-      return subcategories;
+      if (error) {
+        this.logger.error('Error getting subcategories:', error);
+        throw error;
+      }
+
+      return (subcategories || []).map(this.mapSubcategory);
     } catch (error) {
       this.logger.error('Error getting subcategories:', error);
       throw error;
@@ -177,18 +240,14 @@ export class CategoriesService {
 
   async getSubcategoriesByCategoryName(categoryName: string) {
     try {
-      const category = await this.prisma.category.findFirst({
-        where: {
-          name: categoryName as
-            | 'HARDWARE'
-            | 'SOFTWARE'
-            | 'NETWORK'
-            | 'ACCESS'
-            | 'OTHER',
-        },
-      });
+      const { data: category, error } = await this.supabase.client
+        .from('categories')
+        .select('id')
+        .eq('name', categoryName)
+        .limit(1)
+        .single();
 
-      if (!category) {
+      if (error || !category) {
         return [];
       }
 
@@ -468,5 +527,38 @@ export class CategoriesService {
       default:
         return [];
     }
+  }
+
+  /**
+   * Map Supabase snake_case to camelCase for API compatibility
+   */
+  private mapCategory(category: any) {
+    return {
+      id: category.id,
+      name: category.name,
+      customName: category.custom_name,
+      description: category.description,
+      isActive: category.is_active,
+      createdAt: category.created_at,
+      updatedAt: category.updated_at,
+      createdBy: category.created_by,
+      subcategories: category.subcategories || [],
+    };
+  }
+
+  /**
+   * Map Supabase subcategory snake_case to camelCase
+   */
+  private mapSubcategory(subcategory: any) {
+    return {
+      id: subcategory.id,
+      categoryId: subcategory.category_id,
+      name: subcategory.name,
+      description: subcategory.description,
+      isActive: subcategory.is_active,
+      createdAt: subcategory.created_at,
+      updatedAt: subcategory.updated_at,
+      createdBy: subcategory.created_by,
+    };
   }
 }

@@ -4,20 +4,27 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
 import * as bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
+
+// Define UserRole enum locally
+enum UserRole {
+  END_USER = 'END_USER',
+  SUPPORT_STAFF = 'SUPPORT_STAFF',
+  SUPPORT_MANAGER = 'SUPPORT_MANAGER',
+  ADMIN = 'ADMIN',
+}
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
-    private prisma: PrismaService,
+    private supabase: SupabaseService,
     private validationService: ValidationService
   ) {}
 
@@ -43,29 +50,34 @@ export class UsersService {
         throw new BadRequestException(passwordValidation.message);
       }
 
-      // Hash password
+      // Hash password (Supabase Auth will handle this, but for compatibility keep it)
       const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
 
-      const user = await this.prisma.user.create({
-        data: {
-          ...createUserDto,
-          password: hashedPassword,
-        },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-      });
+      const { data: user, error } = await this.supabase.client
+        .from('users')
+        .insert({
+          email: createUserDto.email,
+          name: createUserDto.name,
+          password: hashedPassword, // Note: With Supabase Auth, password should be null
+          roles: createUserDto.roles || ['END_USER'],
+          is_active: createUserDto.isActive ?? true,
+        })
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .single();
+
+      if (error) {
+        this.logger.error('Error creating user:', error);
+        throw error;
+      }
 
       // Remove password from response
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...userWithoutPassword } = user;
       this.logger.log(`User created: ${user.email}`);
-      return userWithoutPassword as unknown as User;
+      return this.mapUser(userWithoutPassword);
     } catch (error) {
       this.logger.error('Error creating user:', error);
       throw error;
@@ -76,7 +88,7 @@ export class UsersService {
     page?: number;
     limit?: number;
     search?: string;
-    role?: UserRole;
+    role?: string | UserRole;
     isActive?: boolean;
   }): Promise<{
     data: {
@@ -99,59 +111,49 @@ export class UsersService {
       // Ensure page is a valid number
       const validPage = isNaN(Number(page)) ? 1 : Math.max(1, Number(page));
       const validLimit = isNaN(Number(limit)) ? 20 : Math.max(1, Number(limit));
-      const skip = (validPage - 1) * validLimit;
+      const from = (validPage - 1) * validLimit;
+      const to = from + validLimit - 1;
 
-      const where: {
-        OR?: Array<
-          | { name: { contains: string; mode: 'insensitive' } }
-          | { email: { contains: string; mode: 'insensitive' } }
-        >;
-        roles?: {
-          has: 'END_USER' | 'SUPPORT_STAFF' | 'SUPPORT_MANAGER' | 'ADMIN';
-        };
-        isActive?: boolean;
-      } = {};
+      let query = this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `, { count: 'exact' })
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
+      // Apply search filter
       if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ];
+        query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
       }
 
+      // Apply role filter
       if (role) {
-        where.roles = { has: role };
+        const roleStr = typeof role === 'string' ? role : role;
+        query = query.contains('roles', [roleStr]);
       }
 
+      // Apply isActive filter
       if (isActive !== undefined) {
-        where.isActive = isActive;
+        query = query.eq('is_active', isActive);
       }
 
-      const [users, total] = await Promise.all([
-        this.prisma.user.findMany({
-          where,
-          skip,
-          take: validLimit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            requestedTickets: {
-              select: { id: true, status: true },
-            },
-            assignedTickets: {
-              select: { id: true, status: true },
-            },
-          },
-        }),
-        this.prisma.user.count({ where }),
-      ]);
+      const { data: users, error, count } = await query;
+
+      if (error) {
+        this.logger.error('Error finding users:', error);
+        throw error;
+      }
 
       return {
-        data: users,
+        data: (users || []).map(this.mapUser),
         pagination: {
           page: validPage,
           limit: validLimit,
-          total,
-          totalPages: Math.ceil(total / validLimit),
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / validLimit),
         },
       };
     } catch (error) {
@@ -170,23 +172,21 @@ export class UsersService {
     isActive: boolean;
   } | null> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-      });
+      const { data: user, error } = await this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .eq('id', id)
+        .single();
 
-      if (!user) {
+      if (error || !user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      return user;
+      return this.mapUser(user);
     } catch (error) {
       this.logger.error('Error finding user:', error);
       throw error;
@@ -195,22 +195,24 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-      });
+      const { data: user, error } = await this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .eq('email', email)
+        .single();
 
-      return user;
+      if (error || !user) {
+        return null;
+      }
+
+      return this.mapUser(user);
     } catch (error) {
       this.logger.error('Error finding user by email:', error);
-      throw error;
+      return null;
     }
   }
 
@@ -225,24 +227,46 @@ export class UsersService {
     isActive: boolean;
   }> {
     try {
-      const user = await this.prisma.user.update({
-        where: { id },
-        data: {
-          ...updateUserDto,
-          updatedAt: new Date(),
-        },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-      });
+      // Convert camelCase to snake_case
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      if (updateUserDto.email !== undefined) updateData.email = updateUserDto.email;
+      if (updateUserDto.name !== undefined) updateData.name = updateUserDto.name;
+      if (updateUserDto.roles !== undefined) updateData.roles = updateUserDto.roles;
+      if (updateUserDto.isActive !== undefined) updateData.is_active = updateUserDto.isActive;
+      if (updateUserDto.avatar !== undefined) updateData.avatar = updateUserDto.avatar;
+
+      // Handle password update separately if provided
+      if (updateUserDto.password) {
+        const passwordValidation = this.validationService.validatePassword(
+          updateUserDto.password
+        );
+        if (!passwordValidation.isValid) {
+          throw new BadRequestException(passwordValidation.message);
+        }
+        updateData.password = await bcrypt.hash(updateUserDto.password, 12);
+      }
+
+      const { data: user, error } = await this.supabase.client
+        .from('users')
+        .update(updateData)
+        .eq('id', id)
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .single();
+
+      if (error) {
+        this.logger.error('Error updating user:', error);
+        throw error;
+      }
 
       this.logger.log(`User updated: ${user.email}`);
-      return user;
+      return this.mapUser(user);
     } catch (error) {
       this.logger.error('Error updating user:', error);
       throw error;
@@ -259,24 +283,27 @@ export class UsersService {
     isActive: boolean;
   }> {
     try {
-      const user = await this.prisma.user.update({
-        where: { id },
-        data: {
-          isActive: false,
-          updatedAt: new Date(),
-        },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-      });
+      const { data: user, error } = await this.supabase.client
+        .from('users')
+        .update({
+          is_active: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .single();
+
+      if (error) {
+        this.logger.error('Error deactivating user:', error);
+        throw error;
+      }
 
       this.logger.log(`User deactivated: ${user.email}`);
-      return user;
+      return this.mapUser(user);
     } catch (error) {
       this.logger.error('Error deactivating user:', error);
       throw error;
@@ -284,7 +311,7 @@ export class UsersService {
   }
 
   async getUsersByRole(
-    role: UserRole
+    role: string | UserRole
   ): Promise<
     {
       id: string;
@@ -295,23 +322,25 @@ export class UsersService {
     }[]
   > {
     try {
-      const users = await this.prisma.user.findMany({
-        where: {
-          roles: { has: role },
-          isActive: true,
-        },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
-        orderBy: { name: 'asc' },
-      });
+      const roleStr = typeof role === 'string' ? role : role;
+      
+      const { data: users, error } = await this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          requested_tickets:tickets!requester_id (id, status),
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .contains('roles', [roleStr])
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
-      return users;
+      if (error) {
+        this.logger.error('Error getting users by role:', error);
+        throw error;
+      }
+
+      return (users || []).map(this.mapUser);
     } catch (error) {
       this.logger.error('Error getting users by role:', error);
       throw error;
@@ -329,33 +358,33 @@ export class UsersService {
     }[]
   > {
     try {
-      const users = await this.prisma.user.findMany({
-        where: {
-          roles: { has: UserRole.SUPPORT_STAFF },
-          isActive: true,
-        },
-        include: {
-          assignedTickets: {
-            where: {
-              status: {
-                in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
-              },
-            },
-            select: { id: true },
-          },
-        },
-        orderBy: { name: 'asc' },
-      });
+      const { data: users, error } = await this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .contains('roles', ['SUPPORT_STAFF'])
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
-      return users
-        .map(user => ({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          roles: user.roles,
-          isActive: user.isActive,
-          openTicketCount: user.assignedTickets.length,
-        }))
+      if (error) {
+        this.logger.error('Error getting support staff:', error);
+        throw error;
+      }
+
+      return (users || [])
+        .map(user => {
+          // Filter tickets by status
+          const openTickets = (user.assigned_tickets || []).filter(
+            (ticket: any) => ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'].includes(ticket.status)
+          );
+
+          return {
+            ...this.mapUser(user),
+            openTicketCount: openTickets.length,
+          };
+        })
         .sort((a, b) => {
           // First sort by ticket count (ascending - least tickets first)
           if (a.openTicketCount !== b.openTicketCount) {
@@ -381,33 +410,33 @@ export class UsersService {
     }[]
   > {
     try {
-      const users = await this.prisma.user.findMany({
-        where: {
-          roles: { has: UserRole.SUPPORT_MANAGER },
-          isActive: true,
-        },
-        include: {
-          assignedTickets: {
-            where: {
-              status: {
-                in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
-              },
-            },
-            select: { id: true },
-          },
-        },
-        orderBy: { name: 'asc' },
-      });
+      const { data: users, error } = await this.supabase.client
+        .from('users')
+        .select(`
+          *,
+          assigned_tickets:tickets!assigned_to_id (id, status)
+        `)
+        .contains('roles', ['SUPPORT_MANAGER'])
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
-      return users
-        .map(user => ({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          roles: user.roles,
-          isActive: user.isActive,
-          openTicketCount: user.assignedTickets.length,
-        }))
+      if (error) {
+        this.logger.error('Error getting support managers:', error);
+        throw error;
+      }
+
+      return (users || [])
+        .map(user => {
+          // Filter tickets by status
+          const openTickets = (user.assigned_tickets || []).filter(
+            (ticket: any) => ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'].includes(ticket.status)
+          );
+
+          return {
+            ...this.mapUser(user),
+            openTicketCount: openTickets.length,
+          };
+        })
         .sort((a, b) => {
           // First sort by ticket count (ascending - least tickets first)
           if (a.openTicketCount !== b.openTicketCount) {
@@ -431,6 +460,24 @@ export class UsersService {
       isActive: boolean;
     }[]
   > {
-    return this.getUsersByRole(UserRole.ADMIN);
+    return this.getUsersByRole('ADMIN');
+  }
+
+  /**
+   * Map Supabase snake_case to camelCase for API compatibility
+   */
+  private mapUser(user: any): any {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roles: user.roles || [],
+      isActive: user.is_active ?? true,
+      avatar: user.avatar,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+      requestedTickets: user.requested_tickets || [],
+      assignedTickets: user.assigned_tickets || [],
+    };
   }
 }

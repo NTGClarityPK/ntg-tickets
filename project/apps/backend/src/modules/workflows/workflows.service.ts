@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { CreateWorkflowTransitionDto } from './dto/create-workflow-transition.dto';
@@ -7,7 +7,7 @@ import { WorkflowStatus, UserRole } from '@prisma/client';
 
 @Injectable()
 export class WorkflowsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private supabase: SupabaseService) {}
 
   async create(createWorkflowDto: CreateWorkflowDto, userId: string) {
     try {

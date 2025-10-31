@@ -4,16 +4,36 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../database/supabase.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import {
-  TicketPriority,
-  TicketImpact,
-  TicketUrgency,
-  SLALevel,
-  Prisma,
-} from '@prisma/client';
+// Define enums locally (or import from types)
+enum TicketPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
+enum TicketImpact {
+  MINOR = 'MINOR',
+  MODERATE = 'MODERATE',
+  MAJOR = 'MAJOR',
+  CRITICAL = 'CRITICAL',
+}
+
+enum TicketUrgency {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  IMMEDIATE = 'IMMEDIATE',
+}
+
+enum SLALevel {
+  STANDARD = 'STANDARD',
+  PREMIUM = 'PREMIUM',
+  CRITICAL_SUPPORT = 'CRITICAL_SUPPORT',
+}
 import { LoggerService } from '../../common/logger/logger.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -73,7 +93,7 @@ interface TicketUpdateData {
 @Injectable()
 export class TicketsService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly supabase: SupabaseService,
     private readonly logger: LoggerService,
     private readonly redis: RedisService,
     private readonly notifications: NotificationsService,
@@ -134,11 +154,13 @@ export class TicketsService {
 
     // Validate requester exists
     this.logger.log(`Looking up user with ID: ${userId}`, 'TicketsService');
-    const requester = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const { data: requester, error: requesterError } = await this.supabase.client
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-    if (!requester) {
+    if (requesterError || !requester) {
       this.logger.error(`User not found with ID: ${userId}`, 'TicketsService');
       throw new NotFoundException('User not found');
     }
@@ -149,11 +171,13 @@ export class TicketsService {
       `Looking up category with ID: ${createTicketDto.category}`,
       'TicketsService'
     );
-    const category = await this.prisma.category.findUnique({
-      where: { id: createTicketDto.category },
-    });
+    const { data: category, error: categoryError } = await this.supabase.client
+      .from('categories')
+      .select('*')
+      .eq('id', createTicketDto.category)
+      .single();
 
-    if (!category) {
+    if (categoryError || !category) {
       this.logger.error(
         `Category not found with ID: ${createTicketDto.category}`,
         'TicketsService'
@@ -169,14 +193,14 @@ export class TicketsService {
         `Looking up subcategory with ID: ${createTicketDto.subcategory} for category: ${createTicketDto.category}`,
         'TicketsService'
       );
-      subcategory = await this.prisma.subcategory.findUnique({
-        where: {
-          id: createTicketDto.subcategory,
-          categoryId: createTicketDto.category,
-        },
-      });
+      const { data: subcategoryData, error: subcategoryError } = await this.supabase.client
+        .from('subcategories')
+        .select('*')
+        .eq('id', createTicketDto.subcategory)
+        .eq('category_id', createTicketDto.category)
+        .single();
 
-      if (!subcategory) {
+      if (subcategoryError || !subcategoryData) {
         this.logger.error(
           `Subcategory not found with ID: ${createTicketDto.subcategory} for category: ${createTicketDto.category}`,
           'TicketsService'
@@ -185,6 +209,7 @@ export class TicketsService {
           'Subcategory not found or does not belong to category'
         );
       }
+      subcategory = subcategoryData;
       this.logger.log(`Found subcategory: ${subcategory.name}`, 'TicketsService');
     } else {
       this.logger.log('No subcategory provided, creating ticket without subcategory', 'TicketsService');
@@ -199,14 +224,8 @@ export class TicketsService {
       createTicketDto.priority
     );
 
-    // Find category by ID (already validated above, but need for ticket creation)
-    const ticketCategory = await this.prisma.category.findUnique({
-      where: { id: createTicketDto.category },
-    });
-
-    if (!ticketCategory) {
-      throw new BadRequestException('Invalid category');
-    }
+    // Use the category we already validated above
+    const ticketCategory = category;
 
     // Auto-assign ticket if enabled and no specific assignee provided
     const assignedToId = createTicketDto.assignedToId;
@@ -264,82 +283,96 @@ export class TicketsService {
     }
 
     // Create ticket
-    const ticket = await this.prisma.ticket.create({
-      data: {
-        ticketNumber,
+    const { data: ticket, error: ticketError } = await this.supabase.client
+      .from('tickets')
+      .insert({
+        ticket_number: ticketNumber,
         title: createTicketDto.title,
         description: createTicketDto.description,
-        categoryId: ticketCategory.id,
-        subcategoryId: subcategory?.id || null,
+        category_id: ticketCategory.id,
+        subcategory_id: subcategory?.id || null,
         priority: createTicketDto.priority,
         impact: createTicketDto.impact,
         urgency: createTicketDto.urgency,
-        slaLevel: createTicketDto.slaLevel,
-        requesterId: userId,
-        assignedToId: assignedToId,
-        dueDate,
+        sla_level: createTicketDto.slaLevel,
+        requester_id: userId,
+        assigned_to_id: assignedToId || null,
+        due_date: dueDate?.toISOString() || null,
         status: initialStatus,
-        workflowId: defaultWorkflowId,
-        workflowSnapshot: workflowSnapshot as any, // Store snapshot for future use
-        workflowVersion: workflowVersion,
-      },
-      include: {
-        requester: true,
-        assignedTo: true,
-        category: true,
-        subcategory: true,
-        comments: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-        attachments: {
-          include: {
-            uploader: true,
-          },
-        },
-      },
-    });
+        workflow_id: defaultWorkflowId,
+        workflow_snapshot: workflowSnapshot ? JSON.stringify(workflowSnapshot) : null,
+        workflow_version: workflowVersion,
+      })
+      .select(`
+        *,
+        requester:users!requester_id (*),
+        assigned_to:users!assigned_to_id (*),
+        category:categories (*),
+        subcategory:subcategories (*),
+        comments:comments (
+          *,
+          user:users (*)
+        ),
+        attachments:attachments (
+          *,
+          uploader:users!uploaded_by (*)
+        )
+      `)
+      .single();
+
+    if (ticketError || !ticket) {
+      this.logger.error('Error creating ticket:', ticketError?.message || 'Unknown error');
+      throw new BadRequestException('Failed to create ticket');
+    }
 
     // Handle custom fields if provided
     if (createTicketDto.customFields && Object.keys(createTicketDto.customFields).length > 0) {
       this.logger.log(`Processing custom fields: ${JSON.stringify(createTicketDto.customFields)}`, 'TicketsService');
       
       // Get all custom fields to map names to IDs
-      const allCustomFields = await this.prisma.customField.findMany({
-        where: { isActive: true },
-      });
+      const { data: allCustomFields, error: customFieldsError } = await this.supabase.client
+        .from('custom_fields')
+        .select('*')
+        .eq('is_active', true);
 
-      // Create custom field values
-      const customFieldEntries = Object.entries(createTicketDto.customFields)
-        .map(([fieldName, fieldValue]) => {
-          const customField = allCustomFields.find(cf => cf.name === fieldName);
-          if (customField) {
-            return {
-              ticketId: ticket.id,
-              customFieldId: customField.id,
-              value: String(fieldValue),
-            };
+      if (customFieldsError) {
+        this.logger.error('Error fetching custom fields:', customFieldsError.message || 'Unknown error');
+      } else {
+        // Create custom field values
+        const customFieldEntries = Object.entries(createTicketDto.customFields)
+          .map(([fieldName, fieldValue]) => {
+            const customField = allCustomFields?.find((cf: any) => cf.name === fieldName);
+            if (customField) {
+              return {
+                ticket_id: ticket.id,
+                custom_field_id: customField.id,
+                value: String(fieldValue),
+              };
+            }
+            return null;
+          })
+          .filter(entry => entry !== null);
+
+        if (customFieldEntries.length > 0) {
+          const { error: insertError } = await this.supabase.client
+            .from('ticket_custom_fields')
+            .insert(customFieldEntries);
+
+          if (insertError) {
+            this.logger.error('Error creating custom field values:', insertError.message || 'Unknown error');
+          } else {
+            this.logger.log(`Created ${customFieldEntries.length} custom field values`, 'TicketsService');
           }
-          return null;
-        })
-        .filter(entry => entry !== null);
-
-      if (customFieldEntries.length > 0) {
-        await this.prisma.ticketCustomField.createMany({
-          data: customFieldEntries,
-        });
-
-        this.logger.log(`Created ${customFieldEntries.length} custom field values`, 'TicketsService');
+        }
       }
     }
 
+    // Map ticket to camelCase for API compatibility
+    const mappedTicket = this.mapTicket(ticket);
+
     // Index in Elasticsearch
     try {
-      await this.elasticsearch.indexTicket(ticket);
+      await this.elasticsearch.indexTicket(mappedTicket);
     } catch (error) {
       this.logger.error('Failed to index ticket in Elasticsearch', error);
     }
@@ -347,17 +380,17 @@ export class TicketsService {
     // Send notification
     await this.notifications.create({
       userId,
-      ticketId: ticket.id,
+      ticketId: mappedTicket.id,
       type: 'TICKET_CREATED',
       title: 'Ticket Created',
-      message: `Your ticket ${ticket.ticketNumber} has been created successfully.`,
+      message: `Your ticket ${mappedTicket.ticketNumber} has been created successfully.`,
     });
 
     // Emit WebSocket event
-    this.websocketGateway.emitTicketCreated(ticket);
+    this.websocketGateway.emitTicketCreated(mappedTicket);
 
-    this.logger.log(`Ticket created: ${ticket.ticketNumber}`, 'TicketsService');
-    return ticket;
+    this.logger.log(`Ticket created: ${mappedTicket.ticketNumber}`, 'TicketsService');
+    return mappedTicket;
   }
 
   /**
@@ -387,104 +420,103 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const where: Prisma.TicketWhereInput = {};
-
     // NOTE: All roles can see all tickets on the "All Tickets" page
     // Role-based filtering is only applied on the "My Tickets" page (findMyTickets method)
-    // This follows the requirement that:
-    // - "All Tickets" shows all tickets for everyone
-    // - "My Tickets" shows tickets created by or assigned to the user
-
-    // Apply filters
-    if (filters.status && filters.status.length > 0) {
-      where.status = {
-        in: filters.status as (
-          | 'NEW'
-          | 'OPEN'
-          | 'IN_PROGRESS'
-          | 'ON_HOLD'
-          | 'RESOLVED'
-          | 'CLOSED'
-          | 'REOPENED'
-        )[],
-      };
-    }
-
-    if (filters.priority && filters.priority.length > 0) {
-      where.priority = {
-        in: filters.priority as ('LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL')[],
-      };
-    }
-
-    if (filters.category && filters.category.length > 0) {
-      where.categoryId = { in: filters.category };
-    }
-
-    if (filters.assignedTo && filters.assignedTo.length > 0) {
-      where.assignedToId = { in: filters.assignedTo };
-    }
-
-    if (filters.assignedToId && filters.assignedToId.length > 0) {
-      where.assignedToId = { in: filters.assignedToId };
-    }
-
-    if (filters.requesterId && filters.requesterId.length > 0) {
-      where.requesterId = { in: filters.requesterId };
-    }
-
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-        { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (filters.dateFrom || filters.dateTo) {
-      where.createdAt = {};
-      if (filters.dateFrom) {
-        where.createdAt.gte = new Date(filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        where.createdAt.lte = new Date(filters.dateTo);
-      }
-    }
 
     const page = filters.page || 1;
     const limit = Math.min(filters.limit || 20, 100);
-    const skip = (page - 1) * limit;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-    const [tickets, total] = await Promise.all([
-      this.prisma.ticket.findMany({
-        where,
-        include: {
-          requester: true,
-          assignedTo: true,
-          category: true,
-          subcategory: true,
+    // Build query
+    let query = this.supabase.client
+      .from('tickets')
+      .select(`
+        *,
+        requester:users!requester_id (*),
+        assigned_to:users!assigned_to_id (*),
+        category:categories (*),
+        subcategory:subcategories (*)
+      `, { count: 'exact' })
+      .range(from, to)
+      .order('updated_at', { ascending: false });
+
+    // Apply filters
+    if (filters.status && filters.status.length > 0) {
+      query = query.in('status', filters.status);
+    }
+
+    if (filters.priority && filters.priority.length > 0) {
+      query = query.in('priority', filters.priority);
+    }
+
+    if (filters.category && filters.category.length > 0) {
+      query = query.in('category_id', filters.category);
+    }
+
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      query = query.in('assigned_to_id', filters.assignedTo);
+    }
+
+    if (filters.assignedToId && filters.assignedToId.length > 0) {
+      query = query.in('assigned_to_id', filters.assignedToId);
+    }
+
+    if (filters.requesterId && filters.requesterId.length > 0) {
+      query = query.in('requester_id', filters.requesterId);
+    }
+
+    if (filters.search) {
+      // Supabase text search - using ilike for case-insensitive search
+      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,ticket_number.ilike.%${filters.search}%`);
+    }
+
+    if (filters.dateFrom) {
+      query = query.gte('created_at', new Date(filters.dateFrom).toISOString());
+    }
+
+    if (filters.dateTo) {
+      query = query.lte('created_at', new Date(filters.dateTo).toISOString());
+    }
+
+    const { data: tickets, error, count } = await query;
+
+    if (error) {
+      this.logger.error('Error finding tickets:', error.message || 'Unknown error');
+      throw new BadRequestException(error.message || 'Failed to find tickets');
+    }
+
+    // Get comment and attachment counts separately
+    const ticketsWithCounts = await Promise.all(
+      (tickets || []).map(async (ticket: any) => {
+        const [commentsCount, attachmentsCount] = await Promise.all([
+          this.supabase.client
+            .from('comments')
+            .select('id', { count: 'exact', head: true })
+            .eq('ticket_id', ticket.id),
+          this.supabase.client
+            .from('attachments')
+            .select('id', { count: 'exact', head: true })
+            .eq('ticket_id', ticket.id),
+        ]);
+
+        return {
+          ...this.mapTicket(ticket),
           _count: {
-            select: {
-              comments: true,
-              attachments: true,
-            },
+            comments: commentsCount.count || 0,
+            attachments: attachmentsCount.count || 0,
           },
-        },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      this.prisma.ticket.count({ where }),
-    ]);
+        };
+      })
+    );
 
     return {
-      data: tickets,
+      data: ticketsWithCounts,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
       },
     };
   }
@@ -514,63 +546,70 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
-      include: {
-        requester: true,
-        assignedTo: true,
-        category: true,
-        subcategory: true,
-        comments: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-        attachments: {
-          include: {
-            uploader: true,
-          },
-        },
-        history: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        customFields: {
-          include: {
-            customField: true,
-          },
-        },
-      },
-    });
+    const { data: ticket, error } = await this.supabase.client
+      .from('tickets')
+      .select(`
+        *,
+        requester:users!requester_id (*),
+        assigned_to:users!assigned_to_id (*),
+        category:categories (*),
+        subcategory:subcategories (*),
+        comments:comments (
+          *,
+          user:users (*)
+        ),
+        attachments:attachments (
+          *,
+          uploader:users!uploaded_by (*)
+        ),
+        custom_fields:ticket_custom_fields (
+          *,
+          custom_field:custom_fields (*)
+        )
+      `)
+      .eq('id', id)
+      .single();
 
-    if (!ticket) {
+    if (error || !ticket) {
       throw new NotFoundException('Ticket not found');
     }
 
+    // Get ticket history (audit logs)
+    const { data: history } = await this.supabase.client
+      .from('audit_logs')
+      .select(`
+        *,
+        user:users (*)
+      `)
+      .eq('ticket_id', id)
+      .order('created_at', { ascending: false });
+
     // NOTE: All roles can view all tickets now (per requirements)
-    // The "My Tickets" page handles filtering for tickets created by or assigned to the user
     // No permission check needed here - everyone can view all tickets
 
     // Transform custom fields to a simple key-value object
     const customFieldsObject: Record<string, string> = {};
-    if (ticket.customFields) {
-      ticket.customFields.forEach((ticketCustomField) => {
-        if (ticketCustomField.customField) {
-          customFieldsObject[ticketCustomField.customField.name] = ticketCustomField.value;
+    if (ticket.custom_fields) {
+      ticket.custom_fields.forEach((ticketCustomField: any) => {
+        if (ticketCustomField.custom_field) {
+          customFieldsObject[ticketCustomField.custom_field.name] = ticketCustomField.value;
         }
       });
     }
 
-    // Return ticket with transformed custom fields
+    // Map and return ticket with transformed custom fields
+    const mappedTicket = this.mapTicket(ticket);
     return {
-      ...ticket,
+      ...mappedTicket,
+      history: (history || []).map((h: any) => ({
+        id: h.id,
+        ticketId: h.ticket_id,
+        userId: h.user_id,
+        action: h.action,
+        changes: h.changes,
+        createdAt: h.created_at ? new Date(h.created_at) : new Date(),
+        user: h.user ? this.mapUser(h.user) : h.user,
+      })),
       customFields: customFieldsObject,
     };
   }
@@ -1580,5 +1619,110 @@ export class TicketsService {
     } catch (error) {
       this.logger.error('Error in auto-close process:', error);
     }
+  }
+
+  /**
+   * Map Supabase snake_case to camelCase for API compatibility
+   */
+  private mapTicket(ticket: any): any {
+    return {
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      title: ticket.title,
+      description: ticket.description,
+      categoryId: ticket.category_id,
+      subcategoryId: ticket.subcategory_id,
+      priority: ticket.priority,
+      status: ticket.status,
+      impact: ticket.impact,
+      urgency: ticket.urgency,
+      slaLevel: ticket.sla_level,
+      requesterId: ticket.requester_id,
+      assignedToId: ticket.assigned_to_id,
+      dueDate: ticket.due_date ? new Date(ticket.due_date) : null,
+      resolution: ticket.resolution,
+      createdAt: ticket.created_at ? new Date(ticket.created_at) : new Date(),
+      updatedAt: ticket.updated_at ? new Date(ticket.updated_at) : new Date(),
+      closedAt: ticket.closed_at ? new Date(ticket.closed_at) : null,
+      workflowId: ticket.workflow_id,
+      workflowSnapshot: ticket.workflow_snapshot ? (typeof ticket.workflow_snapshot === 'string' ? JSON.parse(ticket.workflow_snapshot) : ticket.workflow_snapshot) : null,
+      workflowVersion: ticket.workflow_version,
+      requester: ticket.requester ? this.mapUser(ticket.requester) : ticket.requester,
+      assignedTo: ticket.assigned_to ? this.mapUser(ticket.assigned_to) : ticket.assigned_to,
+      category: ticket.category ? this.mapCategory(ticket.category) : ticket.category,
+      subcategory: ticket.subcategory ? this.mapSubcategory(ticket.subcategory) : ticket.subcategory,
+      comments: (ticket.comments || []).map((c: any) => ({
+        id: c.id,
+        ticketId: c.ticket_id,
+        userId: c.user_id,
+        content: c.content,
+        isInternal: c.is_internal,
+        createdAt: c.created_at ? new Date(c.created_at) : new Date(),
+        updatedAt: c.updated_at ? new Date(c.updated_at) : new Date(),
+        user: c.user ? this.mapUser(c.user) : c.user,
+      })),
+      attachments: (ticket.attachments || []).map((a: any) => ({
+        id: a.id,
+        ticketId: a.ticket_id,
+        filename: a.filename,
+        fileSize: a.file_size,
+        fileType: a.file_type,
+        fileUrl: a.file_url,
+        uploadedBy: a.uploaded_by,
+        createdAt: a.created_at ? new Date(a.created_at) : new Date(),
+        uploader: a.uploader ? this.mapUser(a.uploader) : a.uploader,
+      })),
+    };
+  }
+
+  /**
+   * Map user from snake_case to camelCase
+   */
+  private mapUser(user: any): any {
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roles: user.roles || [],
+      isActive: user.is_active ?? true,
+      avatar: user.avatar,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    };
+  }
+
+  /**
+   * Map category from snake_case to camelCase
+   */
+  private mapCategory(category: any): any {
+    if (!category) return null;
+    return {
+      id: category.id,
+      name: category.name,
+      customName: category.custom_name,
+      description: category.description,
+      isActive: category.is_active,
+      createdAt: category.created_at,
+      updatedAt: category.updated_at,
+      createdBy: category.created_by,
+    };
+  }
+
+  /**
+   * Map subcategory from snake_case to camelCase
+   */
+  private mapSubcategory(subcategory: any): any {
+    if (!subcategory) return null;
+    return {
+      id: subcategory.id,
+      categoryId: subcategory.category_id,
+      name: subcategory.name,
+      description: subcategory.description,
+      isActive: subcategory.is_active,
+      createdAt: subcategory.created_at,
+      updatedAt: subcategory.updated_at,
+      createdBy: subcategory.created_by,
+    };
   }
 }

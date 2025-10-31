@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../../database/database.module';
 import { TicketsService } from './tickets.service';
 import { TicketsController } from './tickets.controller';
-import { PrismaService } from '../../database/prisma.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CommentsModule } from '../comments/comments.module';
 import { AttachmentsModule } from '../attachments/attachments.module';
@@ -15,6 +15,7 @@ import { WorkflowsModule } from '../workflows/workflows.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     NotificationsModule,
     CommentsModule,
     AttachmentsModule,
@@ -26,7 +27,7 @@ import { WorkflowsModule } from '../workflows/workflows.module';
     WebSocketModule,
     WorkflowsModule,
   ],
-  providers: [TicketsService, PrismaService],
+  providers: [TicketsService],
   controllers: [TicketsController],
   exports: [TicketsService],
 })

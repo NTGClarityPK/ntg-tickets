@@ -20,7 +20,9 @@
     "db:push": "prisma db push",
     "db:seed": "ts-node prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "supabase:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/database/types/database.types.ts",
+    "supabase:types:api": "node scripts/generate-supabase-types.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.894.0",
@@ -42,6 +44,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.2.10",
     "@prisma/client": "^5.7.1",
+    "@supabase/supabase-js": "^2.78.0",
     "@types/multer": "^2.0.0",
     "apollo-server-express": "^3.13.0",
     "bcryptjs": "^2.4.3",
@@ -85,6 +88,7 @@
     "prettier": "^3.1.0",
     "prisma": "^5.7.1",
     "source-map-support": "^0.5.21",
+    "supabase": "^1.226.4",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "ts-loader": "^9.5.1",
