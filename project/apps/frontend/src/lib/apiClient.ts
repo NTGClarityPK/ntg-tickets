@@ -150,7 +150,19 @@ apiClient.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't retry if this is already a refresh token request or if we've already retried
+    const isRefreshRequest = originalRequest.url?.includes('/auth/refresh');
+    if (isRefreshRequest || originalRequest._retry || originalRequest._isRefreshing) {
+      // If refresh token request failed, clear tokens and sign out
+      if (isRefreshRequest && error.response?.status === 401) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        await signOut({ callbackUrl: '/auth/signin' });
+      }
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401) {
       originalRequest._retry = true;
 
       try {
@@ -158,6 +170,9 @@ apiClient.interceptors.response.use(
         const localRefreshToken = localStorage.getItem('refresh_token');
         
         if (localRefreshToken) {
+          // Mark that we're refreshing to prevent recursive calls
+          originalRequest._isRefreshing = true;
+          
           // Try to refresh the token using localStorage token
           const refreshResponse = await axios.post(
             `${API_BASE_URL}/api/v1/auth/refresh`,
@@ -175,6 +190,7 @@ apiClient.interceptors.response.use(
 
             // Update the authorization header and retry the request
             originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            originalRequest._isRefreshing = false;
 
             // Retry the original request
             return apiClient(originalRequest);
@@ -183,6 +199,9 @@ apiClient.interceptors.response.use(
           // Fallback to NextAuth session
           const session = await getSession();
           if (session?.refreshToken) {
+            // Mark that we're refreshing to prevent recursive calls
+            originalRequest._isRefreshing = true;
+            
             // Try to refresh the token
             const refreshResponse = await axios.post(
               `${API_BASE_URL}/api/v1/auth/refresh`,
@@ -194,6 +213,7 @@ apiClient.interceptors.response.use(
 
               // Update the authorization header and retry the request
               originalRequest.headers.Authorization = `Bearer ${access_token}`;
+              originalRequest._isRefreshing = false;
 
               // Retry the original request
               return apiClient(originalRequest);
@@ -201,7 +221,9 @@ apiClient.interceptors.response.use(
           }
         }
       } catch (refreshError) {
-        // If refresh fails, sign out the user
+        // If refresh fails, clear tokens and sign out the user
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         await signOut({ callbackUrl: '/auth/signin' });
         return Promise.reject(refreshError);
       }

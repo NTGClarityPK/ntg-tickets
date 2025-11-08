@@ -24,7 +24,7 @@ import {
   IconClock,
   IconCheck,
 } from '@tabler/icons-react';
-import { RTLArrowRight } from '../../../components/ui/RTLIcon';
+import { RTLArrowRight, RTLArrowLeft } from '../../../components/ui/RTLIcon';
 import Link from 'next/link';
 import { useLoginAttempts } from '../../../hooks/useLoginAttempts';
 import { AuthLayout } from '../../../components/layouts/AuthLayout';
@@ -304,7 +304,7 @@ export default function SignInPage() {
               <Box>
                 <Button
                   variant='subtle'
-                  leftSection={<RTLArrowRight size={16} />}
+                  leftSection={<RTLArrowLeft size={16} />}
                   onClick={handleBack}
                   size='sm'
                   mb='md'
