@@ -3,6 +3,19 @@ import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AUTH_CONFIG } from './constants';
 
+const isHttps = process.env.NEXTAUTH_URL?.startsWith('https');
+
+const publicApiBase =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const internalApiBase =
+  process.env.INTERNAL_API_URL ||
+  (publicApiBase.includes('localhost')
+    ? publicApiBase.replace('localhost', 'backend')
+    : publicApiBase);
+const serverApiBase =
+  typeof window === 'undefined' ? internalApiBase : publicApiBase;
+
+
 async function refreshAccessToken(token: {
   refreshToken?: string;
   accessToken?: string;
@@ -10,7 +23,7 @@ async function refreshAccessToken(token: {
 }) {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/v1/auth/refresh`,
+      `${serverApiBase}/api/v1/auth/refresh`,
       {
         method: 'POST',
         headers: {
@@ -59,7 +72,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Call backend API to login and get JWT token
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/v1/auth/login`,
+            `${serverApiBase}/api/v1/auth/login`,
             {
               method: 'POST',
               headers: {
@@ -186,15 +199,18 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  useSecureCookies: process.env.NODE_ENV === 'production',
+  useSecureCookies: !!isHttps,
   cookies: {
     sessionToken: {
-      name: AUTH_CONFIG.COOKIES.SESSION_TOKEN_NAME,
+      // Use __Secure- prefix only on HTTPS; plain name on HTTP
+      name: isHttps
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: !!isHttps, // IMPORTANT: false on HTTP
       },
     },
   },

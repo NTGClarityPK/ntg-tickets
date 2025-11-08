@@ -1,0 +1,40 @@
+# --- EDIT JUST THESE 2 IF IP/PORTS CHANGE ---
+FRONTEND_ORIGIN=http://localhost:3000
+BACKEND_ORIGIN=http://localhost:4000
+# If your backend code expects these names explicitly, also include:
+CORS_ORIGIN=${FRONTEND_ORIGIN}
+FRONTEND_URL=${FRONTEND_ORIGIN}
+
+
+
+
+# Shared secrets
+JWT_SECRET=Jx8mK9pL2nQ5wR7sF4gH6jD1kA3bC0eN9mT8yU2xZ5v=
+JWT_EXPIRES_IN=30d
+
+# NextAuth
+NEXTAUTH_URL=${FRONTEND_ORIGIN}
+NEXTAUTH_SECRET=${JWT_SECRET}
+
+# Next public vars (must be present at BUILD TIME)
+NEXT_PUBLIC_API_URL=${BACKEND_ORIGIN}
+NEXT_PUBLIC_WS_URL=ws://192.168.50.50:4000
+NEXT_PUBLIC_BACKEND_URL=${BACKEND_ORIGIN}
+
+# Internal service URLs (no localhost)
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ntg_ticket?schema=public
+REDIS_HOST=redis
+REDIS_PORT=6379
+ELASTICSEARCH_URL=http://elasticsearch:9200
+
+# Optional email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+FROM_EMAIL=noreply@yourcompany.com
+
+# Node + ports
+NODE_ENV=production
+BACKEND_PORT=4000
+FRONTEND_PORT=3000

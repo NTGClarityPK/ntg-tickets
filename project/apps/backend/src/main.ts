@@ -20,7 +20,7 @@ async function bootstrap() {
     const apiPrefix = configService.get('API_PREFIX', 'api/v1');
     const corsOrigin = configService.get(
       'CORS_ORIGIN',
-      'http://localhost:3000'
+      'http://localhost:8080'
     );
 
     // Enable CORS globally for NestJS
@@ -67,7 +67,7 @@ async function bootstrap() {
     app.setGlobalPrefix(apiPrefix);
 
     // Swagger documentation
-    if (configService.get('NODE_ENV') !== 'production') {
+    if (configService.get('NODE_ENV') !== 'prod') {
       const config = new DocumentBuilder()
         .setTitle('NTG Ticket API')
         .setDescription('Complete IT Support - Ticket Management System API')
