@@ -22,6 +22,7 @@ import { SLAService } from '../../common/sla/sla.service';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
+import { WorkflowsService } from '../workflows/workflows.service';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -54,6 +55,29 @@ interface TicketUpdateData {
   customFields?: Record<string, unknown>;
 }
 
+interface WorkflowDefinitionEdge {
+  id: string;
+  source: string;
+  target: string;
+  data?: {
+    isCreateTransition?: boolean;
+    label?: string;
+  };
+  label?: string;
+}
+
+interface WorkflowDefinitionNode {
+  id: string;
+  data?: {
+    label?: string;
+  };
+}
+
+interface WorkflowDefinition {
+  edges?: WorkflowDefinitionEdge[];
+  nodes?: WorkflowDefinitionNode[];
+}
+
 /**
  * Service for managing tickets in the NTG Ticket.
  *
@@ -81,7 +105,8 @@ export class TicketsService {
     private readonly slaService: SLAService,
     private readonly websocketGateway: WebSocketGateway,
     private readonly systemConfigService: SystemConfigService,
-    private readonly workflowExecutionService: WorkflowExecutionService
+    private readonly workflowExecutionService: WorkflowExecutionService,
+    private readonly workflowsService: WorkflowsService
   ) {}
 
   /**
@@ -219,49 +244,12 @@ export class TicketsService {
     // }
 
     // Get default workflow and capture snapshot
-    let defaultWorkflowId = null;
-    let workflowSnapshot = null;
-    let workflowVersion = null;
-    let initialStatus = 'NEW'; // Default fallback status
-    try {
-      const defaultWorkflow = await this.workflowExecutionService['workflowsService'].findDefault();
-      if (defaultWorkflow) {
-        defaultWorkflowId = defaultWorkflow.id;
-        // Capture the complete workflow definition at ticket creation time
-        workflowSnapshot = {
-          id: defaultWorkflow.id,
-          name: defaultWorkflow.name,
-          definition: defaultWorkflow.definition,
-          transitions: defaultWorkflow.transitions,
-          createdAt: defaultWorkflow.createdAt,
-        };
-        workflowVersion = defaultWorkflow.version || 1;
-        this.logger.log(`Captured workflow snapshot (v${workflowVersion}) for new ticket`, 'TicketsService');
-        
-        // Extract the first state from the workflow definition
-        // Find the edge from 'create' node to get the initial status
-        if (defaultWorkflow.definition && defaultWorkflow.definition['edges']) {
-          const edges = defaultWorkflow.definition['edges'] as any[];
-          const createEdge = edges.find(edge => edge.source === 'create' || edge.data?.isCreateTransition === true);
-          if (createEdge && createEdge.target) {
-            // Find the target node to get its label
-            const nodes = defaultWorkflow.definition['nodes'] as any[];
-            const targetNode = nodes?.find(node => node.id === createEdge.target);
-            if (targetNode?.data?.label) {
-              // Convert the label to status format (e.g., "New" -> "NEW", "In Progress" -> "IN_PROGRESS")
-              initialStatus = targetNode.data.label.toUpperCase().replace(/\s+/g, '_');
-              this.logger.log(`Using workflow initial status: ${initialStatus}`, 'TicketsService');
-            } else {
-              // Fallback to using the node ID converted to uppercase
-              initialStatus = createEdge.target.toUpperCase();
-              this.logger.log(`Using workflow initial status from node ID: ${initialStatus}`, 'TicketsService');
-            }
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.warn('No default workflow found, ticket will be created without workflow', 'TicketsService');
-    }
+    const {
+      defaultWorkflowId,
+      workflowSnapshot,
+      workflowVersion,
+      initialStatus,
+    } = await this.resolveDefaultWorkflow();
 
     // Create ticket
     const ticket = await this.prisma.ticket.create({
@@ -1581,4 +1569,85 @@ export class TicketsService {
       this.logger.error('Error in auto-close process:', error);
     }
   }
+
+
+  private async resolveDefaultWorkflow(): Promise<{
+    defaultWorkflowId: string | null;
+    workflowSnapshot: Record<string, unknown> | null;
+    workflowVersion: number | null;
+    initialStatus: string;
+  }> {
+    let defaultWorkflowId: string | null = null;
+    let workflowSnapshot: Record<string, unknown> | null = null;
+    let workflowVersion: number | null = null;
+    let initialStatus = 'NEW';
+
+    try {
+      const defaultWorkflow = await this.workflowsService.findDefault();
+      if (!defaultWorkflow) {
+        this.logger.warn(
+          'No default workflow found, ticket will be created without workflow',
+          'TicketsService'
+        );
+        return {
+          defaultWorkflowId,
+          workflowSnapshot,
+          workflowVersion,
+          initialStatus,
+        };
+      }
+
+      defaultWorkflowId = defaultWorkflow.id;
+      workflowSnapshot = {
+        id: defaultWorkflow.id,
+        name: defaultWorkflow.name,
+        definition: defaultWorkflow.definition,
+        transitions: defaultWorkflow.transitions,
+        createdAt: defaultWorkflow.createdAt,
+      };
+      workflowVersion = defaultWorkflow.version || 1;
+
+      if (defaultWorkflow.definition) {
+        initialStatus = this.extractInitialStatusFromDefinition(
+          defaultWorkflow.definition as WorkflowDefinition
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to resolve default workflow: ${(error as Error).message}`,
+        error,
+        'TicketsService'
+      );
+    }
+
+    return {
+      defaultWorkflowId,
+      workflowSnapshot,
+      workflowVersion,
+      initialStatus,
+    };
+  }
+
+  private extractInitialStatusFromDefinition(
+    definition: WorkflowDefinition
+  ): string {
+    const edges = definition.edges ?? [];
+    const nodes = definition.nodes ?? [];
+
+    const createEdge = edges.find(
+      edge => edge.source === 'create' || edge.data?.isCreateTransition === true
+    );
+
+    if (!createEdge || !createEdge.target) {
+      return 'NEW';
+    }
+
+    const targetNode = nodes.find(node => node.id === createEdge.target);
+    if (targetNode?.data?.label) {
+      return targetNode.data.label.toUpperCase().replace(/\s+/g, '_');
+    }
+
+    return createEdge.target.toUpperCase();
+  }
+
 }

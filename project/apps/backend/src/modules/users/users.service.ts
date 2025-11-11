@@ -5,12 +5,26 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
 import * as bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
+
+const USER_TICKET_RELATIONS = {
+  requestedTickets: {
+    select: { id: true, status: true },
+  },
+  assignedTickets: {
+    select: { id: true, status: true },
+  },
+} as const;
+
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: typeof USER_TICKET_RELATIONS;
+}>;
+
+type SanitizedUser = Omit<UserWithRelations, 'password'>;
 
 @Injectable()
 export class UsersService {
@@ -51,21 +65,12 @@ export class UsersService {
           ...createUserDto,
           password: hashedPassword,
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
-      // Remove password from response
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = user;
+      const userWithoutPassword = this.sanitizeUser(user);
       this.logger.log(`User created: ${user.email}`);
-      return userWithoutPassword as unknown as User;
+      return userWithoutPassword;
     } catch (error) {
       this.logger.error('Error creating user:', error);
       throw error;
@@ -133,20 +138,13 @@ export class UsersService {
           skip,
           take: validLimit,
           orderBy: { createdAt: 'desc' },
-          include: {
-            requestedTickets: {
-              select: { id: true, status: true },
-            },
-            assignedTickets: {
-              select: { id: true, status: true },
-            },
-          },
+          include: USER_TICKET_RELATIONS,
         }),
         this.prisma.user.count({ where }),
       ]);
 
       return {
-        data: users,
+        data: users.map(user => this.sanitizeUser(user)),
         pagination: {
           page: validPage,
           limit: validLimit,
@@ -172,42 +170,28 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
       this.logger.error('Error finding user:', error);
       throw error;
     }
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<SanitizedUser | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
-      return user;
+      return user ? this.sanitizeUser(user) : null;
     } catch (error) {
       this.logger.error('Error finding user by email:', error);
       throw error;
@@ -231,18 +215,11 @@ export class UsersService {
           ...updateUserDto,
           updatedAt: new Date(),
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User updated: ${user.email}`);
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
       this.logger.error('Error updating user:', error);
       throw error;
@@ -265,18 +242,11 @@ export class UsersService {
           isActive: false,
           updatedAt: new Date(),
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User deactivated: ${user.email}`);
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
       this.logger.error('Error deactivating user:', error);
       throw error;
@@ -300,18 +270,11 @@ export class UsersService {
           roles: { has: role },
           isActive: true,
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
         orderBy: { name: 'asc' },
       });
 
-      return users;
+      return users.map(user => this.sanitizeUser(user));
     } catch (error) {
       this.logger.error('Error getting users by role:', error);
       throw error;
@@ -335,19 +298,21 @@ export class UsersService {
           isActive: true,
         },
         include: {
+          ...USER_TICKET_RELATIONS,
           assignedTickets: {
             where: {
               status: {
                 in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
               },
             },
-            select: { id: true },
+            select: USER_TICKET_RELATIONS.assignedTickets.select,
           },
         },
         orderBy: { name: 'asc' },
       });
 
       return users
+        .map(user => this.sanitizeUser(user))
         .map(user => ({
           id: user.id,
           email: user.email,
@@ -387,19 +352,21 @@ export class UsersService {
           isActive: true,
         },
         include: {
+          ...USER_TICKET_RELATIONS,
           assignedTickets: {
             where: {
               status: {
                 in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
               },
             },
-            select: { id: true },
+            select: USER_TICKET_RELATIONS.assignedTickets.select,
           },
         },
         orderBy: { name: 'asc' },
       });
 
       return users
+        .map(user => this.sanitizeUser(user))
         .map(user => ({
           id: user.id,
           email: user.email,
@@ -432,5 +399,12 @@ export class UsersService {
     }[]
   > {
     return this.getUsersByRole(UserRole.ADMIN);
+  }
+
+  private sanitizeUser<T extends { password?: string | null }>(
+    user: UserWithRelations
+  ): SanitizedUser {
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 }

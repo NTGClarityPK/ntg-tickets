@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { useTicketsStore } from '../stores/useTicketsStore';
 import { ticketApi } from '../lib/apiClient';
 import { Ticket } from '../types/unified';
+import { normalizeListResponse } from '../services/api/response-normalizer';
 
 /**
  * Hook to sync the tickets store with API data
@@ -31,21 +32,9 @@ export function useTicketsStoreSync() {
             limit: 10000, // Set a very high limit to get all tickets
           });
 
-          // Set tickets in store - handle different response structures
-          let tickets: Ticket[] = [];
-          if (
-            response.data?.data?.data &&
-            Array.isArray(response.data.data.data)
-          ) {
-            tickets = response.data.data.data;
-          } else if (response.data?.data && Array.isArray(response.data.data)) {
-            tickets = response.data.data;
-          } else if (response.data && Array.isArray(response.data)) {
-            tickets = response.data;
-          } else {
-          }
-
-          setTickets(tickets);
+          // Set tickets in store using normalized response
+          const { items } = normalizeListResponse<Ticket>(response.data);
+          setTickets(items);
           setHasInitialized(true);
         } catch (error) {
           // Don't throw error, just log it - store will remain empty
