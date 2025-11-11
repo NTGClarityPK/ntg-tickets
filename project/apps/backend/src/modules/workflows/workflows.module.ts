@@ -5,13 +5,17 @@ import { WorkflowsController } from './workflows.controller';
 import { WorkflowsResolver } from './workflows.resolver';
 import { WorkflowExecutionService } from './workflow-execution.service';
 import { DatabaseModule } from '../../database/database.module';
+import { AppConfigService } from '../../config/app-config.service';
 
 @Module({
   imports: [
     DatabaseModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => ({
+        secret: config.jwt.secret,
+        signOptions: { expiresIn: config.jwt.expiresIn },
+      }),
     }),
   ],
   controllers: [WorkflowsController],

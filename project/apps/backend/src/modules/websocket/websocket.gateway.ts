@@ -12,6 +12,9 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import configuration from '../../config/configuration';
+
+const appConfig = configuration();
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -20,7 +23,7 @@ interface AuthenticatedSocket extends Socket {
 
 @WSGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: appConfig.cors.origins,
     methods: ['GET', 'POST'],
     credentials: true,
   },

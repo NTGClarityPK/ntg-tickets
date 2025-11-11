@@ -3,13 +3,17 @@ import { WebSocketGateway } from './websocket.gateway';
 import { WebSocketService } from './websocket.service';
 import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../database/database.module';
+import { AppConfigService } from '../../config/app-config.service';
 
 @Module({
   imports: [
     DatabaseModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => ({
+        secret: config.jwt.secret,
+        signOptions: { expiresIn: config.jwt.expiresIn },
+      }),
     }),
   ],
   providers: [WebSocketGateway, WebSocketService],

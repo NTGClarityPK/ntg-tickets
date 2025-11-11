@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '../../config/app-config.service';
 import {
   S3Client,
   PutObjectCommand,
@@ -14,7 +15,10 @@ export class FileStorageService {
   private s3Client: S3Client;
   private bucketName: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly appConfig: AppConfigService
+  ) {
     this.bucketName =
       this.configService.get('AWS_S3_BUCKET') ||
       this.configService.get('R2_BUCKET_NAME');
@@ -125,7 +129,7 @@ export class FileStorageService {
   }
 
   validateFileSize(size: number): boolean {
-    const maxSize = parseInt(process.env.MAX_FILE_SIZE || '10485760'); // 10MB default
+    const maxSize = this.appConfig.maxFileSizeBytes;
     return size <= maxSize;
   }
 }

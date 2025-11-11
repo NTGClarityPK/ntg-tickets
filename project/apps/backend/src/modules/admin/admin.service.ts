@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
+import { AppConfigService } from '../../config/app-config.service';
 
 @Injectable()
 export class AdminService {
@@ -8,7 +9,8 @@ export class AdminService {
 
   constructor(
     private prisma: PrismaService,
-    private systemConfigService: SystemConfigService
+    private systemConfigService: SystemConfigService,
+    private readonly appConfig: AppConfigService
   ) {}
 
   async getSystemStats() {
@@ -317,10 +319,9 @@ export class AdminService {
   private async checkRedisHealth() {
     try {
       // Check if Redis is configured
-      const redisHost = process.env.REDIS_HOST;
-      const redisPort = process.env.REDIS_PORT;
+      const redisConfig = this.appConfig.redis;
 
-      if (!redisHost || !redisPort) {
+      if (!redisConfig.host || !redisConfig.port) {
         this.logger.warn('Redis not configured - skipping health check');
         return true; // Redis is optional
       }
@@ -328,8 +329,8 @@ export class AdminService {
       // Try to connect to Redis
       const { createClient } = await import('redis');
       const client = createClient({
-        url: `redis://${redisHost}:${redisPort}`,
-        password: process.env.REDIS_PASSWORD,
+        url: `redis://${redisConfig.host}:${redisConfig.port}`,
+        password: redisConfig.password || undefined,
         socket: {
           connectTimeout: 5000,
         },
@@ -364,7 +365,7 @@ export class AdminService {
 
   private async checkElasticsearchHealth() {
     try {
-      const elasticsearchUrl = process.env.ELASTICSEARCH_URL;
+      const elasticsearchUrl = this.appConfig.elasticsearchUrl;
 
       if (!elasticsearchUrl) {
         this.logger.warn(
@@ -406,16 +407,13 @@ export class AdminService {
   private async checkEmailHealth() {
     try {
       // Check if email is configured
-      const smtpHost =
-        process.env.SMTP_HOST || this.systemConfigService.getEmailConfig().host;
-      const smtpPort =
-        process.env.SMTP_PORT || this.systemConfigService.getEmailConfig().port;
-      const smtpUser =
-        process.env.SMTP_USER ||
-        this.systemConfigService.getEmailConfig().username;
-      const smtpPass =
-        process.env.SMTP_PASS ||
-        this.systemConfigService.getEmailConfig().password;
+      const emailConfig = this.systemConfigService.getEmailConfig();
+      const fallbackSmtp = this.appConfig.smtp;
+
+      const smtpHost = emailConfig.host || fallbackSmtp.host;
+      const smtpPort = emailConfig.port || fallbackSmtp.port;
+      const smtpUser = emailConfig.username || fallbackSmtp.user;
+      const smtpPass = emailConfig.password || fallbackSmtp.pass;
 
       if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
         this.logger.warn('Email not configured - skipping health check');

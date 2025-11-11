@@ -13,7 +13,7 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 - ✅ Normalize API response handling for tickets (frontend counterpart complete)
 - ✅ Extract workflow orchestration from `TicketsService` into dedicated services
 - ✅ Reduce duplicated query logic in `UsersService`
-- ⏳ Introduce centralized configuration + env validation
+- ✅ Introduce centralized configuration + env validation
 - ⏳ Address validation/error-handling gaps in DTOs and services
 - ⏳ Review Prisma schema for indexes & constraints
 

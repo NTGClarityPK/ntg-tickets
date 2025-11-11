@@ -401,10 +401,9 @@ export class UsersService {
     return this.getUsersByRole(UserRole.ADMIN);
   }
 
-  private sanitizeUser<T extends { password?: string | null }>(
-    user: UserWithRelations
-  ): SanitizedUser {
-    const { password, ...safeUser } = user;
+  private sanitizeUser(user: UserWithRelations): SanitizedUser {
+    const { password: _password, ...safeUser } = user;
+    void _password;
     return safeUser;
   }
 }

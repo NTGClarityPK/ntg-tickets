@@ -22,6 +22,24 @@ For every change, append an entry using the template below.
 
 ---
 
+## Centralize configuration & env validation (2025-11-11)
+
+- **Issue:**  
+  Environment access (`process.env`) was scattered across services and modules, making configuration brittle and hard to migrate.
+- **Resolution:**  
+  Added `AppConfigModule` with Joi validation, a typed `AppConfigService`, and refactored Redis/Bull, JWT, WebSocket, email, backup, and admin health checks to consume centralized config.
+- **Before → After:**  
+  - Before:  
+    Modules like `AppModule`, `WebSocketModule`, `AdminService`, and `BackupService` read env vars directly.  
+  - After:  
+    Shared config service supplies rate limits, Redis/JWT credentials, frontend URLs, SMTP settings, database URL, and file limits.  
+- **Dev Note (how/why):**  
+  Introduced `ConfigModule.forRoot` with validation schema and async module factories so tests, containers, and Supabase migration share a single source of truth.
+- **Product Lead Note (business value):**  
+  Centralized configuration reduces deployment risk, enforces missing-env detection early, and keeps infrastructure swaps (e.g., Supabase, new SMTP provider) low effort.
+
+---
+
 ## Change Title (Date)
 
 - **Issue:**  

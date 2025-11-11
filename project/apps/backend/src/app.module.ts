@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bull';
 
@@ -32,29 +31,40 @@ import { CacheModule } from './common/cache/cache.module';
 import { EmailModule } from './common/email/email.module';
 import { FileStorageModule } from './common/file-storage/file-storage.module';
 import { SystemConfigModule } from './common/config/system-config.module';
+import { AppConfigModule } from './config/app-config.module';
+import { AppConfigService } from './config/app-config.service';
 
 @Module({
   imports: [
     // Configuration
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
-    }),
+    AppConfigModule,
 
     // Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: parseInt(process.env.RATE_LIMIT_TTL || '60') * 1000,
-        limit: parseInt(process.env.RATE_LIMIT_LIMIT || '100'),
+    ThrottlerModule.forRootAsync({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => {
+        const rateLimit = config.rateLimit;
+        return [
+          {
+            ttl: rateLimit.ttlSeconds,
+            limit: rateLimit.limit,
+          },
+        ];
       },
-    ]),
+    }),
 
     // Bull queue for background jobs
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
+    BullModule.forRootAsync({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => {
+        const redis = config.redis;
+        return {
+          redis: {
+            host: redis.host,
+            port: redis.port,
+            password: redis.password || undefined,
+          },
+        };
       },
     }),
 

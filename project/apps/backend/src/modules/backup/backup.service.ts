@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { FileStorageService } from '../../common/file-storage/file-storage.service';
+import { AppConfigService } from '../../config/app-config.service';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -15,7 +16,8 @@ export class BackupService {
 
   constructor(
     private prisma: PrismaService,
-    private fileStorageService: FileStorageService
+    private fileStorageService: FileStorageService,
+    private readonly appConfig: AppConfigService
   ) {}
 
   /**
@@ -34,9 +36,9 @@ export class BackupService {
       }
 
       // Get database URL from environment
-      const databaseUrl = process.env.DATABASE_URL;
+      const databaseUrl = this.appConfig.databaseUrl;
       if (!databaseUrl) {
-        throw new Error('DATABASE_URL environment variable is not set');
+        throw new Error('Database URL is not configured');
       }
 
       // Parse database URL
@@ -199,9 +201,9 @@ export class BackupService {
       await this.decompressFile(tempPath, decompressedPath);
 
       // Get database URL from environment
-      const databaseUrl = process.env.DATABASE_URL;
+      const databaseUrl = this.appConfig.databaseUrl;
       if (!databaseUrl) {
-        throw new Error('DATABASE_URL environment variable is not set');
+        throw new Error('Database URL is not configured');
       }
 
       // Parse database URL
