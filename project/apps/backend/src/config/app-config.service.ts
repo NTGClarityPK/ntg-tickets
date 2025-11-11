@@ -12,6 +12,18 @@ export class AppConfigService {
     return this.configService.get('nodeEnv', { infer: true });
   }
 
+  get app(): AppConfig['app'] {
+    return this.configService.get('app', { infer: true });
+  }
+
+  get port(): number {
+    return this.app.port;
+  }
+
+  get apiPrefix(): string {
+    return this.app.apiPrefix;
+  }
+
   get rateLimit(): AppConfig['rateLimit'] {
     return this.configService.get('rateLimit', { infer: true });
   }

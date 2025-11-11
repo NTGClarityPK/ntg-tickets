@@ -40,6 +40,24 @@ For every change, append an entry using the template below.
 
 ---
 
+## Harden user validation & errors (2025-11-11)
+
+- **Issue:**  
+  User endpoints accepted unchecked query params/IDs and bubbled raw Prisma errors, risking confusing responses and inconsistent logging.
+- **Resolution:**  
+  Added `GetUsersQueryDto` with typed pagination filters, enforced UUID params in the controller, and centralized UsersService error handling with consistent `InternalServerErrorException` wrapping.
+- **Before → After:**  
+  - Before:  
+    `findAll` accepted loose strings (`isActive='true'`) and each catch simply re-threw the original error.  
+  - After:  
+    DTO-driven query parsing, `ParseUUIDPipe` on `:id`, and a shared `handleServiceError` that logs + emits clean API errors.  
+- **Dev Note (how/why):**  
+  Validation pipe now gets structured input, and we avoid duplicating error logging in every method.
+- **Product Lead Note (business value):**  
+  Users API responds with predictable messages, which helps support staff diagnose issues faster and lowers the chance of leaking internal stack traces.
+
+---
+
 ## Change Title (Date)
 
 - **Issue:**  

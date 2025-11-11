@@ -9,6 +9,10 @@ export default () => {
     .filter(Boolean);
 
   return {
+    app: {
+      port: parseInt(process.env.PORT ?? '4000', 10),
+      apiPrefix: process.env.API_PREFIX ?? 'api/v1',
+    },
     nodeEnv: process.env.NODE_ENV ?? 'development',
     rateLimit: {
       ttlSeconds: parseInt(process.env.RATE_LIMIT_TTL ?? '60', 10),

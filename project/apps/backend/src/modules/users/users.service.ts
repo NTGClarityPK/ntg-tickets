@@ -3,6 +3,8 @@ import {
   NotFoundException,
   Logger,
   BadRequestException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,6 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
 import * as bcrypt from 'bcryptjs';
 import { Prisma, UserRole } from '@prisma/client';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
 
 const USER_TICKET_RELATIONS = {
   requestedTickets: {
@@ -72,18 +75,11 @@ export class UsersService {
       this.logger.log(`User created: ${user.email}`);
       return userWithoutPassword;
     } catch (error) {
-      this.logger.error('Error creating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to create user');
     }
   }
 
-  async findAll(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    role?: UserRole;
-    isActive?: boolean;
-  }): Promise<{
+  async findAll(params: GetUsersQueryDto): Promise<{
     data: {
       id: string;
       email: string;
@@ -100,11 +96,7 @@ export class UsersService {
   }> {
     try {
       const { page = 1, limit = 20, search, role, isActive } = params;
-
-      // Ensure page is a valid number
-      const validPage = isNaN(Number(page)) ? 1 : Math.max(1, Number(page));
-      const validLimit = isNaN(Number(limit)) ? 20 : Math.max(1, Number(limit));
-      const skip = (validPage - 1) * validLimit;
+      const skip = (page - 1) * limit;
 
       const where: {
         OR?: Array<
@@ -136,7 +128,7 @@ export class UsersService {
         this.prisma.user.findMany({
           where,
           skip,
-          take: validLimit,
+          take: limit,
           orderBy: { createdAt: 'desc' },
           include: USER_TICKET_RELATIONS,
         }),
@@ -146,15 +138,14 @@ export class UsersService {
       return {
         data: users.map(user => this.sanitizeUser(user)),
         pagination: {
-          page: validPage,
-          limit: validLimit,
+          page,
+          limit,
           total,
-          totalPages: Math.ceil(total / validLimit),
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
-      this.logger.error('Error finding users:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to fetch users');
     }
   }
 
@@ -179,8 +170,7 @@ export class UsersService {
 
       return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error finding user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to find user');
     }
   }
 
@@ -193,8 +183,7 @@ export class UsersService {
 
       return user ? this.sanitizeUser(user) : null;
     } catch (error) {
-      this.logger.error('Error finding user by email:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to find user by email');
     }
   }
 
@@ -221,8 +210,7 @@ export class UsersService {
       this.logger.log(`User updated: ${user.email}`);
       return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error updating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to update user');
     }
   }
 
@@ -248,8 +236,7 @@ export class UsersService {
       this.logger.log(`User deactivated: ${user.email}`);
       return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error deactivating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to deactivate user');
     }
   }
 
@@ -276,8 +263,7 @@ export class UsersService {
 
       return users.map(user => this.sanitizeUser(user));
     } catch (error) {
-      this.logger.error('Error getting users by role:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to get users by role');
     }
   }
 
@@ -330,8 +316,10 @@ export class UsersService {
           return a.name.localeCompare(b.name);
         });
     } catch (error) {
-      this.logger.error('Error getting support staff with ticket counts:', error);
-      throw error;
+      this.handleServiceError(
+        error,
+        'Failed to get support staff with ticket counts',
+      );
     }
   }
 
@@ -384,8 +372,10 @@ export class UsersService {
           return a.name.localeCompare(b.name);
         });
     } catch (error) {
-      this.logger.error('Error getting support managers with ticket counts:', error);
-      throw error;
+      this.handleServiceError(
+        error,
+        'Failed to get support managers with ticket counts',
+      );
     }
   }
 
@@ -402,8 +392,19 @@ export class UsersService {
   }
 
   private sanitizeUser(user: UserWithRelations): SanitizedUser {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...safeUser } = user;
-    void _password;
-    return safeUser;
+    return safeUser as SanitizedUser;
+  }
+
+  private handleServiceError(error: unknown, userMessage: string): never {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+
+    const details =
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    this.logger.error(userMessage, details);
+    throw new InternalServerErrorException(userMessage);
   }
 }

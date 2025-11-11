@@ -4,6 +4,8 @@ export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'test', 'production')
     .default('development'),
+  PORT: Joi.number().integer().positive().default(4000),
+  API_PREFIX: Joi.string().default('api/v1'),
   RATE_LIMIT_TTL: Joi.number().integer().positive().default(60),
   RATE_LIMIT_LIMIT: Joi.number().integer().positive().default(100),
   REDIS_HOST: Joi.string().default('localhost'),
