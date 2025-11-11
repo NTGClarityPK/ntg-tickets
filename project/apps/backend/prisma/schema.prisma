@@ -202,6 +202,11 @@ model Ticket {
   workflowVersion  Int?          // Version of the workflow when ticket was created
   workflowExecutions WorkflowExecution[]
 
+  @@index([status])
+  @@index([assignedToId])
+  @@index([requesterId])
+  @@index([categoryId, subcategoryId])
+  @@index([createdAt])
   @@map("tickets")
 }
 
@@ -218,6 +223,9 @@ model Comment {
   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
+  @@index([ticketId])
+  @@index([userId])
+  @@index([createdAt])
   @@map("comments")
 }
 
@@ -235,6 +243,9 @@ model Attachment {
   ticket     Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   uploader   User   @relation(fields: [uploadedBy], references: [id])
 
+  @@index([ticketId])
+  @@index([uploadedBy])
+  @@index([createdAt])
   @@map("attachments")
 }
 
@@ -251,6 +262,9 @@ model TicketHistory {
   ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
+  @@index([ticketId])
+  @@index([userId])
+  @@index([createdAt])
   @@map("ticket_history")
 }
 
@@ -265,6 +279,8 @@ model TicketRelation {
   relatedTicket Ticket @relation("RelatedTicketRelations", fields: [relatedTicketId], references: [id], onDelete: Cascade)
 
   @@unique([ticketId, relatedTicketId])
+  @@index([ticketId])
+  @@index([relatedTicketId])
   @@map("ticket_relations")
 }
 
@@ -282,6 +298,8 @@ model Notification {
   user   User    @relation(fields: [userId], references: [id])
   ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
+  @@index([userId, isRead])
+  @@index([createdAt])
   @@map("notifications")
 }
 
@@ -314,6 +332,8 @@ model TicketCustomField {
   customField CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
 
   @@unique([ticketId, customFieldId])
+  @@index([ticketId])
+  @@index([customFieldId])
   @@map("ticket_custom_fields")
 }
 
@@ -342,6 +362,8 @@ model SavedSearch {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([createdAt])
   @@map("saved_searches")
 }
 
@@ -362,6 +384,9 @@ model AuditLog {
   // Relations
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
   @@map("audit_logs")
 }
 
@@ -452,6 +477,9 @@ model Workflow {
   executions    WorkflowExecution[]
   tickets       Ticket[]
 
+  @@index([status, isActive])
+  @@index([createdBy])
+  @@index([createdAt])
   @@map("workflows")
 }
 
@@ -473,6 +501,8 @@ model WorkflowTransition {
   actions     WorkflowAction[]
   permissions WorkflowPermission[]
 
+  @@index([workflowId, isActive])
+  @@index([fromState, toState])
   @@map("workflow_transitions")
 }
 
@@ -537,5 +567,9 @@ model WorkflowExecution {
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [executedBy], references: [id])
 
+  @@index([ticketId])
+  @@index([workflowId])
+  @@index([executedBy])
+  @@index([executedAt])
   @@map("workflow_executions")
 }

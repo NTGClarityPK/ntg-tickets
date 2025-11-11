@@ -15,7 +15,7 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 - ✅ Reduce duplicated query logic in `UsersService`
 - ✅ Introduce centralized configuration + env validation
 - ✅ Address validation/error-handling gaps in DTOs and services
-- ⏳ Review Prisma schema for indexes & constraints
+- ✅ Review Prisma schema for indexes & constraints
 
 ## Frontend
 - ✅ Normalize ticket API responses across hooks and stores

@@ -57,6 +57,23 @@ For every change, append an entry using the template below.
   Users API responds with predictable messages, which helps support staff diagnose issues faster and lowers the chance of leaking internal stack traces.
 
 ---
+## Prisma performance indexes (2025-11-11)
+
+- **Issue:**  
+  Ticket, notification, and workflow tables had no secondary indexes, slowing the highest-volume queries (status filters, unread notifications, workflow lookups).
+- **Resolution:**  
+  Added targeted `@@index` directives for frequent filters (ticket status/assignee/requester, notification `userId + isRead`, audit log timestamps, workflow transitions, etc.).
+- **Before → After:**  
+  - Before:  
+    Full-table scans whenever we fetched tickets by status or unread notifications per user.  
+  - After:  
+    Schema defines explicit indexes (e.g. `@@index([status])`, `@@index([userId, isRead])`, `@@index([workflowId, isActive])`) ready for migration on the next deploy.  
+- **Dev Note (how/why):**  
+  The schema change doesn’t alter runtime; run `prisma migrate dev --name add_indexes` (or `prisma db push`) to apply physically.
+- **Product Lead Note (business value):**  
+  Improves responsiveness of ticket lists, dashboards, and background jobs as the database grows, reducing load spikes ahead of Supabase migration.
+
+---
 
 ## Change Title (Date)
 
