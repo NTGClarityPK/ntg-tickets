@@ -30,6 +30,7 @@ import {
   IconSearch,
 } from '@tabler/icons-react';
 import { useUserActivityLogs } from '../../hooks/useAuditLogs';
+import { AuditLog } from '../../types/unified';
 import { PAGINATION_CONFIG } from '../../lib/constants';
 
 interface UserActivityLogsProps {
@@ -209,7 +210,7 @@ export function UserActivityLogs({
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {activityLogs?.data?.data?.map(log => (
+                  {activityLogs?.items?.map((log: AuditLog) => (
                     <Table.Tr key={log.id}>
                       <Table.Td>
                         <Badge

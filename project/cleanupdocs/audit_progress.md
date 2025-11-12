@@ -19,9 +19,9 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 
 ## Frontend
 - ✅ Normalize ticket API responses across hooks and stores
-- ⏳ Refactor `apiClient` into domain clients + adapters
+- ✅ Refactor `apiClient` into domain clients + adapters
+- ✅ Replace hardcoded admin metrics with data-driven components
 - ⏳ Introduce feature-based folder structure with container/presenter split
-- ⏳ Replace hardcoded admin metrics with data-driven components
 - ⏳ Improve state management (selectors, shared stores)
 
 ## Cross-cutting

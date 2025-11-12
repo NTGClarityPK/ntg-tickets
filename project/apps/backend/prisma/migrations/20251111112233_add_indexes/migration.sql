@@ -56,3 +56,4 @@ CREATE INDEX IF NOT EXISTS "workflow_executions_workflow_idx" ON "workflow_execu
 CREATE INDEX IF NOT EXISTS "workflow_executions_user_idx" ON "workflow_executions"("executedBy");
 CREATE INDEX IF NOT EXISTS "workflow_executions_executed_at_idx" ON "workflow_executions"("executedAt");
 
+

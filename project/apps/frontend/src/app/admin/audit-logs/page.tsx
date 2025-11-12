@@ -39,6 +39,7 @@ import {
 import { useAuditLogs } from '../../../hooks/useAuditLogs';
 import { notifications } from '@mantine/notifications';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { AuditLog } from '../../../types/unified';
 
 import { DatePickerInput } from '@mantine/dates';
 import {
@@ -69,19 +70,7 @@ export default function AuditLogsPage() {
     page: 1,
     limit: PAGINATION_CONFIG.ADMIN_PAGE_SIZE,
   });
-  const [selectedLog, setSelectedLog] = useState<{
-    id: string;
-    action: string;
-    createdAt: string;
-    user?: { name: string; email: string };
-    ticket?: { title: string; ticketNumber: string };
-    fieldName?: string;
-    oldValue?: string;
-    newValue?: string;
-    ipAddress?: string;
-    resourceType?: string;
-    metadata?: Record<string, unknown>;
-  } | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -133,19 +122,7 @@ export default function AuditLogsPage() {
     }
   };
 
-  const handleLogClick = (log: {
-    id: string;
-    action: string;
-    createdAt: string;
-    user?: { name: string; email: string };
-    ticket?: { title: string; ticketNumber: string };
-    fieldName?: string;
-    oldValue?: string;
-    newValue?: string;
-    ipAddress?: string;
-    resourceType?: string;
-    metadata?: Record<string, unknown>;
-  }) => {
+  const handleLogClick = (log: AuditLog) => {
     setSelectedLog(log);
     setDetailModalOpen(true);
   };
@@ -321,19 +298,7 @@ export default function AuditLogsPage() {
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {auditLogs?.data?.data?.map(
-                          (log: {
-                            id: string;
-                            action: string;
-                            createdAt: string;
-                            user?: { name: string; email: string };
-                            ticket?: { title: string; ticketNumber: string };
-                            fieldName?: string;
-                            oldValue?: string;
-                            newValue?: string;
-                            ipAddress?: string;
-                            resourceType?: string;
-                          }) => (
+                        {auditLogs?.items?.map((log: AuditLog) => (
                             <Table.Tr key={log.id}>
                               <Table.Td>
                                 <Stack gap='xs'>
@@ -369,13 +334,13 @@ export default function AuditLogsPage() {
                               </Table.Td>
                               <Table.Td>
                                 <Text size='sm'>
-                                  {log.ticket?.title ||
-                                    log.resourceType ||
-                                    'N/A'}
+                                  {log.resource === 'ticket' && log.resourceId
+                                    ? `Ticket #${log.resourceId}`
+                                    : log.resource || 'N/A'}
                                 </Text>
-                                {log.ticket?.ticketNumber && (
+                                {log.resourceId && (
                                   <Text size='xs' c='dimmed'>
-                                    #{log.ticket.ticketNumber}
+                                    {log.resourceId}
                                   </Text>
                                 )}
                               </Table.Td>
@@ -456,9 +421,9 @@ export default function AuditLogsPage() {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {auditLogs?.data?.data
-                      ?.filter(log => log.resource === 'ticket')
-                      .map(log => {
+                    {auditLogs?.items
+                      ?.filter((log: AuditLog) => log.resource === 'ticket')
+                      .map((log: AuditLog) => {
                         const ticketInfo = { id: log.id, title: 'N/A' };
                         return (
                           <Table.Tr key={log.id}>
@@ -543,26 +508,11 @@ export default function AuditLogsPage() {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {auditLogs?.data?.data
+                    {auditLogs?.items
                       ?.filter(
-                        (log: {
-                          id: string;
-                          action: string;
-                          createdAt: string;
-                          user?: { name: string; email: string };
-                          fieldName?: string;
-                          ipAddress?: string;
-                        }) => ['LOGIN', 'LOGOUT', 'UPDATE'].includes(log.action)
+                        (log: AuditLog) => ['LOGIN', 'LOGOUT', 'UPDATE'].includes(log.action)
                       )
-                      .map(
-                        (log: {
-                          id: string;
-                          action: string;
-                          createdAt: string;
-                          user?: { name: string; email: string };
-                          fieldName?: string;
-                          ipAddress?: string;
-                        }) => (
+                      .map((log: AuditLog) => (
                           <Table.Tr key={log.id}>
                             <Table.Td>
                               <Stack gap='xs'>
@@ -623,22 +573,11 @@ export default function AuditLogsPage() {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {auditLogs?.data?.data
+                    {auditLogs?.items
                       ?.filter(
-                        (log: {
-                          id: string;
-                          action: string;
-                          createdAt: string;
-                          description?: string;
-                        }) => log.action === 'SYSTEM'
+                        (log: AuditLog) => log.action === 'SYSTEM'
                       )
-                      .map(
-                        (log: {
-                          id: string;
-                          action: string;
-                          createdAt: string;
-                          description?: string;
-                        }) => (
+                      .map((log: AuditLog) => (
                           <Table.Tr key={log.id}>
                             <Table.Td>
                               <Text fw={500}>{log.action}</Text>
@@ -650,7 +589,7 @@ export default function AuditLogsPage() {
                             </Table.Td>
                             <Table.Td>
                               <Text size='sm'>
-                                {log.description || 'System event'}
+                                {log.resource || 'System event'}
                               </Text>
                             </Table.Td>
                             <Table.Td>
@@ -710,12 +649,12 @@ export default function AuditLogsPage() {
               </Grid.Col>
             </Grid>
 
-            {selectedLog.ticket && (
+            {selectedLog.resource === 'ticket' && selectedLog.resourceId && (
               <Stack>
                 <Text fw={500}>Ticket</Text>
-                <Text>{selectedLog.ticket.title}</Text>
+                <Text>Ticket #{selectedLog.resourceId}</Text>
                 <Text size='sm' c='dimmed'>
-                  #{selectedLog.ticket.ticketNumber}
+                  Resource ID: {selectedLog.resourceId}
                 </Text>
               </Stack>
             )}
@@ -733,7 +672,7 @@ export default function AuditLogsPage() {
                   <Text size='sm' c='dimmed'>
                     Resource Type
                   </Text>
-                  <Text>{selectedLog.resourceType || 'N/A'}</Text>
+                  <Text>{selectedLog.resource || 'N/A'}</Text>
                 </Grid.Col>
               </Grid>
             </Stack>
