@@ -4,6 +4,42 @@ For every change, append an entry using the template below.
 
 ---
 
+## Refactor all dashboard components into feature-based structure (2025-11-12)
+
+- **Issue:**  
+  All dashboard components (`EndUserDashboard`, `ManagerDashboard`, `SupportStaffDashboard`) mixed data fetching, business logic, and UI rendering in single files, making them hard to test and maintain.
+- **Resolution:**  
+  Created `features/dashboard/` structure and split all three dashboards into Container (data + logic) and Presenter (UI) components. Each dashboard now follows the same pattern as `AdminDashboard`.
+- **Before → After:**  
+  - Before:  
+    Three separate files in `components/pages/` with mixed concerns: `EndUserDashboard.tsx` (158 lines), `ManagerDashboard.tsx` (272 lines), `SupportStaffDashboard.tsx` (255 lines).  
+  - After:  
+    `features/dashboard/containers/` with three container components handling data fetching and calculations, `features/dashboard/presenters/` with three presenter components for pure UI, and `features/dashboard/types/dashboard.types.ts` with shared type definitions.  
+- **Dev Note (how/why):**  
+  Applied the container/presenter pattern consistently across all dashboards. Containers use `useMemo` for performance optimization of calculations. Presenters receive all data as props, making them easily testable with mock data. The shared types file ensures consistency across dashboard metrics.
+- **Product Lead Note (business value):**  
+  Consistent code structure across all dashboards makes the codebase easier to understand and maintain. When developers need to modify dashboard features, they follow the same pattern. This also makes it easier to add new dashboard types or modify existing ones.
+
+---
+
+## Introduce feature-based folder structure with container/presenter split (2025-11-12)
+
+- **Issue:**  
+  Components mixed data fetching, business logic, and UI rendering in single files, making them hard to test, reuse, and maintain. The `AdminDashboard` component (277 lines) contained hooks, calculations, and UI all together.
+- **Resolution:**  
+  Created feature-based folder structure (`features/admin/`) and split `AdminDashboard` into a Container component (data fetching + business logic) and a Presenter component (pure UI). Created type definitions for better type safety.
+- **Before → After:**  
+  - Before:  
+    Single file `components/pages/AdminDashboard.tsx` with everything mixed: hooks (lines 38-69), calculations (lines 84-114), and UI (lines 172-276).  
+  - After:  
+    `features/admin/containers/AdminDashboardContainer.tsx` handles all data fetching and business logic, `features/admin/presenters/AdminDashboardPresenter.tsx` is pure UI that receives props, and `features/admin/types/admin.types.ts` defines shared types.  
+- **Dev Note (how/why):**  
+  This is a proof-of-concept for the container/presenter pattern. The container fetches data, calculates metrics using `useMemo`, and passes everything to the presenter as props. The presenter is now testable with mock data and reusable with different data sources. This pattern will be applied to other features incrementally.
+- **Product Lead Note (business value):**  
+  Better code organization makes the codebase easier to maintain and extend. When developers need to modify admin features, they know exactly where to look (`features/admin/`). The separation of concerns also makes it easier to test and debug issues.
+
+---
+
 ## UsersService relation helpers (2025-11-11)
 
 - **Issue:**  

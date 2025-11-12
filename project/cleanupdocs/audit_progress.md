@@ -21,7 +21,13 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 - ✅ Normalize ticket API responses across hooks and stores
 - ✅ Refactor `apiClient` into domain clients + adapters
 - ✅ Replace hardcoded admin metrics with data-driven components
-- ⏳ Introduce feature-based folder structure with container/presenter split
+- 🚧 Introduce feature-based folder structure with container/presenter split
+  - ✅ AdminDashboard (POC)
+  - ✅ EndUserDashboard
+  - ✅ ManagerDashboard
+  - ✅ SupportStaffDashboard
+  - ⏳ Tickets feature
+  - ⏳ Users feature
 - ⏳ Improve state management (selectors, shared stores)
 
 ## Cross-cutting

@@ -3,10 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { EndUserDashboard } from './EndUserDashboard';
-import { SupportStaffDashboard } from './SupportStaffDashboard';
-import { ManagerDashboard } from './ManagerDashboard';
-import { AdminDashboard } from './AdminDashboard';
+import {
+  EndUserDashboardContainer as EndUserDashboard,
+  SupportStaffDashboardContainer as SupportStaffDashboard,
+  ManagerDashboardContainer as ManagerDashboard,
+} from '../../features/dashboard';
+import { AdminDashboardContainer as AdminDashboard } from '../../features/admin';
 
 export function DashboardContent() {
   const { user } = useAuthStore();
