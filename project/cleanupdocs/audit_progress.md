@@ -26,8 +26,8 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
   - ✅ EndUserDashboard
   - ✅ ManagerDashboard
   - ✅ SupportStaffDashboard
-  - ⏳ Tickets feature
-  - ⏳ Users feature
+  - ✅ Tickets feature (list page)
+  - ✅ Users feature (list page)
 - ⏳ Improve state management (selectors, shared stores)
 
 ## Cross-cutting

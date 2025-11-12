@@ -4,6 +4,42 @@ For every change, append an entry using the template below.
 
 ---
 
+## Refactor users list page into feature-based structure (2025-11-12)
+
+- **Issue:**  
+  The users list page (`app/admin/users/page.tsx`) was 373 lines, mixing data fetching, filtering logic, role-based access control, and UI rendering in a single file.
+- **Resolution:**  
+  Created `features/users/` structure and split the users list into `UsersListContainer` (data fetching, filtering, access control) and `UsersListPresenter` (pure UI). Extracted utility functions for user initials and created type definitions.
+- **Before → After:**  
+  - Before:  
+    Single 373-line file with hooks, filtering logic, role-based access checks, and all UI rendering mixed together.  
+  - After:  
+    `features/users/containers/UsersListContainer.tsx` handles all data fetching, filtering, access control checks, and state management. `features/users/presenters/UsersListPresenter.tsx` is pure UI that receives all data as props. `features/users/types/users.types.ts` defines all interfaces. `features/users/utils/user.utils.ts` contains utility functions like `getUserInitials`.  
+- **Dev Note (how/why):**  
+  The container handles role-based access control (redirecting non-admins) and uses `useMemo` for filter optimization. All business logic is encapsulated in the container. The presenter is now easily testable with mock data. The utility function for user initials is reusable across the application.
+- **Product Lead Note (business value):**  
+  Better code organization makes user management features easier to maintain and extend. When developers need to modify user filtering or add new features, they can work on specific parts without affecting the entire page. The reusable utility functions can be used in other parts of the application.
+
+---
+
+## Refactor tickets list page into feature-based structure (2025-11-12)
+
+- **Issue:**  
+  The tickets list page (`app/tickets/page.tsx`) was 593 lines, mixing data fetching, complex filtering logic (client-side and server-side), pagination, bulk operations, search, and UI rendering all in one file.
+- **Resolution:**  
+  Created `features/tickets/` structure and split the tickets list into `TicketsListContainer` (data fetching, filtering, state management) and `TicketsListPresenter` (pure UI). Extracted utility functions and created comprehensive type definitions for all data structures.
+- **Before → After:**  
+  - Before:  
+    Single 593-line file with hooks, complex filtering logic, pagination calculations, bulk operations, search state, and all UI rendering mixed together.  
+  - After:  
+    `features/tickets/containers/TicketsListContainer.tsx` handles all data fetching, filtering logic (including client-side filtering for resolution time and SLA breach time), pagination, and state management. `features/tickets/presenters/TicketsListPresenter.tsx` is pure UI that receives all data as props. `features/tickets/types/tickets.types.ts` defines all interfaces. `features/tickets/utils/ticket.utils.ts` contains utility functions.  
+- **Dev Note (how/why):**  
+  The container uses `useMemo` for performance optimization of complex filtering logic. All business logic (client-side filtering, pagination calculations) is encapsulated in the container. The presenter is now easily testable with mock data. The comprehensive type definitions ensure type safety across the feature.
+- **Product Lead Note (business value):**  
+  The tickets list is one of the most complex pages in the application. Separating the logic from the UI makes it easier to maintain, test, and extend. When developers need to modify ticket filtering or add new features, they can work on specific parts without affecting the entire page.
+
+---
+
 ## Refactor all dashboard components into feature-based structure (2025-11-12)
 
 - **Issue:**  
