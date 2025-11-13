@@ -4,6 +4,44 @@ For every change, append an entry using the template below.
 
 ---
 
+## Establish shared utilities for formatting, permissions, and SLA helpers (2025-11-12)
+
+- **Issue:**  
+  Date formatting (`new Date(...).toLocaleDateString()`), permission checks, and SLA calculations (overdue tickets, breached SLA) were duplicated across multiple components, making it hard to maintain consistency and update logic in one place.
+- **Resolution:**  
+  Created `lib/utils/` directory with three utility modules:
+  - `date.utils.ts` - Centralized date formatting functions (`formatDate`, `formatShortDate`, `formatDateTime`, `formatRelativeTime`, etc.)
+  - `permissions.utils.ts` - Simple role-based permission checks (`hasRole`, `isAdmin`, `canManageUsers`, etc.)
+  - `sla.utils.ts` - SLA-related calculations (`isTicketOverdue`, `hasTicketBreachedSLA`, `filterOverdueTickets`, etc.)
+  Updated components to use these shared utilities instead of inline logic.
+- **Before → After:**  
+  - Before:  
+    ```typescript
+    // Duplicated in multiple files
+    {new Date(user.createdAt).toLocaleDateString()}
+    
+    // Duplicated SLA logic
+    const overdueTickets = tickets.filter(ticket => {
+      if (!ticket.dueDate) return false;
+      return new Date(ticket.dueDate) < new Date() && 
+             !['RESOLVED', 'CLOSED'].includes(ticket.status);
+    });
+    ```  
+  - After:  
+    ```typescript
+    // Centralized utility
+    import { formatShortDate, filterOverdueTickets } from '../../../lib/utils';
+    
+    {formatShortDate(user.createdAt)}
+    const overdueTickets = filterOverdueTickets(tickets);
+    ```  
+- **Dev Note (how/why):**  
+  Shared utilities ensure consistency across the application. If date formatting needs to change (e.g., different locale or format), you only update one file. The same applies to SLA logic - if business rules change, update the utility function once. This follows the DRY (Don't Repeat Yourself) principle and makes the codebase more maintainable.
+- **Product Lead Note (business value):**  
+  Consistent date formatting and SLA calculations across the application improve user experience. If business rules for SLA change, developers can update the logic in one place rather than hunting through multiple files. This reduces the risk of bugs and makes the codebase easier to maintain.
+
+---
+
 ## Improve state management with selector hooks (2025-11-12)
 
 - **Issue:**  

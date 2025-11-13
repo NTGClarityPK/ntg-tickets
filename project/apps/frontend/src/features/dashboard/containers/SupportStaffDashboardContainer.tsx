@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { SupportStaffDashboardPresenter } from '../presenters/SupportStaffDashboardPresenter';
 import { SupportStaffDashboardMetrics } from '../types/dashboard.types';
+import { filterOverdueTickets, filterSlaBreachedTickets } from '../../../lib/utils';
 
 export function SupportStaffDashboardContainer() {
   const t = useTranslations('dashboard');
@@ -39,17 +40,8 @@ export function SupportStaffDashboardContainer() {
     const resolvedTickets = assignedTickets.filter(
       (ticket: Ticket) => ticket.status === 'RESOLVED'
     );
-    const overdueTickets = assignedTickets.filter((ticket: Ticket) => {
-      if (!ticket.dueDate) return false;
-      return (
-        new Date(ticket.dueDate) < new Date() &&
-        !['RESOLVED', 'CLOSED'].includes(ticket.status)
-      );
-    });
-    const slaBreachedTickets = assignedTickets.filter((ticket: Ticket) => {
-      if (!ticket.dueDate || !ticket.closedAt) return false;
-      return new Date(ticket.closedAt) > new Date(ticket.dueDate);
-    });
+    const overdueTickets = filterOverdueTickets(assignedTickets);
+    const slaBreachedTickets = filterSlaBreachedTickets(assignedTickets);
 
     const stats = [
       {

@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { ManagerDashboardPresenter } from '../presenters/ManagerDashboardPresenter';
 import { ManagerDashboardMetrics } from '../types/dashboard.types';
+import { filterOverdueTickets } from '../../../lib/utils';
 
 export function ManagerDashboardContainer() {
   const t = useTranslations('dashboard');
@@ -42,14 +43,7 @@ export function ManagerDashboardContainer() {
         (ticket: Ticket) => ticket.status === 'RESOLVED'
       ) || [];
 
-    const overdueTickets =
-      allTicketsForStats?.filter((ticket: Ticket) => {
-        if (!ticket.dueDate) return false;
-        return (
-          new Date(ticket.dueDate) < new Date() &&
-          !['RESOLVED', 'CLOSED'].includes(ticket.status)
-        );
-      }) || [];
+    const overdueTickets = filterOverdueTickets(allTicketsForStats || []);
 
     const stats = [
       {

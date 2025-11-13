@@ -35,6 +35,7 @@ import { AdvancedSearchModal } from '../../../components/search/AdvancedSearchMo
 import { SimpleFiltersModal } from '../../../components/forms/SimpleFiltersModal';
 import { stripHtmlTags } from '../utils/ticket.utils';
 import { TicketsListPresenterProps } from '../types/tickets.types';
+import { formatShortDate } from '../../../lib/utils';
 
 export function TicketsListPresenter({
   metrics,
@@ -223,7 +224,7 @@ export function TicketsListPresenter({
                 <Group gap={4}>
                   <IconCalendar size={14} />
                   <Text size='sm'>
-                    {new Date(ticket.createdAt).toLocaleDateString('en-US')}
+                    {formatShortDate(ticket.createdAt)}
                   </Text>
                 </Group>
                 {ticket.assignedTo && (

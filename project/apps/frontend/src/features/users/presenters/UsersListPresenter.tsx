@@ -31,6 +31,7 @@ import {
 import { User, UserRole } from '../../../types/unified';
 import { UsersListPresenterProps } from '../types/users.types';
 import { getUserInitials } from '../utils/user.utils';
+import { formatShortDate } from '../../../lib/utils';
 
 interface ExtendedUsersListPresenterProps extends Omit<UsersListPresenterProps, 'isLoading' | 'error'> {
   onSetSelectedUser: (user: User | null) => void;
@@ -156,12 +157,12 @@ export function UsersListPresenter({
                     </Table.Td>
                     <Table.Td>
                       <Text size='sm'>
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {formatShortDate(user.createdAt)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
                       <Text size='sm'>
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {formatShortDate(user.createdAt)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
