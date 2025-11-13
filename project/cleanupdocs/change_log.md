@@ -4,6 +4,36 @@ For every change, append an entry using the template below.
 
 ---
 
+## Document schema and refactor plan for Supabase migration (2025-11-13)
+
+- **Issue:**  
+  No documentation existed for migrating from the current Prisma + PostgreSQL + NestJS stack to Supabase. The team needed a clear migration plan, understanding of differences, and step-by-step guide.
+- **Resolution:**  
+  Created comprehensive `supabase_migration_plan.md` document covering:
+  - Current architecture overview
+  - Key differences between Prisma/PostgreSQL and Supabase
+  - 5-phase migration strategy (Preparation, Backend, Frontend, Testing, Deployment)
+  - Code changes required for each component
+  - Database schema considerations (RLS policies, functions, indexes)
+  - Migration checklist and risk mitigation
+  - Benefits and next steps
+- **Before → After:**  
+  - Before:  
+    No migration documentation. Team would need to figure out migration strategy from scratch, leading to potential mistakes, data loss, or extended downtime.  
+  - After:  
+    Comprehensive 400+ line migration plan document with:
+    - Clear phase-by-phase approach
+    - Code examples for common migration patterns
+    - Database security policies (RLS)
+    - Risk assessment and mitigation strategies
+    - Step-by-step checklists
+- **Dev Note (how/why):**  
+  The migration plan follows a phased approach to minimize risk. Phase 1 focuses on preparation and setup, allowing the team to test the migration strategy before committing. The document includes code examples showing how to migrate from Prisma to Supabase queries, making it easier for developers to understand the changes needed. RLS policies are documented because Supabase uses database-level security, which is different from application-level security in the current system.
+- **Product Lead Note (business value):**  
+  Having a clear migration plan reduces project risk and helps estimate timeline and costs. The phased approach allows for incremental migration, reducing the chance of extended downtime. The document serves as a reference for stakeholders to understand what the migration involves and how long it might take.
+
+---
+
 ## Establish shared utilities for formatting, permissions, and SLA helpers (2025-11-12)
 
 - **Issue:**  

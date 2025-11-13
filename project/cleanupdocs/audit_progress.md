@@ -32,7 +32,7 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 
 ## Cross-cutting
 - ✅ Establish shared utilities (formatting, permissions, SLA helpers)
-- ⏳ Document schema and refactor plan for Supabase migration
+- ✅ Document schema and refactor plan for Supabase migration
 
 ---
 
