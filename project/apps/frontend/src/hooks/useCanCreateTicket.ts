@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuthStore } from '../stores/useAuthStore';
+import { useAuthUser } from '../stores/useAuthStore';
 import { workflowsApi } from '../lib/apiClient';
 
 interface WorkflowEdge {
@@ -17,7 +17,7 @@ interface WorkflowDefinition {
 export function useCanCreateTicket() {
   const [canCreate, setCanCreate] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuthStore();
+  const user = useAuthUser();
 
   const checkPermission = useCallback(async () => {
     try {

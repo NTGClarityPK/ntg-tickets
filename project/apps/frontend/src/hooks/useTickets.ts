@@ -7,17 +7,17 @@ import {
   TicketFilters,
 } from '../lib/apiClient';
 import { QUERY_CONFIG, PAGINATION_CONFIG } from '../lib/constants';
-import { useAuthStore } from '../stores/useAuthStore';
+import { useAuthActiveRole } from '../stores/useAuthStore';
 import {
   normalizeItemResponse,
   normalizeListResponse,
 } from '../services/api/response-normalizer';
 
 export function useTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['tickets', filters, user?.activeRole],
+    queryKey: ['tickets', filters, activeRole],
     queryFn: async (): Promise<Ticket[]> => {
       const response = await ticketApi.getTickets(filters);
       const { items } = normalizeListResponse<Ticket>(response.data);
@@ -68,7 +68,7 @@ export function useTotalTicketsCount() {
 
 // New hook for backend pagination
 export function useTicketsWithPagination(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<{
     tickets: Ticket[];
@@ -79,7 +79,7 @@ export function useTicketsWithPagination(filters?: TicketFilters) {
       totalPages: number;
     };
   }>({
-    queryKey: ['tickets-with-pagination', filters, user?.activeRole],
+    queryKey: ['tickets-with-pagination', filters, activeRole],
     queryFn: async () => {
       const response = await ticketApi.getTickets(filters);
       const { items, pagination } = normalizeListResponse<Ticket>(response.data);
@@ -266,32 +266,32 @@ export function useUpdateTicketStatus() {
 }
 
 export function useMyTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['my-tickets', filters, user?.activeRole],
+    queryKey: ['my-tickets', filters, activeRole],
     queryFn: async () => {
       const response = await ticketApi.getMyTickets(filters);
       const { items } = normalizeListResponse<Ticket>(response.data);
       return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.MEDIUM,
-    enabled: !!user?.activeRole, // Only run query when user has an active role
+    enabled: !!activeRole, // Only run query when user has an active role
   });
 }
 
 export function useAssignedTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['assigned-tickets', filters, user?.activeRole],
+    queryKey: ['assigned-tickets', filters, activeRole],
     queryFn: async () => {
       const response = await ticketApi.getAssignedTickets(filters);
       const { items } = normalizeListResponse<Ticket>(response.data);
       return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.MEDIUM,
-    enabled: !!user?.activeRole, // Only run query when user has an active role
+    enabled: !!activeRole, // Only run query when user has an active role
   });
 }
 

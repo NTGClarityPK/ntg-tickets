@@ -4,6 +4,31 @@ For every change, append an entry using the template below.
 
 ---
 
+## Improve state management with selector hooks (2025-11-12)
+
+- **Issue:**  
+  Components were accessing `useAuthStore()` directly (e.g., `const { user } = useAuthStore()`), causing unnecessary re-renders whenever ANY part of the auth store changed (user, isAuthenticated, isLoading, etc.), even if the component only needed one value.
+- **Resolution:**  
+  Created selector hooks (`useAuthUser`, `useAuthIsAuthenticated`, `useAuthIsLoading`, `useAuthActiveRole`, `useAuthUserId`, `useAuthState`, `useAuthActions`) that use Zustand's selector pattern. Components now only re-render when the specific value they subscribe to changes.
+- **Before → After:**  
+  - Before:  
+    ```typescript
+    const { user } = useAuthStore();  // ❌ Re-renders on ANY store change
+    const { user, isLoading } = useAuthStore();  // ❌ Re-renders on ANY store change
+    ```  
+  - After:  
+    ```typescript
+    const user = useAuthUser();  // ✅ Only re-renders when user changes
+    const isLoading = useAuthIsLoading();  // ✅ Only re-renders when isLoading changes
+    const { setUser, logout } = useAuthActions();  // ✅ Never re-renders (actions are stable)
+    ```  
+- **Dev Note (how/why):**  
+  Zustand selectors work by using a function `state => state.user` instead of destructuring. This tells Zustand to only subscribe to that specific value. When `isLoading` changes but `user` doesn't, components using `useAuthUser()` won't re-render. This is a performance optimization that prevents unnecessary React re-renders, especially important in large applications with many components.
+- **Product Lead Note (business value):**  
+  This change improves application performance by reducing unnecessary re-renders. Users will experience smoother interactions, especially when multiple components are displayed on the same page. The application will feel more responsive, especially on lower-end devices.
+
+---
+
 ## Refactor users list page into feature-based structure (2025-11-12)
 
 - **Issue:**  

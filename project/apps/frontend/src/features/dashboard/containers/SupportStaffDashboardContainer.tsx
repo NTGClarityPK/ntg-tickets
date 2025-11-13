@@ -10,7 +10,7 @@ import {
 } from '@tabler/icons-react';
 import { useTickets } from '../../../hooks/useTickets';
 import { useTicketReport } from '../../../hooks/useReports';
-import { useAuthStore } from '../../../stores/useAuthStore';
+import { useAuthUser } from '../../../stores/useAuthStore';
 import { Ticket } from '../../../types/unified';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ export function SupportStaffDashboardContainer() {
   const { primaryLight, primaryDark, primaryLighter, primaryDarker } =
     useDynamicTheme();
 
-  const { user } = useAuthStore();
+  const user = useAuthUser();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
   const { data: reportData } = useTicketReport({ userId: user?.id });
 

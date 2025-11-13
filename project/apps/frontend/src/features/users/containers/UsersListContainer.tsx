@@ -6,7 +6,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useUsers, useDeleteUser } from '../../../hooks/useUsers';
 import { User } from '../../../lib/apiClient';
-import { useAuthStore } from '../../../stores/useAuthStore';
+import { useAuthUser } from '../../../stores/useAuthStore';
 import { UserRole } from '../../../types/unified';
 import { notifications } from '@mantine/notifications';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
@@ -22,7 +22,7 @@ export function UsersListContainer() {
   const router = useRouter();
   const { primaryLight, primaryLighter, primaryDark, primaryDarkest } =
     useDynamicTheme();
-  const { user } = useAuthStore();
+  const user = useAuthUser();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string | null>(null);

@@ -9,7 +9,7 @@ import {
   IconTicket,
 } from '@tabler/icons-react';
 import { useTickets } from '../../../hooks/useTickets';
-import { useAuthStore } from '../../../stores/useAuthStore';
+import { useAuthUser } from '../../../stores/useAuthStore';
 import { Ticket } from '../../../types/unified';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
@@ -20,7 +20,7 @@ import { EndUserDashboardMetrics } from '../types/dashboard.types';
 
 export function EndUserDashboardContainer() {
   const t = useTranslations('dashboard');
-  const { user } = useAuthStore();
+  const user = useAuthUser();
   const router = useRouter();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
   const { primary } = useDynamicTheme();

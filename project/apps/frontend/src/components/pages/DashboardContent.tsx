@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../../stores/useAuthStore';
+import { useAuthUser } from '../../stores/useAuthStore';
 import {
   EndUserDashboardContainer as EndUserDashboard,
   SupportStaffDashboardContainer as SupportStaffDashboard,
@@ -11,7 +11,7 @@ import {
 import { AdminDashboardContainer as AdminDashboard } from '../../features/admin';
 
 export function DashboardContent() {
-  const { user } = useAuthStore();
+  const user = useAuthUser();
   const router = useRouter();
 
   // Redirect End Users to Reports page since they don't have access to Overview

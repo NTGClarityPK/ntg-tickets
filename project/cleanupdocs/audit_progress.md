@@ -28,7 +28,7 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
   - ✅ SupportStaffDashboard
   - ✅ Tickets feature (list page)
   - ✅ Users feature (list page)
-- ⏳ Improve state management (selectors, shared stores)
+- ✅ Improve state management (selectors, shared stores)
 
 ## Cross-cutting
 - ⏳ Establish shared utilities (formatting, permissions, SLA helpers)
