@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { AppShell, LoadingOverlay } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useAuthStore } from '../../stores/useAuthStore';
+import { useAuthUser, useAuthIsLoading } from '../../stores/useAuthStore';
 import { AppHeader } from './AppHeader';
 import { AppNavbar } from './AppNavbar';
 import { DynamicMetadata } from './DynamicMetadata';
@@ -21,7 +21,8 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { user, isLoading } = useAuthStore();
+  const user = useAuthUser();
+  const isLoading = useAuthIsLoading();
   const [helpModalOpened, setHelpModalOpened] = useState(false);
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
 

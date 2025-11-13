@@ -29,6 +29,7 @@ import {
   IconDownload,
 } from '@tabler/icons-react';
 import { useAuditLogs } from '../../hooks/useAuditLogs';
+import { AuditLog } from '../../types/unified';
 import {
   PAGINATION_CONFIG,
   EXTENDED_AUDIT_LOG_ACTIONS,
@@ -244,7 +245,7 @@ export function AuditTrail({
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {auditLogs?.data?.data?.map(log => (
+                        {auditLogs?.items?.map((log: AuditLog) => (
                     <Table.Tr key={log.id}>
                       <Table.Td>
                         <Badge

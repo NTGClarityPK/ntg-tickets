@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SystemConfigService } from '../config/system-config.service';
 import * as nodemailer from 'nodemailer';
 import * as handlebars from 'handlebars';
+import { AppConfigService } from '../../config/app-config.service';
 
 // Define proper types for email data
 interface EmailData {
@@ -48,8 +48,8 @@ export class EmailService implements OnModuleInit {
   private transporter: nodemailer.Transporter;
 
   constructor(
-    private configService: ConfigService,
-    private systemConfigService: SystemConfigService
+    private systemConfigService: SystemConfigService,
+    private readonly appConfig: AppConfigService
   ) {}
 
   async onModuleInit() {
@@ -76,13 +76,15 @@ export class EmailService implements OnModuleInit {
     } catch (error) {
       this.logger.error('Failed to initialize email transporter:', error);
       // Fallback to environment variables
+      const fallback = this.appConfig.smtp;
+
       this.transporter = nodemailer.createTransport({
-        host: this.configService.get('SMTP_HOST'),
-        port: this.configService.get('SMTP_PORT'),
+        host: fallback.host,
+        port: fallback.port,
         secure: false,
         auth: {
-          user: this.configService.get('SMTP_USER'),
-          pass: this.configService.get('SMTP_PASS'),
+          user: fallback.user,
+          pass: fallback.pass,
         },
       });
     }
@@ -140,7 +142,7 @@ export class EmailService implements OnModuleInit {
         title: ticket.title,
         status: ticket.status,
         priority: ticket.priority,
-        ticketUrl: `${process.env.FRONTEND_URL}/tickets/${ticket.id}`,
+        ticketUrl: `${this.appConfig.frontendUrl}/tickets/${ticket.id}`,
       }
     );
   }
@@ -166,7 +168,7 @@ export class EmailService implements OnModuleInit {
         title: ticket.title,
         priority: ticket.priority,
         dueDate: ticket.dueDate,
-        ticketUrl: `${process.env.FRONTEND_URL}/tickets/${ticket.id}`,
+        ticketUrl: `${this.appConfig.frontendUrl}/tickets/${ticket.id}`,
       }
     );
   }
@@ -189,7 +191,7 @@ export class EmailService implements OnModuleInit {
         ticketNumber: ticket.ticketNumber,
         title: ticket.title,
         status: ticket.status,
-        ticketUrl: `${process.env.FRONTEND_URL}/tickets/${ticket.id}`,
+        ticketUrl: `${this.appConfig.frontendUrl}/tickets/${ticket.id}`,
       }
     );
   }

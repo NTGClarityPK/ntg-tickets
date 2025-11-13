@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as compression from 'compression';
+import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -15,17 +15,14 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],
     });
 
-    const configService = app.get(ConfigService);
-    const port = configService.get('PORT', 4000);
-    const apiPrefix = configService.get('API_PREFIX', 'api/v1');
-    const corsOrigin = configService.get(
-      'CORS_ORIGIN',
-      'http://localhost:8080'
-    );
+    const appConfig = app.get(AppConfigService);
+    const port = appConfig.port;
+    const apiPrefix = appConfig.apiPrefix;
+    const corsOrigins = appConfig.corsOrigins;
 
     // Enable CORS globally for NestJS
     app.enableCors({
-      origin: corsOrigin.split(','),
+      origin: corsOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -67,7 +64,7 @@ async function bootstrap() {
     app.setGlobalPrefix(apiPrefix);
 
     // Swagger documentation
-    if (configService.get('NODE_ENV') !== 'prod') {
+    if (appConfig.nodeEnv !== 'prod') {
       const config = new DocumentBuilder()
         .setTitle('NTG Ticket API')
         .setDescription('Complete IT Support - Ticket Management System API')

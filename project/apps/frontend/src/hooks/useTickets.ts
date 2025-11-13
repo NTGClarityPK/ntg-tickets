@@ -7,30 +7,21 @@ import {
   TicketFilters,
 } from '../lib/apiClient';
 import { QUERY_CONFIG, PAGINATION_CONFIG } from '../lib/constants';
-import { useAuthStore } from '../stores/useAuthStore';
+import { useAuthActiveRole } from '../stores/useAuthStore';
+import {
+  normalizeItemResponse,
+  normalizeListResponse,
+} from '../services/api/response-normalizer';
 
 export function useTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['tickets', filters, user?.activeRole],
+    queryKey: ['tickets', filters, activeRole],
     queryFn: async (): Promise<Ticket[]> => {
-      try {
-        const response = await ticketApi.getTickets(filters);
-        // From chat history: response.data.data.data works for showing tickets
-        if (
-          response.data?.data?.data &&
-          Array.isArray(response.data.data.data)
-        ) {
-          return response.data.data.data;
-        } else if (response.data?.data && Array.isArray(response.data.data)) {
-          return response.data.data;
-        } else {
-          return [];
-        }
-      } catch (error) {
-        throw error;
-      }
+      const response = await ticketApi.getTickets(filters);
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.MEDIUM,
   });
@@ -41,32 +32,16 @@ export function useAllTicketsForCounting(filters?: TicketFilters) {
   return useQuery<Ticket[]>({
     queryKey: ['all-tickets-counting', filters],
     queryFn: async (): Promise<Ticket[]> => {
-      try {
-        // Remove pagination parameters and set high limit to get all tickets
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { page, limit, ...countFilters } = filters || {};
-        const response = await ticketApi.getTickets({
-          ...countFilters,
-          limit: 10000, // Set a very high limit to get all tickets
-        });
+      // Remove pagination parameters and set high limit to get all tickets
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { page, limit, ...countFilters } = filters || {};
+      const response = await ticketApi.getTickets({
+        ...countFilters,
+        limit: 10000, // Set a very high limit to get all tickets
+      });
 
-        // Extract tickets from response
-        let tickets: Ticket[] = [];
-        if (
-          response.data?.data?.data &&
-          Array.isArray(response.data.data.data)
-        ) {
-          tickets = response.data.data.data;
-        } else if (response.data?.data && Array.isArray(response.data.data)) {
-          tickets = response.data.data;
-        } else {
-          tickets = [];
-        }
-
-        return tickets;
-      } catch (error) {
-        throw error;
-      }
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.SHORT, // Use shorter stale time for counting queries
   });
@@ -77,21 +52,15 @@ export function useTotalTicketsCount() {
   return useQuery<number>({
     queryKey: ['total-tickets-count'],
     queryFn: async (): Promise<number> => {
-      try {
-        // Get all tickets without any filters or pagination
-        const response = await ticketApi.getTickets({ limit: 1 }); // Just get 1 to get the total count
+      // Get all tickets without any filters or pagination
+      const response = await ticketApi.getTickets({ limit: 1 }); // Just get 1 to get the total count
+      const { pagination } = normalizeListResponse<Ticket>(response.data);
 
-        // Extract total count from pagination
-        if (response.data?.data?.pagination?.total) {
-          return response.data.data.pagination.total;
-        } else if (response.data?.pagination?.total) {
-          return response.data.pagination.total;
-        } else {
-          return 0;
-        }
-      } catch (error) {
-        throw error;
+      if (pagination?.total) {
+        return pagination.total;
       }
+
+      return 0;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.SHORT, // Use shorter stale time for total count
   });
@@ -99,7 +68,7 @@ export function useTotalTicketsCount() {
 
 // New hook for backend pagination
 export function useTicketsWithPagination(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<{
     tickets: Ticket[];
@@ -110,44 +79,20 @@ export function useTicketsWithPagination(filters?: TicketFilters) {
       totalPages: number;
     };
   }>({
-    queryKey: ['tickets-with-pagination', filters, user?.activeRole],
+    queryKey: ['tickets-with-pagination', filters, activeRole],
     queryFn: async () => {
-      try {
-        const response = await ticketApi.getTickets(filters);
+      const response = await ticketApi.getTickets(filters);
+      const { items, pagination } = normalizeListResponse<Ticket>(response.data);
 
-        // Backend returns: { data: Ticket[], pagination: {...} }
-        if (
-          response.data?.data?.data &&
-          Array.isArray(response.data.data.data) &&
-          response.data.data.pagination
-        ) {
-          return {
-            tickets: response.data.data.data,
-            pagination: response.data.data.pagination,
-          };
-        } else if (
-          response.data?.data &&
-          Array.isArray(response.data.data) &&
-          response.data.pagination
-        ) {
-          return {
-            tickets: response.data.data,
-            pagination: response.data.pagination,
-          };
-        } else {
-          return {
-            tickets: [],
-            pagination: {
-              page: 1,
-              limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
-              total: 0,
-              totalPages: 0,
-            },
-          };
-        }
-      } catch (error) {
-        throw error;
-      }
+      return {
+        tickets: items,
+        pagination: pagination ?? {
+          page: 1,
+          limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+          total: 0,
+          totalPages: 0,
+        },
+      };
     },
     staleTime: QUERY_CONFIG.STALE_TIME.LONG, // increased for better performance
     gcTime: QUERY_CONFIG.GC_TIME.SHORT,
@@ -168,7 +113,13 @@ export function useTicket(id: string) {
     queryKey: ['ticket', id],
     queryFn: async () => {
       const response = await ticketApi.getTicket(id);
-      return response.data.data as Ticket;
+      const ticket = normalizeItemResponse<Ticket>(response.data);
+
+      if (!ticket) {
+        throw new Error('Ticket response payload is malformed.');
+      }
+
+      return ticket;
     },
     enabled: !!id,
   });
@@ -180,7 +131,13 @@ export function useCreateTicket() {
   return useMutation({
     mutationFn: async (data: CreateTicketInput) => {
       const response = await ticketApi.createTicket(data);
-      return response.data.data as Ticket;
+      const ticket = normalizeItemResponse<Ticket>(response.data);
+
+      if (!ticket) {
+        throw new Error('Ticket creation response payload is malformed.');
+      }
+
+      return ticket;
     },
     onSuccess: () => {
       // Invalidate all ticket-related queries to ensure UI updates
@@ -216,7 +173,13 @@ export function useUpdateTicket() {
       data: UpdateTicketInput;
     }) => {
       const response = await ticketApi.updateTicket(id, data);
-      return response.data.data as Ticket;
+      const ticket = normalizeItemResponse<Ticket>(response.data);
+
+      if (!ticket) {
+        throw new Error('Ticket update response payload is malformed.');
+      }
+
+      return ticket;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
@@ -251,7 +214,13 @@ export function useAssignTicket() {
       assignedToId: string;
     }) => {
       const response = await ticketApi.assignTicket(id, assignedToId);
-      return response.data.data as Ticket;
+      const ticket = normalizeItemResponse<Ticket>(response.data);
+
+      if (!ticket) {
+        throw new Error('Ticket assignment response payload is malformed.');
+      }
+
+      return ticket;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
@@ -281,7 +250,13 @@ export function useUpdateTicketStatus() {
       // The frontend checks workflow permissions before allowing transitions
       
       const response = await ticketApi.updateStatus(id, status, resolution, comment);
-      return response.data.data as Ticket;
+      const ticket = normalizeItemResponse<Ticket>(response.data);
+
+      if (!ticket) {
+        throw new Error('Ticket status update response payload is malformed.');
+      }
+
+      return ticket;
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
@@ -291,30 +266,32 @@ export function useUpdateTicketStatus() {
 }
 
 export function useMyTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['my-tickets', filters, user?.activeRole],
+    queryKey: ['my-tickets', filters, activeRole],
     queryFn: async () => {
       const response = await ticketApi.getMyTickets(filters);
-      return response.data.data.data;
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.MEDIUM,
-    enabled: !!user?.activeRole, // Only run query when user has an active role
+    enabled: !!activeRole, // Only run query when user has an active role
   });
 }
 
 export function useAssignedTickets(filters?: TicketFilters) {
-  const { user } = useAuthStore();
+  const activeRole = useAuthActiveRole();
   
   return useQuery<Ticket[]>({
-    queryKey: ['assigned-tickets', filters, user?.activeRole],
+    queryKey: ['assigned-tickets', filters, activeRole],
     queryFn: async () => {
       const response = await ticketApi.getAssignedTickets(filters);
-      return response.data.data.data;
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.MEDIUM,
-    enabled: !!user?.activeRole, // Only run query when user has an active role
+    enabled: !!activeRole, // Only run query when user has an active role
   });
 }
 
@@ -323,7 +300,8 @@ export function useOverdueTickets() {
     queryKey: ['overdue-tickets'],
     queryFn: async () => {
       const response = await ticketApi.getOverdueTickets();
-      return response.data.data;
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.SHORT,
     refetchInterval: QUERY_CONFIG.REFETCH_INTERVALS.SLOW,
@@ -335,7 +313,8 @@ export function useTicketsApproachingSLA() {
     queryKey: ['tickets-approaching-sla'],
     queryFn: async () => {
       const response = await ticketApi.getTicketsApproachingSLA();
-      return response.data.data;
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.SHORT,
     refetchInterval: QUERY_CONFIG.REFETCH_INTERVALS.SLOW,
@@ -347,7 +326,8 @@ export function useBreachedSLATickets() {
     queryKey: ['breached-sla-tickets'],
     queryFn: async () => {
       const response = await ticketApi.getBreachedSLATickets();
-      return response.data.data;
+      const { items } = normalizeListResponse<Ticket>(response.data);
+      return items;
     },
     staleTime: QUERY_CONFIG.STALE_TIME.SHORT,
     refetchInterval: QUERY_CONFIG.REFETCH_INTERVALS.SLOW,

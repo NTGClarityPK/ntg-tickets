@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useAuthStore } from '../../stores/useAuthStore';
+import { useAuthStore, useAuthActions } from '../../stores/useAuthStore';
 import { UserRole } from '../../types/unified';
 
 interface AuthProviderProps {
@@ -11,7 +11,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { data: session, status } = useSession();
-  const { setUser, setLoading } = useAuthStore();
+  const { setUser, setLoading } = useAuthActions();
 
   useEffect(() => {
     if (status === 'loading') {
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         // Get current user from store to check if we should preserve activeRole
-        const currentUser = useAuthStore.getState().user;
+        const currentUser = useAuthStore.getState()?.user;
         let activeRole = session.user.activeRole as UserRole;
 
         // Preserve the current activeRole from Zustand store if it's valid

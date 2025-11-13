@@ -3,14 +3,31 @@ import {
   NotFoundException,
   Logger,
   BadRequestException,
+  HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
 import * as bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
+
+const USER_TICKET_RELATIONS = {
+  requestedTickets: {
+    select: { id: true, status: true },
+  },
+  assignedTickets: {
+    select: { id: true, status: true },
+  },
+} as const;
+
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: typeof USER_TICKET_RELATIONS;
+}>;
+
+type SanitizedUser = Omit<UserWithRelations, 'password'>;
 
 @Injectable()
 export class UsersService {
@@ -51,34 +68,18 @@ export class UsersService {
           ...createUserDto,
           password: hashedPassword,
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
-      // Remove password from response
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = user;
+      const userWithoutPassword = this.sanitizeUser(user);
       this.logger.log(`User created: ${user.email}`);
-      return userWithoutPassword as unknown as User;
+      return userWithoutPassword;
     } catch (error) {
-      this.logger.error('Error creating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to create user');
     }
   }
 
-  async findAll(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    role?: UserRole;
-    isActive?: boolean;
-  }): Promise<{
+  async findAll(params: GetUsersQueryDto): Promise<{
     data: {
       id: string;
       email: string;
@@ -95,11 +96,7 @@ export class UsersService {
   }> {
     try {
       const { page = 1, limit = 20, search, role, isActive } = params;
-
-      // Ensure page is a valid number
-      const validPage = isNaN(Number(page)) ? 1 : Math.max(1, Number(page));
-      const validLimit = isNaN(Number(limit)) ? 20 : Math.max(1, Number(limit));
-      const skip = (validPage - 1) * validLimit;
+      const skip = (page - 1) * limit;
 
       const where: {
         OR?: Array<
@@ -131,32 +128,24 @@ export class UsersService {
         this.prisma.user.findMany({
           where,
           skip,
-          take: validLimit,
+          take: limit,
           orderBy: { createdAt: 'desc' },
-          include: {
-            requestedTickets: {
-              select: { id: true, status: true },
-            },
-            assignedTickets: {
-              select: { id: true, status: true },
-            },
-          },
+          include: USER_TICKET_RELATIONS,
         }),
         this.prisma.user.count({ where }),
       ]);
 
       return {
-        data: users,
+        data: users.map(user => this.sanitizeUser(user)),
         pagination: {
-          page: validPage,
-          limit: validLimit,
+          page,
+          limit,
           total,
-          totalPages: Math.ceil(total / validLimit),
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
-      this.logger.error('Error finding users:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to fetch users');
     }
   }
 
@@ -172,45 +161,29 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error finding user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to find user');
     }
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<SanitizedUser | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
-      return user;
+      return user ? this.sanitizeUser(user) : null;
     } catch (error) {
-      this.logger.error('Error finding user by email:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to find user by email');
     }
   }
 
@@ -231,21 +204,13 @@ export class UsersService {
           ...updateUserDto,
           updatedAt: new Date(),
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User updated: ${user.email}`);
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error updating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to update user');
     }
   }
 
@@ -265,21 +230,13 @@ export class UsersService {
           isActive: false,
           updatedAt: new Date(),
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User deactivated: ${user.email}`);
-      return user;
+      return this.sanitizeUser(user);
     } catch (error) {
-      this.logger.error('Error deactivating user:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to deactivate user');
     }
   }
 
@@ -300,21 +257,13 @@ export class UsersService {
           roles: { has: role },
           isActive: true,
         },
-        include: {
-          requestedTickets: {
-            select: { id: true, status: true },
-          },
-          assignedTickets: {
-            select: { id: true, status: true },
-          },
-        },
+        include: USER_TICKET_RELATIONS,
         orderBy: { name: 'asc' },
       });
 
-      return users;
+      return users.map(user => this.sanitizeUser(user));
     } catch (error) {
-      this.logger.error('Error getting users by role:', error);
-      throw error;
+      this.handleServiceError(error, 'Failed to get users by role');
     }
   }
 
@@ -335,19 +284,21 @@ export class UsersService {
           isActive: true,
         },
         include: {
+          ...USER_TICKET_RELATIONS,
           assignedTickets: {
             where: {
               status: {
                 in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
               },
             },
-            select: { id: true },
+            select: USER_TICKET_RELATIONS.assignedTickets.select,
           },
         },
         orderBy: { name: 'asc' },
       });
 
       return users
+        .map(user => this.sanitizeUser(user))
         .map(user => ({
           id: user.id,
           email: user.email,
@@ -365,8 +316,10 @@ export class UsersService {
           return a.name.localeCompare(b.name);
         });
     } catch (error) {
-      this.logger.error('Error getting support staff with ticket counts:', error);
-      throw error;
+      this.handleServiceError(
+        error,
+        'Failed to get support staff with ticket counts',
+      );
     }
   }
 
@@ -387,19 +340,21 @@ export class UsersService {
           isActive: true,
         },
         include: {
+          ...USER_TICKET_RELATIONS,
           assignedTickets: {
             where: {
               status: {
                 in: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
               },
             },
-            select: { id: true },
+            select: USER_TICKET_RELATIONS.assignedTickets.select,
           },
         },
         orderBy: { name: 'asc' },
       });
 
       return users
+        .map(user => this.sanitizeUser(user))
         .map(user => ({
           id: user.id,
           email: user.email,
@@ -417,8 +372,10 @@ export class UsersService {
           return a.name.localeCompare(b.name);
         });
     } catch (error) {
-      this.logger.error('Error getting support managers with ticket counts:', error);
-      throw error;
+      this.handleServiceError(
+        error,
+        'Failed to get support managers with ticket counts',
+      );
     }
   }
 
@@ -432,5 +389,22 @@ export class UsersService {
     }[]
   > {
     return this.getUsersByRole(UserRole.ADMIN);
+  }
+
+  private sanitizeUser(user: UserWithRelations): SanitizedUser {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...safeUser } = user;
+    return safeUser as SanitizedUser;
+  }
+
+  private handleServiceError(error: unknown, userMessage: string): never {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+
+    const details =
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    this.logger.error(userMessage, details);
+    throw new InternalServerErrorException(userMessage);
   }
 }

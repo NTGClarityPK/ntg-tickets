@@ -26,6 +26,7 @@ import {
 } from '@tabler/icons-react';
 import { useTicketAuditLogs } from '../../hooks/useAuditLogs';
 import { PAGINATION_CONFIG } from '../../lib/constants';
+import { AuditLog } from '../../types/unified';
 
 interface TicketAuditLogsProps {
   opened: boolean;
@@ -122,7 +123,7 @@ export function TicketAuditLogs({
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {auditLogs?.data?.data?.map(log => (
+                  {auditLogs?.items?.map((log: AuditLog) => (
                     <Table.Tr key={log.id}>
                       <Table.Td>
                         <Badge

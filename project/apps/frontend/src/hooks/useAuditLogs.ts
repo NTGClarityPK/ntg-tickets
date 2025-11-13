@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { auditLogsApi } from '../lib/apiClient';
-import { AuditLogsFilters } from '../types/unified';
+import { auditLogsClient } from '../services/api';
+import { AuditLogsFilters, AuditLog } from '../types/unified';
+import { normalizeListResponse, normalizeItemResponse } from '../services/api/response-normalizer';
 
 export function useAuditLogs(
   filters: AuditLogsFilters & { page: number; limit: number }
@@ -8,8 +9,8 @@ export function useAuditLogs(
   return useQuery({
     queryKey: ['auditLogs', filters],
     queryFn: async () => {
-      const response = await auditLogsApi.getAuditLogs(filters);
-      return response.data;
+      const response = await auditLogsClient.getAuditLogs(filters);
+      return normalizeListResponse<AuditLog>(response.data);
     },
   });
 }
@@ -22,12 +23,12 @@ export function useTicketAuditLogs(
   return useQuery({
     queryKey: ['ticketAuditLogs', ticketId, page, limit],
     queryFn: async () => {
-      const response = await auditLogsApi.getTicketAuditLogs(
+      const response = await auditLogsClient.getTicketAuditLogs(
         ticketId,
         page,
         limit
       );
-      return response.data;
+      return normalizeListResponse<AuditLog>(response.data);
     },
     enabled: !!ticketId,
   });
@@ -42,13 +43,13 @@ export function useSystemAuditLogs(
   return useQuery({
     queryKey: ['systemAuditLogs', page, limit, dateFrom, dateTo],
     queryFn: async () => {
-      const response = await auditLogsApi.getSystemAuditLogs(
+      const response = await auditLogsClient.getSystemAuditLogs(
         page,
         limit,
         dateFrom,
         dateTo
       );
-      return response.data;
+      return normalizeListResponse<AuditLog>(response.data);
     },
   });
 }
@@ -63,14 +64,14 @@ export function useUserActivityLogs(
   return useQuery({
     queryKey: ['userActivityLogs', userId, page, limit, dateFrom, dateTo],
     queryFn: async () => {
-      const response = await auditLogsApi.getUserActivityLogs(
+      const response = await auditLogsClient.getUserActivityLogs(
         userId,
         page,
         limit,
         dateFrom,
         dateTo
       );
-      return response.data;
+      return normalizeListResponse<AuditLog>(response.data);
     },
     enabled: !!userId,
   });
@@ -80,8 +81,8 @@ export function useAuditLogStats(dateFrom?: string, dateTo?: string) {
   return useQuery({
     queryKey: ['auditLogStats', dateFrom, dateTo],
     queryFn: async () => {
-      const response = await auditLogsApi.getAuditLogStats(dateFrom, dateTo);
-      return response.data;
+      const response = await auditLogsClient.getAuditLogStats(dateFrom, dateTo);
+      return normalizeItemResponse(response.data);
     },
   });
 }

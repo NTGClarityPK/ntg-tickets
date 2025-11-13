@@ -384,9 +384,7 @@ export class AuthService {
     avatar: string | null;
   } | null> {
     try {
-      const decoded = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
+      const decoded = this.jwtService.verify(token);
 
       const user = await this.prisma.user.findUnique({
         where: { id: decoded.sub },

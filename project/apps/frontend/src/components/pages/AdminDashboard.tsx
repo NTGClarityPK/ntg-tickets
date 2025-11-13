@@ -24,12 +24,12 @@ import {
   IconKey,
   IconHistory,
   IconActivity,
-  IconTrendingUp,
-  IconTrendingDown,
   IconRefresh,
 } from '@tabler/icons-react';
 import { useUsers } from '../../hooks/useUsers';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { useSystemStats } from '../../hooks/useSystemMonitoring';
+import { useAuditLogStats, useSystemAuditLogs } from '../../hooks/useAuditLogs';
 
 export function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
@@ -44,32 +44,74 @@ export function AdminDashboard() {
     limit: 1000, // Get all users for admin overview
   });
 
+  // Fetch system stats
+  const {
+    data: systemStats,
+    isLoading: systemStatsLoading,
+    refetch: refetchSystemStats,
+  } = useSystemStats();
+
+  // Calculate date range for audit logs (last 7 days)
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const dateFrom = sevenDaysAgo.toISOString().split('T')[0];
+
+  const {
+    data: auditLogStats,
+    isLoading: auditStatsLoading,
+    refetch: refetchAuditStats,
+  } = useAuditLogStats(dateFrom);
+
+  // Fetch recent audit logs to calculate failed logins and password resets
+  const {
+    data: recentAuditLogs,
+    isLoading: auditLogsLoading,
+  } = useSystemAuditLogs(1, 1000, dateFrom);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetchUsers();
+      await Promise.all([
+        refetchUsers(),
+        refetchSystemStats(),
+        refetchAuditStats(),
+      ]);
     } finally {
       setRefreshing(false);
     }
   };
 
   // Calculate user metrics
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const totalUsers = users?.length || 0;
-  const activeUsers = users?.filter(user => user.isActive).length || 0;
+  const totalUsers = (systemStats?.totalUsers ?? users?.length) || 0;
+  const activeUsers = (systemStats?.activeUsers ?? users?.filter(user => user.isActive).length) || 0;
   const newUsers =
     users?.filter(
       user => user.createdAt && new Date(user.createdAt) > sevenDaysAgo
     ).length || 0;
   const inactiveUsers = users?.filter(user => !user.isActive).length || 0;
 
-  // Security metrics (mock data for now)
-  const failedLogins = 3;
-  const passwordResets = 12;
-  const auditEntries = 156;
-  const activeSessions = 24;
+  // Calculate security metrics from audit logs
+  const auditLogItems = recentAuditLogs?.items || [];
+  const failedLogins = auditLogItems.filter(
+    log => log.action === 'LOGIN' && log.metadata && 
+    (log.metadata as { success?: boolean })?.success === false
+  ).length;
+  
+  const passwordResets = auditLogItems.filter(
+    log => log.action === 'UPDATE' && log.resource === 'user' && 
+    log.fieldName === 'password'
+  ).length;
+
+  const auditEntries = (auditLogStats as { totalLogs?: number })?.totalLogs || auditLogItems.length || 0;
+  
+  // Estimate active sessions from recent LOGIN actions (last 24 hours)
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const activeSessions = auditLogItems.filter(
+    log => log.action === 'LOGIN' && 
+    log.createdAt && new Date(log.createdAt) > oneDayAgo &&
+    log.metadata && (log.metadata as { success?: boolean })?.success === true
+  ).length;
 
   const userStats = [
     {
@@ -77,32 +119,24 @@ export function AdminDashboard() {
       value: totalUsers,
       icon: IconUsers,
       color: primaryLight,
-      trend: '+5%',
-      trendUp: true,
     },
     {
       title: 'Active Users',
       value: activeUsers,
       icon: IconUserCheck,
       color: primaryLight,
-      trend: '+12%',
-      trendUp: true,
     },
     {
       title: 'New Users',
       value: newUsers,
       icon: IconUserPlus,
       color: primaryLight,
-      trend: '+8%',
-      trendUp: true,
     },
     {
       title: 'Inactive Users',
       value: inactiveUsers,
       icon: IconUserX,
       color: primaryLight,
-      trend: '-3%',
-      trendUp: false,
     },
   ];
 
@@ -112,36 +146,30 @@ export function AdminDashboard() {
       value: failedLogins,
       icon: IconShield,
       color: primaryLight,
-      trend: '-2',
-      trendUp: true,
     },
     {
       title: 'Password Resets',
       value: passwordResets,
       icon: IconKey,
       color: primaryLight,
-      trend: '+3',
-      trendUp: false,
     },
     {
       title: 'Audit Entries',
       value: auditEntries,
       icon: IconHistory,
       color: primaryLight,
-      trend: '+45',
-      trendUp: true,
     },
     {
       title: 'Active Sessions',
       value: activeSessions,
       icon: IconActivity,
       color: primaryLight,
-      trend: '+2',
-      trendUp: true,
     },
   ];
 
-  if (usersLoading) {
+  const isLoading = usersLoading || systemStatsLoading || auditStatsLoading || auditLogsLoading;
+
+  if (isLoading) {
     return (
       <Container size='xl' py='md'>
         <Group justify='center' py='xl'>
@@ -194,16 +222,6 @@ export function AdminDashboard() {
                       <Text size='sm' c='dimmed'>
                         {stat.title}
                       </Text>
-                      <Group gap={4} mt={4}>
-                        {stat.trendUp ? (
-                          <IconTrendingUp size={12} color='green' />
-                        ) : (
-                          <IconTrendingDown size={12} color='red' />
-                        )}
-                        <Text size='xs' c={stat.trendUp ? 'green' : 'red'}>
-                          {stat.trend}
-                        </Text>
-                      </Group>
                     </div>
                   </Group>
                 </Card>
@@ -232,16 +250,6 @@ export function AdminDashboard() {
                       <Text size='sm' c='dimmed'>
                         {stat.title}
                       </Text>
-                      <Group gap={4} mt={4}>
-                        {stat.trendUp ? (
-                          <IconTrendingUp size={12} color='green' />
-                        ) : (
-                          <IconTrendingDown size={12} color='red' />
-                        )}
-                        <Text size='xs' c={stat.trendUp ? 'green' : 'red'}>
-                          {stat.trend}
-                        </Text>
-                      </Group>
                     </div>
                   </Group>
                 </Card>

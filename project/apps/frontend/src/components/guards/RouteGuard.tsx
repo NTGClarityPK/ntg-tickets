@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../../stores/useAuthStore';
+import { useAuthUser, useAuthIsLoading } from '../../stores/useAuthStore';
 import { Container, Text, Button, Group, Stack } from '@mantine/core';
 import { IconShield, IconHome } from '@tabler/icons-react';
 
@@ -19,7 +19,8 @@ export function RouteGuard({
   redirectTo = '/reports',
   fallbackComponent,
 }: RouteGuardProps) {
-  const { user, isLoading } = useAuthStore();
+  const user = useAuthUser();
+  const isLoading = useAuthIsLoading();
   const router = useRouter();
 
   useEffect(() => {

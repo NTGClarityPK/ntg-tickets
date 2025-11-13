@@ -28,6 +28,7 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { useAuditLogStats, useSystemAuditLogs } from '../../hooks/useAuditLogs';
+import { AuditLog } from '../../types/unified';
 
 interface AuditLogStatsProps {
   opened: boolean;
@@ -45,6 +46,9 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
     isLoading: statsLoading,
     error: statsError,
   } = useAuditLogStats(dateFrom?.toISOString(), dateTo?.toISOString());
+  
+  // Normalize stats - useAuditLogStats returns normalized response
+  const statsData = stats || {};
 
   const {
     data: systemLogs,
@@ -179,7 +183,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                     <Group justify='space-between'>
                       <div>
                         <Text size='xl' fw={700} c='blue'>
-                          {stats?.data?.totalLogs || 0}
+                          {(statsData as { totalLogs?: number })?.totalLogs || 0}
                         </Text>
                         <Text size='sm' c='dimmed'>
                           Total Audit Entries
@@ -199,7 +203,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                       Top Actions
                     </Text>
                     <Stack gap='sm'>
-                      {Object.entries(stats?.data?.logsByAction || {})
+                      {Object.entries((statsData as { logsByAction?: Record<string, number> })?.logsByAction || {})
                         .sort(([, a], [, b]) => b - a)
                         .slice(0, 5)
                         .map(([action, count]) => (
@@ -220,7 +224,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                       Top Resources
                     </Text>
                     <Stack gap='sm'>
-                      {Object.entries(stats?.data?.logsByResource || {})
+                      {Object.entries((statsData as { logsByResource?: Record<string, number> })?.logsByResource || {})
                         .sort(([, a], [, b]) => b - a)
                         .slice(0, 5)
                         .map(([resource, count]) => (
@@ -243,9 +247,9 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
               </Center>
             ) : (
               <Grid>
-                {Object.entries(stats?.data?.logsByAction || {}).map(
+                {Object.entries((statsData as { logsByAction?: Record<string, number> })?.logsByAction || {}).map(
                   ([action, count]) => {
-                    const total = stats?.data?.totalLogs || 1;
+                    const total = (statsData as { totalLogs?: number })?.totalLogs || 1;
                     const percentage = (count / total) * 100;
 
                     return (
@@ -295,8 +299,8 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {stats?.data?.logsByUser?.map(user => {
-                      const total = stats?.data?.totalLogs || 1;
+                    {((statsData as { logsByUser?: Array<{ userId: string; userName: string; count: number }> })?.logsByUser || []).map(user => {
+                      const total = (statsData as { totalLogs?: number })?.totalLogs || 1;
                       const percentage = (user.count / total) * 100;
 
                       return (
@@ -353,7 +357,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {systemLogs?.data?.data?.map(log => (
+                        {systemLogs?.items?.map((log: AuditLog) => (
                           <Table.Tr key={log.id}>
                             <Table.Td>
                               <Badge
