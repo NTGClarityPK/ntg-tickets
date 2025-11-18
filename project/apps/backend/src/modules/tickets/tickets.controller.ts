@@ -24,6 +24,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketFiltersDto } from './dto/ticket-filters.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { TicketPriority } from '@prisma/client';
 
 @ApiTags('Tickets')
 @Controller('tickets')
@@ -97,7 +98,7 @@ export class TicketsController {
     }
     if (filters.priority && filters.priority.length > 0) {
       filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority)
+        filters.priority.includes(ticket.priority as TicketPriority)
       );
     }
     if (filters.search) {
@@ -151,7 +152,7 @@ export class TicketsController {
     }
     if (filters.priority && filters.priority.length > 0) {
       filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority)
+        filters.priority.includes(ticket.priority as TicketPriority)
       );
     }
     if (filters.search) {

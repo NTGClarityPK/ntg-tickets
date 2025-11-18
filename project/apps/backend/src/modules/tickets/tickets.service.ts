@@ -23,6 +23,7 @@ import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
 import { WorkflowsService } from '../workflows/workflows.service';
+import { TicketResponseDto } from './dto/ticket-response.dto';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -345,7 +346,7 @@ export class TicketsService {
     this.websocketGateway.emitTicketCreated(ticket);
 
     this.logger.log(`Ticket created: ${ticket.ticketNumber}`, 'TicketsService');
-    return ticket;
+    return this.transformTicket(ticket);
   }
 
   /**
@@ -467,7 +468,7 @@ export class TicketsService {
     ]);
 
     return {
-      data: tickets,
+      data: tickets.map(ticket => this.transformTicket(ticket)),
       pagination: {
         page,
         limit,
@@ -556,11 +557,12 @@ export class TicketsService {
       });
     }
 
-    // Return ticket with transformed custom fields
-    return {
+    // Transform and return ticket with only necessary fields
+    const transformedTicket = this.transformTicket({
       ...ticket,
       customFields: customFieldsObject,
-    };
+    });
+    return transformedTicket;
   }
 
   /**
@@ -722,7 +724,7 @@ export class TicketsService {
     this.websocketGateway.emitTicketUpdated(ticket, userId);
 
     this.logger.log(`Ticket updated: ${ticket.ticketNumber}`, 'TicketsService');
-    return ticket;
+    return this.transformTicket(ticket);
   }
 
   /**
@@ -917,7 +919,7 @@ export class TicketsService {
           'TicketsService'
         );
         
-        return result.ticket;
+        return this.transformTicket(result.ticket);
       } catch (error) {
         // If it's a validation error (BadRequestException) or permission error (ForbiddenException),
         // we should propagate it to the user, not fall back to legacy validation
@@ -991,7 +993,7 @@ export class TicketsService {
       `Ticket status updated: ${ticket.ticketNumber} to ${status}`,
       'TicketsService'
     );
-    return updatedTicket;
+    return this.transformTicket(updatedTicket);
   }
 
   async assignTicket(
@@ -1158,7 +1160,7 @@ export class TicketsService {
       `Ticket assigned: ${ticket.ticketNumber} to ${assignee.name}`,
       'TicketsService'
     );
-    return updatedTicket;
+    return this.transformTicket(updatedTicket);
   }
 
   private async generateTicketNumber(): Promise<string> {
@@ -1258,7 +1260,7 @@ export class TicketsService {
       },
     });
 
-    return tickets;
+    return tickets.map(ticket => this.transformTicket(ticket));
   }
 
   async getMyTickets(userId: string, filters: TicketFilters) {
@@ -1340,7 +1342,7 @@ export class TicketsService {
     ]);
 
     return {
-      data: tickets,
+      data: tickets.map(ticket => this.transformTicket(ticket)),
       pagination: {
         page,
         limit,
@@ -1436,7 +1438,7 @@ export class TicketsService {
     // Debug logging removed for production
 
     return {
-      data: tickets,
+      data: tickets.map(ticket => this.transformTicket(ticket)),
       pagination: {
         page,
         limit,
@@ -1476,7 +1478,7 @@ export class TicketsService {
       },
     });
 
-    return tickets;
+    return tickets.map(ticket => this.transformTicket(ticket));
   }
 
   private trackChanges(
@@ -1736,6 +1738,153 @@ export class TicketsService {
     }
 
     return createEdge.target.toUpperCase();
+  }
+
+  /**
+   * Transform Prisma user to minimal user DTO
+   */
+  private transformUser(user: any): any {
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roles: user.roles || [],
+      activeRole: user.activeRole || undefined, // Optional, may not be in Prisma model
+      isActive: user.isActive,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  /**
+   * Transform Prisma category to minimal category DTO
+   */
+  private transformCategory(category: any): any {
+    if (!category) return null;
+    return {
+      id: category.id,
+      name: category.name,
+      customName: category.customName,
+      description: category.description,
+    };
+  }
+
+  /**
+   * Transform Prisma subcategory to minimal subcategory DTO
+   */
+  private transformSubcategory(subcategory: any): any {
+    if (!subcategory) return null;
+    return {
+      id: subcategory.id,
+      name: subcategory.name,
+      description: subcategory.description,
+    };
+  }
+
+  /**
+   * Transform Prisma comment to minimal comment DTO
+   */
+  private transformComment(comment: any): any {
+    if (!comment) return null;
+    return {
+      id: comment.id,
+      ticketId: comment.ticketId,
+      userId: comment.userId,
+      user: this.transformUser(comment.user),
+      content: comment.content,
+      isInternal: comment.isInternal,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+    };
+  }
+
+  /**
+   * Transform Prisma attachment to minimal attachment DTO
+   */
+  private transformAttachment(attachment: any): any {
+    if (!attachment) return null;
+    return {
+      id: attachment.id,
+      ticketId: attachment.ticketId,
+      filename: attachment.filename,
+      fileSize: attachment.fileSize,
+      fileType: attachment.fileType,
+      fileUrl: attachment.fileUrl,
+      uploadedBy: this.transformUser(attachment.uploader || attachment.uploadedBy),
+      createdAt: attachment.createdAt,
+    };
+  }
+
+  /**
+   * Transform Prisma ticket to response DTO with only necessary fields
+   */
+  private transformTicket(ticket: any): TicketResponseDto {
+    if (!ticket) return null;
+
+    // Transform custom fields if they exist
+    let customFields: Record<string, string> | undefined;
+    if (ticket.customFields && Array.isArray(ticket.customFields)) {
+      customFields = {};
+      ticket.customFields.forEach((ticketCustomField: any) => {
+        if (ticketCustomField.customField) {
+          customFields[ticketCustomField.customField.name] = ticketCustomField.value;
+        }
+      });
+    } else if (ticket.customFields && typeof ticket.customFields === 'object' && !Array.isArray(ticket.customFields)) {
+      customFields = ticket.customFields;
+    }
+
+    // Get related ticket IDs if they exist
+    let relatedTickets: string[] | undefined;
+    if (ticket.relatedTickets && Array.isArray(ticket.relatedTickets)) {
+      relatedTickets = ticket.relatedTickets.map((rel: any) => 
+        rel.relatedTicketId || rel.id
+      );
+    }
+
+    // Only include comments and attachments if they were included in the query
+    // This prevents unnecessary data in list endpoints
+    const comments = ticket.comments && Array.isArray(ticket.comments) && ticket.comments.length > 0
+      ? ticket.comments.map((c: any) => this.transformComment(c))
+      : undefined;
+    
+    const attachments = ticket.attachments && Array.isArray(ticket.attachments) && ticket.attachments.length > 0
+      ? ticket.attachments.map((a: any) => this.transformAttachment(a))
+      : undefined;
+
+    return {
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      description: ticket.description,
+      categoryId: ticket.categoryId,
+      subcategoryId: ticket.subcategoryId,
+      category: this.transformCategory(ticket.category),
+      subcategory: ticket.subcategory ? this.transformSubcategory(ticket.subcategory) : null,
+      priority: ticket.priority,
+      status: ticket.status,
+      impact: ticket.impact,
+      urgency: ticket.urgency,
+      slaLevel: ticket.slaLevel,
+      requester: this.transformUser(ticket.requester),
+      assignedTo: ticket.assignedTo ? this.transformUser(ticket.assignedTo) : null,
+      dueDate: ticket.dueDate,
+      resolution: ticket.resolution,
+      comments,
+      attachments,
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+      closedAt: ticket.closedAt,
+      slaCompliance: ticket.slaCompliance,
+      responseTime: ticket.responseTime,
+      resolutionTime: ticket.resolutionTime,
+      customFields,
+      relatedTickets,
+      workflowSnapshot: ticket.workflowSnapshot,
+      workflowVersion: ticket.workflowVersion,
+    };
   }
 
 }
