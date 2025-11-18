@@ -20,6 +20,7 @@ export function useActiveCategories() {
       return response.data.data as Category[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
   });
 }
 
@@ -93,6 +94,7 @@ export function useDynamicFields(categoryName: string) {
     },
     enabled: !!categoryName,
     staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
   });
 }
 
@@ -105,6 +107,7 @@ export function useSubcategories(categoryName: string) {
     },
     enabled: !!categoryName,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
   });
 }
 

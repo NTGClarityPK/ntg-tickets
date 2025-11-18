@@ -30,6 +30,7 @@ export function useThemeSettings(): UseQueryResult<ThemeSettings | null, Error> 
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // Don't retry on failure to avoid blocking the app
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
   });
 }
 
@@ -62,5 +63,6 @@ export function usePublicThemeSettings(): UseQueryResult<ThemeSettings | null, E
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
   });
 }

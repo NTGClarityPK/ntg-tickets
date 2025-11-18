@@ -62,7 +62,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <ErrorBoundary>
