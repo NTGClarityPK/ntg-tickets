@@ -108,7 +108,7 @@ export function TicketsListContainer() {
   const deleteTicketMutation = useDeleteTicket();
 
   // Extract tickets and pagination from the response
-  const tickets = ticketsData?.tickets || [];
+  const tickets = useMemo(() => ticketsData?.tickets || [], [ticketsData?.tickets]);
   const pagination = ticketsData?.pagination;
 
   // Custom clear filters function that also resets modal state

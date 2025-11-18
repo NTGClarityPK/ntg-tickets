@@ -40,21 +40,21 @@ export function AdminDashboardContainer() {
   } = useSystemStats();
 
   // Calculate date range for audit logs (last 7 days)
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const dateFrom = sevenDaysAgo.toISOString().split('T')[0];
+  const now = useMemo(() => new Date(), []);
+  const sevenDaysAgo = useMemo(() => new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), [now]);
+  const dateFrom = useMemo(() => sevenDaysAgo.toISOString().split('T')[0], [sevenDaysAgo]);
 
   const {
     data: auditLogStats,
     isLoading: auditStatsLoading,
     refetch: refetchAuditStats,
-  } = useAuditLogStats(dateFrom);
+  } = useAuditLogStats(dateFrom || '');
 
   // Fetch recent audit logs to calculate failed logins and password resets
   const {
     data: recentAuditLogs,
     isLoading: auditLogsLoading,
-  } = useSystemAuditLogs(1, 1000, dateFrom);
+  } = useSystemAuditLogs(1, 1000, dateFrom || '');
 
   const handleRefresh = async () => {
     setRefreshing(true);
