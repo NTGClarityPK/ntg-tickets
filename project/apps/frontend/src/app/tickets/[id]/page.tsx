@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Ticket,
   TicketStatus,
@@ -76,7 +77,7 @@ import {
   useUpdateTicketStatus,
   useAssignTicket,
 } from '../../../hooks/useTickets';
-import { useCreateComment } from '../../../hooks/useComments';
+import { useCreateComment, useUpdateComment, useDeleteComment } from '../../../hooks/useComments';
 import { useUsers, useSupportStaff } from '../../../hooks/useUsers';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useWorkflowTransitions } from '../../../hooks/useWorkflowTransitions';
@@ -123,6 +124,7 @@ export default function TicketDetailPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const ticketId = params.id as string;
+  const queryClient = useQueryClient();
 
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -134,6 +136,9 @@ export default function TicketDetailPage() {
   const [selectedAssignee, setSelectedAssignee] = useState('');
   const [activeTab, setActiveTab] = useState<string | null>('details');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
 
   const { data: ticket, isLoading, error } = useTicket(ticketId);
   // Get support staff with ticket counts for assignment
@@ -144,6 +149,8 @@ export default function TicketDetailPage() {
   const updateStatusMutation = useUpdateTicketStatus();
   const assignTicketMutation = useAssignTicket();
   const addCommentMutation = useCreateComment();
+  const updateCommentMutation = useUpdateComment();
+  const deleteCommentMutation = useDeleteComment();
   
   // Get workflow-based transitions for the current ticket status
   // Pass workflowSnapshot if ticket has one (for tickets created with older workflow versions)
@@ -308,6 +315,73 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleStartEdit = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentContent(comment.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditCommentContent('');
+  };
+
+  const handleSaveEdit = async (commentId: string) => {
+    if (!editCommentContent.trim()) {
+      notifications.show({
+        title: 'Error',
+        message: 'Comment cannot be empty',
+        color: primaryDark,
+      });
+      return;
+    }
+
+    try {
+      await updateCommentMutation.mutateAsync({
+        id: commentId,
+        data: {
+          content: editCommentContent,
+        },
+      });
+      // Also invalidate the ticket query to ensure it's up to date
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+      notifications.show({
+        title: 'Success',
+        message: 'Comment updated successfully',
+        color: primaryLight,
+      });
+      setEditingCommentId(null);
+      setEditCommentContent('');
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update comment',
+        color: primaryDark,
+      });
+    }
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deleteCommentId) return;
+
+    try {
+      await deleteCommentMutation.mutateAsync(deleteCommentId);
+      // Also invalidate the ticket query to update comment count
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+      notifications.show({
+        title: 'Success',
+        message: 'Comment deleted successfully',
+        color: primaryLight,
+      });
+      setDeleteCommentId(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete comment',
+        color: primaryDark,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Container size='xl' py='md'>
@@ -456,18 +530,74 @@ export default function TicketDetailPage() {
                                       { addSuffix: true }
                                     )})`
                                   : 'Unknown time'}
+                                {comment.updatedAt !== comment.createdAt && (
+                                  <span> • Edited</span>
+                                )}
                               </Text>
                             </div>
                           </Group>
-                          {comment.isInternal && (
-                            <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
-                              Internal
-                            </Badge>
-                          )}
+                          <Group gap='xs'>
+                            {comment.isInternal && (
+                              <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
+                                Internal
+                              </Badge>
+                            )}
+                            {user?.id === comment.userId && (
+                              <Menu shadow='md' width={120}>
+                                <Menu.Target>
+                                  <ActionIcon variant='subtle' size='sm'>
+                                    <IconDots size={16} />
+                                  </ActionIcon>
+                                </Menu.Target>
+                                <Menu.Dropdown>
+                                  <Menu.Item
+                                    leftSection={<IconEdit size={14} />}
+                                    onClick={() => handleStartEdit(comment)}
+                                  >
+                                    Edit
+                                  </Menu.Item>
+                                  <Menu.Item
+                                    leftSection={<IconTrash size={14} />}
+                                    color='red'
+                                    onClick={() => setDeleteCommentId(comment.id)}
+                                  >
+                                    Delete
+                                  </Menu.Item>
+                                </Menu.Dropdown>
+                              </Menu>
+                            )}
+                          </Group>
                         </Group>
-                        <Text size='sm' style={{ whiteSpace: 'pre-wrap' }}>
-                          {comment.content}
-                        </Text>
+                        {editingCommentId === comment.id ? (
+                          <Stack gap='sm'>
+                            <Textarea
+                              value={editCommentContent}
+                              onChange={(e) => setEditCommentContent(e.target.value)}
+                              minRows={3}
+                              autosize
+                            />
+                            <Group justify='flex-end'>
+                              <Button
+                                variant='outline'
+                                size='xs'
+                                onClick={handleCancelEdit}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size='xs'
+                                onClick={() => handleSaveEdit(comment.id)}
+                                loading={updateCommentMutation.isPending}
+                              >
+                                Save
+                              </Button>
+                            </Group>
+                          </Stack>
+                        ) : (
+                          <Text size='sm' style={{ whiteSpace: 'pre-wrap' }}>
+                            {comment.content}
+                          </Text>
+                        )}
                       </Card>
                     ))}
                     {(!ticket.comments || ticket.comments.length === 0) && (
@@ -504,18 +634,74 @@ export default function TicketDetailPage() {
                                       { addSuffix: true }
                                     )})`
                                   : 'Unknown time'}
+                                {comment.updatedAt !== comment.createdAt && (
+                                  <span> • Edited</span>
+                                )}
                               </Text>
                             </div>
                           </Group>
-                          {comment.isInternal && (
-                            <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
-                              Internal
-                            </Badge>
-                          )}
+                          <Group gap='xs'>
+                            {comment.isInternal && (
+                              <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
+                                Internal
+                              </Badge>
+                            )}
+                            {user?.id === comment.userId && (
+                              <Menu shadow='md' width={120}>
+                                <Menu.Target>
+                                  <ActionIcon variant='subtle' size='sm'>
+                                    <IconDots size={16} />
+                                  </ActionIcon>
+                                </Menu.Target>
+                                <Menu.Dropdown>
+                                  <Menu.Item
+                                    leftSection={<IconEdit size={14} />}
+                                    onClick={() => handleStartEdit(comment)}
+                                  >
+                                    Edit
+                                  </Menu.Item>
+                                  <Menu.Item
+                                    leftSection={<IconTrash size={14} />}
+                                    color='red'
+                                    onClick={() => setDeleteCommentId(comment.id)}
+                                  >
+                                    Delete
+                                  </Menu.Item>
+                                </Menu.Dropdown>
+                              </Menu>
+                            )}
+                          </Group>
                         </Group>
-                        <Text size='sm' style={{ whiteSpace: 'pre-wrap' }}>
-                          {comment.content}
-                        </Text>
+                        {editingCommentId === comment.id ? (
+                          <Stack gap='sm'>
+                            <Textarea
+                              value={editCommentContent}
+                              onChange={(e) => setEditCommentContent(e.target.value)}
+                              minRows={3}
+                              autosize
+                            />
+                            <Group justify='flex-end'>
+                              <Button
+                                variant='outline'
+                                size='xs'
+                                onClick={handleCancelEdit}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size='xs'
+                                onClick={() => handleSaveEdit(comment.id)}
+                                loading={updateCommentMutation.isPending}
+                              >
+                                Save
+                              </Button>
+                            </Group>
+                          </Stack>
+                        ) : (
+                          <Text size='sm' style={{ whiteSpace: 'pre-wrap' }}>
+                            {comment.content}
+                          </Text>
+                        )}
                       </Card>
                     ))}
                     {(!ticket.comments || ticket.comments.length === 0) && (
@@ -1047,6 +1233,32 @@ export default function TicketDetailPage() {
               leftSection={<IconSend size={16} />}
             >
               Add Comment
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Delete Comment Modal */}
+      <Modal
+        opened={!!deleteCommentId}
+        onClose={() => setDeleteCommentId(null)}
+        title='Delete Comment'
+        centered
+      >
+        <Stack gap='md'>
+          <Text>
+            Are you sure you want to delete this comment? This action cannot be undone.
+          </Text>
+          <Group justify='flex-end'>
+            <Button variant='outline' onClick={() => setDeleteCommentId(null)}>
+              Cancel
+            </Button>
+            <Button
+              color='red'
+              onClick={handleDeleteComment}
+              loading={deleteCommentMutation.isPending}
+            >
+              Delete
             </Button>
           </Group>
         </Stack>
