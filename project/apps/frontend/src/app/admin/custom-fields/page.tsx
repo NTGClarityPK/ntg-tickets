@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Container,
   Title,
@@ -39,7 +39,6 @@ import {
 } from '../../../hooks/useCustomFields';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { useRouter } from 'next/navigation';
 import {
   CustomField,
   CreateCustomFieldInput,
@@ -49,7 +48,6 @@ import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CustomFieldsPage() {
   const { primaryLight, primaryLighter, primaryDark, primaryDarker } = useDynamicTheme();
-  const router = useRouter();
   const [search, setSearch] = useState('');
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -57,6 +55,10 @@ export default function CustomFieldsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const createOptionIdCounter = useRef(0);
+  const editOptionIdCounter = useRef(0);
+  const [createOptionIds, setCreateOptionIds] = useState<number[]>([]);
+  const [editOptionIds, setEditOptionIds] = useState<number[]>([]);
 
   const { data: customFields, isLoading, refetch } = useCustomFields();
   const deleteCustomField = useDeleteCustomField();
@@ -112,6 +114,7 @@ export default function CustomFieldsPage() {
       });
       setCreateModalOpen(false);
       createForm.reset();
+      setCreateOptionIds([]);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -136,6 +139,7 @@ export default function CustomFieldsPage() {
       });
       setEditModalOpen(false);
       setSelectedField(null);
+      setEditOptionIds([]);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -168,15 +172,65 @@ export default function CustomFieldsPage() {
 
   const openEditModal = (field: CustomField) => {
     setSelectedField(field);
+    const options = field.options || [];
     editForm.setValues({
       name: field.name,
       fieldType: field.fieldType,
       isRequired: field.isRequired,
-      options: field.options || [],
+      options: options,
       isActive: field.isActive,
       description: field.description || '',
     });
+    // Initialize option IDs for existing options
+    const initialIds = options.map(() => editOptionIdCounter.current++);
+    setEditOptionIds(initialIds);
     setEditModalOpen(true);
+  };
+
+  // Options management functions for create form
+  const handleAddOptionCreate = () => {
+    const currentOptions = createForm.values.options || [];
+    const newId = createOptionIdCounter.current++;
+    createForm.setFieldValue('options', [...currentOptions, '']);
+    setCreateOptionIds([...createOptionIds, newId]);
+  };
+
+  const handleRemoveOptionCreate = (index: number) => {
+    const currentOptions = createForm.values.options || [];
+    const newOptions = currentOptions.filter((_, i) => i !== index);
+    const newIds = createOptionIds.filter((_, i) => i !== index);
+    createForm.setFieldValue('options', newOptions);
+    setCreateOptionIds(newIds);
+  };
+
+  const handleOptionChangeCreate = (index: number, value: string) => {
+    const currentOptions = createForm.values.options || [];
+    const newOptions = [...currentOptions];
+    newOptions[index] = value;
+    createForm.setFieldValue('options', newOptions);
+  };
+
+  // Options management functions for edit form
+  const handleAddOptionEdit = () => {
+    const currentOptions = editForm.values.options || [];
+    const newId = editOptionIdCounter.current++;
+    editForm.setFieldValue('options', [...currentOptions, '']);
+    setEditOptionIds([...editOptionIds, newId]);
+  };
+
+  const handleRemoveOptionEdit = (index: number) => {
+    const currentOptions = editForm.values.options || [];
+    const newOptions = currentOptions.filter((_, i) => i !== index);
+    const newIds = editOptionIds.filter((_, i) => i !== index);
+    editForm.setFieldValue('options', newOptions);
+    setEditOptionIds(newIds);
+  };
+
+  const handleOptionChangeEdit = (index: number, value: string) => {
+    const currentOptions = editForm.values.options || [];
+    const newOptions = [...currentOptions];
+    newOptions[index] = value;
+    editForm.setFieldValue('options', newOptions);
   };
 
   const getFieldTypeColor = (type: string) => {
@@ -313,14 +367,7 @@ export default function CustomFieldsPage() {
                       </ActionIcon>
                     </Menu.Target>
                     <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={<IconEye size={14} />}
-                        onClick={() =>
-                          router.push(`/admin/custom-fields/${field.id}`)
-                        }
-                      >
-                        View Details
-                      </Menu.Item>
+                     
                       <Menu.Item
                         leftSection={<IconEdit size={14} />}
                         onClick={() => openEditModal(field)}
@@ -392,7 +439,10 @@ export default function CustomFieldsPage() {
       {/* Create Modal */}
       <Modal
         opened={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setCreateOptionIds([]);
+        }}
         title='Add Field to Ticket Form'
         size='lg'
       >
@@ -413,7 +463,24 @@ export default function CustomFieldsPage() {
                   placeholder='Select field type'
                   required
                   data={fieldTypeOptions}
-                  {...createForm.getInputProps('fieldType')}
+                  {...createForm.getInputProps('fieldType', {
+                    onChange: (value: string | null) => {
+                      const fieldType = value as CustomFieldType;
+                      createForm.setFieldValue('fieldType', fieldType);
+                      if (fieldType === CustomFieldType.SELECT) {
+                        // Initialize with empty option if no options exist
+                        if (!createForm.values.options || createForm.values.options.length === 0) {
+                          const newId = createOptionIdCounter.current++;
+                          createForm.setFieldValue('options', ['']);
+                          setCreateOptionIds([newId]);
+                        }
+                      } else {
+                        // Clear options when switching away from SELECT
+                        createForm.setFieldValue('options', []);
+                        setCreateOptionIds([]);
+                      }
+                    },
+                  })}
                 />
               </Grid.Col>
             </Grid>
@@ -423,6 +490,58 @@ export default function CustomFieldsPage() {
               placeholder='Help text shown to users when creating tickets (optional)'
               {...createForm.getInputProps('description')}
             />
+
+            {createForm.values.fieldType === CustomFieldType.SELECT && (
+              <Card withBorder p='md'>
+                <Stack gap='sm'>
+                  <div>
+                    <Text size='sm' fw={500} mb={4}>
+                      Options
+                    </Text>
+                    <Text size='xs' c='dimmed'>
+                      Define the available options for this select field
+                    </Text>
+                  </div>
+
+                  {createForm.values.options?.map((option, index) => {
+                    let optionId = createOptionIds[index];
+                    if (optionId === undefined) {
+                      // Generate ID if missing (safety check)
+                      optionId = createOptionIdCounter.current++;
+                      setCreateOptionIds([...createOptionIds, optionId]);
+                    }
+                    return (
+                      <Group key={`create-option-${optionId}`} gap='xs'>
+                        <TextInput
+                          placeholder={`Option ${index + 1}`}
+                          value={option}
+                          onChange={e =>
+                            handleOptionChangeCreate(index, e.target.value)
+                          }
+                          style={{ flex: 1 }}
+                        />
+                        <ActionIcon
+                          variant='light'
+                          color='red'
+                          onClick={() => handleRemoveOptionCreate(index)}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Group>
+                    );
+                  })}
+
+                  <Button
+                    variant='light'
+                    leftSection={<IconPlus size={14} />}
+                    onClick={handleAddOptionCreate}
+                    size='sm'
+                  >
+                    Add Option
+                  </Button>
+                </Stack>
+              </Card>
+            )}
 
             <Grid>
               <Grid.Col span={6}>
@@ -458,7 +577,10 @@ export default function CustomFieldsPage() {
       {/* Edit Modal */}
       <Modal
         opened={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditOptionIds([]);
+        }}
         title='Edit Ticket Form Field'
         size='lg'
       >
@@ -479,7 +601,24 @@ export default function CustomFieldsPage() {
                   placeholder='Select field type'
                   required
                   data={fieldTypeOptions}
-                  {...editForm.getInputProps('fieldType')}
+                  {...editForm.getInputProps('fieldType', {
+                    onChange: (value: string | null) => {
+                      const fieldType = value as CustomFieldType;
+                      editForm.setFieldValue('fieldType', fieldType);
+                      if (fieldType === CustomFieldType.SELECT) {
+                        // Initialize with empty option if no options exist
+                        if (!editForm.values.options || editForm.values.options.length === 0) {
+                          const newId = editOptionIdCounter.current++;
+                          editForm.setFieldValue('options', ['']);
+                          setEditOptionIds([newId]);
+                        }
+                      } else {
+                        // Clear options when switching away from SELECT
+                        editForm.setFieldValue('options', []);
+                        setEditOptionIds([]);
+                      }
+                    },
+                  })}
                 />
               </Grid.Col>
             </Grid>
@@ -489,6 +628,58 @@ export default function CustomFieldsPage() {
               placeholder='Help text shown to users when creating tickets (optional)'
               {...editForm.getInputProps('description')}
             />
+
+            {editForm.values.fieldType === CustomFieldType.SELECT && (
+              <Card withBorder p='md'>
+                <Stack gap='sm'>
+                  <div>
+                    <Text size='sm' fw={500} mb={4}>
+                      Options
+                    </Text>
+                    <Text size='xs' c='dimmed'>
+                      Define the available options for this select field
+                    </Text>
+                  </div>
+
+                  {editForm.values.options?.map((option, index) => {
+                    let optionId = editOptionIds[index];
+                    if (optionId === undefined) {
+                      // Generate ID if missing (safety check)
+                      optionId = editOptionIdCounter.current++;
+                      setEditOptionIds([...editOptionIds, optionId]);
+                    }
+                    return (
+                      <Group key={`edit-option-${optionId}`} gap='xs'>
+                        <TextInput
+                          placeholder={`Option ${index + 1}`}
+                          value={option}
+                          onChange={e =>
+                            handleOptionChangeEdit(index, e.target.value)
+                          }
+                          style={{ flex: 1 }}
+                        />
+                        <ActionIcon
+                          variant='light'
+                          color='red'
+                          onClick={() => handleRemoveOptionEdit(index)}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Group>
+                    );
+                  })}
+
+                  <Button
+                    variant='light'
+                    leftSection={<IconPlus size={14} />}
+                    onClick={handleAddOptionEdit}
+                    size='sm'
+                  >
+                    Add Option
+                  </Button>
+                </Stack>
+              </Card>
+            )}
 
             <Grid>
               <Grid.Col span={6}>
