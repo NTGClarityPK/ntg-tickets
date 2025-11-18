@@ -1,7 +1,6 @@
 import {
   IsString,
   IsNotEmpty,
-  IsBoolean,
   IsUUID,
   MinLength,
 } from 'class-validator';
@@ -25,13 +24,4 @@ export class CreateCommentDto {
   @IsNotEmpty()
   @MinLength(1)
   content: string;
-
-  @ApiProperty({
-    description: 'Whether this is an internal comment (staff only)',
-    example: false,
-    default: false,
-  })
-  @IsBoolean()
-  @IsNotEmpty()
-  isInternal: boolean = false;
 }

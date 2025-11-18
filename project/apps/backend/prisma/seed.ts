@@ -1249,7 +1249,6 @@ async function main() {
         userId: supportStaff1.id,
         content:
           'Initial assessment: Database server is completely unresponsive. Checking hardware status.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
       },
     });
@@ -1260,7 +1259,6 @@ async function main() {
         userId: supportStaff1.id,
         content:
           'Hardware check complete. Server appears to have failed. Need to contact vendor for replacement.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       },
     });
@@ -1271,7 +1269,6 @@ async function main() {
         userId: manager.id,
         content:
           'This is a critical business impact. All operations are halted. Please escalate to vendor immediately.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
       },
     });
@@ -1282,7 +1279,6 @@ async function main() {
         userId: supportStaff1.id,
         content:
           'Vendor contacted. Replacement server ordered but delivery is delayed due to supply chain issues.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       },
     });
@@ -1319,7 +1315,6 @@ async function main() {
         userId: supportStaff2.id,
         content:
           'Email server diagnostics show multiple service failures. Investigating root cause.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1330,7 +1325,6 @@ async function main() {
         userId: endUser1.id,
         content:
           'This is severely impacting our business communications. When can we expect resolution?',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1341,7 +1335,6 @@ async function main() {
         userId: supportStaff2.id,
         content:
           'Found corrupted email database. Attempting recovery from backup.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1352,7 +1345,6 @@ async function main() {
         userId: supportStaff2.id,
         content:
           'Backup recovery in progress. Estimated completion time: 8-12 hours.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1366,7 +1358,6 @@ async function main() {
         userId: supportStaff4.id,
         content:
           'Investigating printer network connectivity issues. Checking network configuration.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 20 * 60 * 60 * 1000), // 20 hours ago
       },
     });
@@ -1377,7 +1368,6 @@ async function main() {
         userId: endUser2.id,
         content:
           'Print jobs are still failing intermittently. This is affecting our daily operations.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 10 * 60 * 60 * 1000), // 10 hours ago
       },
     });
@@ -1388,7 +1378,6 @@ async function main() {
         userId: supportStaff4.id,
         content:
           'Found network switch configuration issue. Updating settings now.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
       },
     });
@@ -1402,7 +1391,6 @@ async function main() {
         userId: supportStaff2.id,
         content:
           'Server performance analysis shows high CPU usage. Investigating running processes.',
-        isInternal: true,
       },
     });
 
@@ -1412,7 +1400,6 @@ async function main() {
         userId: endUser6.id,
         content:
           'File access is still slow. Users are complaining about the delays.',
-        isInternal: false,
       },
     });
 
@@ -1422,7 +1409,6 @@ async function main() {
         userId: supportStaff2.id,
         content:
           'Identified memory leak in file indexing service. Restarting service and monitoring.',
-        isInternal: true,
       },
     });
   }
@@ -1434,7 +1420,6 @@ async function main() {
         ticketId: resolvedTicket.id,
         userId: supportStaff1.id,
         content: 'Password reset link sent to user email address.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
       },
     });
@@ -1444,7 +1429,6 @@ async function main() {
         ticketId: resolvedTicket.id,
         userId: endUser2.id,
         content: 'Thank you! I was able to reset my password successfully.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 11 * 60 * 60 * 1000),
       },
     });
@@ -1458,7 +1442,6 @@ async function main() {
         userId: endUser6.id,
         content:
           'The email sync issue has returned. Emails are not syncing properly again.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1469,7 +1452,6 @@ async function main() {
         userId: supportStaff1.id,
         content:
           'Ticket reopened. Investigating the recurring email sync issue.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1493,7 +1475,6 @@ async function main() {
         userId: admin.id,
         content:
           'Starting comprehensive security audit. Reviewing user accounts, permissions, and access logs.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1504,7 +1485,6 @@ async function main() {
         userId: manager.id,
         content:
           'This audit is critical for compliance. Please prioritize and provide regular updates.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1515,7 +1495,6 @@ async function main() {
         userId: admin.id,
         content:
           'Audit in progress. Found several accounts with excessive permissions. Reviewing and updating access levels.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
       },
     });
@@ -1528,7 +1507,6 @@ async function main() {
         userId: admin.id,
         content:
           'Verifying backup systems. Testing restore procedures for critical databases.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
       },
     });
@@ -1539,7 +1517,6 @@ async function main() {
         userId: manager.id,
         content:
           'Backup verification is essential for business continuity. Please ensure all systems are covered.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 20 * 60 * 60 * 1000),
       },
     });
@@ -1552,7 +1529,6 @@ async function main() {
         userId: manager.id,
         content:
           'URGENT: Critical system components require immediate maintenance. This cannot wait.',
-        isInternal: false,
         createdAt: new Date(now.getTime() - 1 * 60 * 60 * 1000),
       },
     });
@@ -1563,7 +1539,6 @@ async function main() {
         userId: admin.id,
         content:
           'Acknowledged. Starting emergency maintenance procedures. Will provide updates every hour.',
-        isInternal: true,
         createdAt: new Date(now.getTime() - 30 * 60 * 1000),
       },
     });

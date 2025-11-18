@@ -211,7 +211,6 @@ export interface Comment {
   userId: string;
   user: User;
   content: string;
-  isInternal: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -623,7 +622,6 @@ export interface EmailTemplateFormData {
 export interface CreateCommentInput {
   ticketId: string;
   content: string;
-  isInternal?: boolean;
 }
 
 export interface UserDistribution {

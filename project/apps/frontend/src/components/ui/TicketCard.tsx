@@ -134,7 +134,6 @@ export function TicketCard({
           await addCommentMutation.mutateAsync({
             ticketId: ticket.id,
             content: statusComment,
-            isInternal: false,
           });
         } catch {
           // Don't block the status update if comment fails

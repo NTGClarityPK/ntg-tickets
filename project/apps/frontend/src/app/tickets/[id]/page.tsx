@@ -221,7 +221,6 @@ export default function TicketDetailPage() {
           await addCommentMutation.mutateAsync({
             ticketId,
             content: statusComment,
-            isInternal: false,
           });
         } catch {
           // Don't block the status update if comment fails
@@ -296,7 +295,6 @@ export default function TicketDetailPage() {
       await addCommentMutation.mutateAsync({
         ticketId,
         content: newComment,
-        isInternal: false,
       });
       notifications.show({
         title: 'Success',
@@ -537,11 +535,6 @@ export default function TicketDetailPage() {
                             </div>
                           </Group>
                           <Group gap='xs'>
-                            {comment.isInternal && (
-                              <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
-                                Internal
-                              </Badge>
-                            )}
                             {user?.id === comment.userId && (
                               <Menu shadow='md' width={120}>
                                 <Menu.Target>
@@ -641,11 +634,6 @@ export default function TicketDetailPage() {
                             </div>
                           </Group>
                           <Group gap='xs'>
-                            {comment.isInternal && (
-                              <Badge size='xs' style={{ backgroundColor: primaryLight, color: 'white' }}>
-                                Internal
-                              </Badge>
-                            )}
                             {user?.id === comment.userId && (
                               <Menu shadow='md' width={120}>
                                 <Menu.Target>

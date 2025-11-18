@@ -83,9 +83,6 @@ export class TicketCommentDto {
   content: string;
 
   @ApiProperty()
-  isInternal: boolean;
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

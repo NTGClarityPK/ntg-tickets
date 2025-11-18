@@ -219,7 +219,6 @@ export class WorkflowExecutionService {
           ticketId,
           userId,
           content: comment,
-          isInternal: false, // Transition comments are visible to all
         },
       });
     }

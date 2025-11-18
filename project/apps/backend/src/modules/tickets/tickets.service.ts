@@ -1863,7 +1863,6 @@ export class TicketsService {
       userId: comment.userId,
       user: this.transformUser(comment.user),
       content: comment.content,
-      isInternal: comment.isInternal,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
     };

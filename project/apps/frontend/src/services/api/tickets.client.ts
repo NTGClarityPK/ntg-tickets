@@ -72,7 +72,7 @@ export const ticketsClient = {
   getComment: (id: string) =>
     httpClient.get<ApiResponse<Comment>>(`/comments/${id}`),
 
-  updateComment: (id: string, data: { content: string; isInternal?: boolean }) =>
+  updateComment: (id: string, data: { content: string }) =>
     httpClient.patch<ApiResponse<Comment>>(`/comments/${id}`, data),
 
   deleteComment: (id: string) =>

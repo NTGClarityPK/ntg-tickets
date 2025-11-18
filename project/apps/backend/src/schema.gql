@@ -16,7 +16,6 @@ type Comment {
   content: String!
   createdAt: DateTime!
   id: ID!
-  isInternal: Boolean!
   updatedAt: DateTime!
   user: User!
 }

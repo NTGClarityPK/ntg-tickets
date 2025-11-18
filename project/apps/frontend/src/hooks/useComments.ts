@@ -3,7 +3,6 @@ import { ticketApi, Comment, CreateCommentInput } from '../lib/apiClient';
 
 export interface UpdateCommentInput {
   content: string;
-  isInternal?: boolean;
 }
 
 export function useComments(ticketId: string) {
