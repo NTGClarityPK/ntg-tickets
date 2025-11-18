@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { notifications } from '@mantine/notifications';
 import { DynamicTicketForm } from '../../../components/forms/DynamicTicketForm';
 import { DynamicTicketFormValues } from '../../../types/unified';
-import { ticketApi, CreateTicketInput } from '../../../lib/apiClient';
+import { CreateTicketInput } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useCreateTicket } from '../../../hooks/useTickets';
 
 export default function CreateTicketPage() {
   const { primaryLight, primaryDark } = useDynamicTheme();
@@ -17,7 +18,7 @@ export default function CreateTicketPage() {
   const { status } = useSession();
   const { user } = useAuthStore();
   const { canCreate, loading: checkingPermission } = useCanCreateTicket();
-  const [loading, setLoading] = useState(false);
+  const createTicketMutation = useCreateTicket();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -44,8 +45,6 @@ export default function CreateTicketPage() {
   }, [checkingPermission, canCreate, user, router, primaryDark]);
 
   const handleSubmit = async (values: DynamicTicketFormValues) => {
-    setLoading(true);
-
     try {
       // Convert DynamicTicketFormValues to CreateTicketInput
       const createTicketData: CreateTicketInput = {
@@ -60,8 +59,7 @@ export default function CreateTicketPage() {
         customFields: (values.customFields || {}) as Record<string, string | number | boolean>,
       };
 
-      const response = await ticketApi.createTicket(createTicketData);
-      const result = response.data;
+      const ticket = await createTicketMutation.mutateAsync(createTicketData);
 
       notifications.show({
         title: 'Success',
@@ -70,7 +68,7 @@ export default function CreateTicketPage() {
       });
 
       // Redirect to the created ticket
-      router.push(`/tickets/${result.data.id}`);
+      router.push(`/tickets/${ticket.id}`);
     } catch (error) {
       // Handle ticket creation error
       notifications.show({
@@ -79,8 +77,6 @@ export default function CreateTicketPage() {
           error instanceof Error ? error.message : 'Failed to create ticket',
         color: primaryDark,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -96,5 +92,5 @@ export default function CreateTicketPage() {
     return <div>Checking permissions...</div>;
   }
 
-  return <DynamicTicketForm onSubmit={handleSubmit} loading={loading} />;
+  return <DynamicTicketForm onSubmit={handleSubmit} loading={createTicketMutation.isPending} />;
 }
