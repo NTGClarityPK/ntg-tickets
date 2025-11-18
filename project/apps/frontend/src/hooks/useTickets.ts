@@ -280,6 +280,48 @@ export function useMyTickets(filters?: TicketFilters) {
   });
 }
 
+// Hook for paginated MyTickets (tickets created by or assigned to the current user)
+export function useMyTicketsWithPagination(filters?: TicketFilters) {
+  const activeRole = useAuthActiveRole();
+  
+  return useQuery<{
+    tickets: Ticket[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>({
+    queryKey: ['my-tickets-with-pagination', filters, activeRole],
+    queryFn: async () => {
+      const response = await ticketApi.getMyTickets(filters);
+      const { items, pagination } = normalizeListResponse<Ticket>(response.data);
+
+      return {
+        tickets: items,
+        pagination: pagination ?? {
+          page: 1,
+          limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    },
+    staleTime: QUERY_CONFIG.STALE_TIME.LONG,
+    gcTime: QUERY_CONFIG.GC_TIME.SHORT,
+    refetchOnWindowFocus: false,
+    enabled: !!activeRole, // Only run query when user has an active role
+    retry: (failureCount, error) => {
+      if (failureCount < 3 && error instanceof Error) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+}
+
 export function useAssignedTickets(filters?: TicketFilters) {
   const activeRole = useAuthActiveRole();
   

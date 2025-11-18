@@ -34,10 +34,9 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../../../stores/useAuthStore';
 import { useState } from 'react';
 import {
-  useTicketsWithPagination,
+  useMyTicketsWithPagination,
   useTotalTicketsCount,
 } from '../../../hooks/useTickets';
 import { Ticket, TicketStatus, TicketPriority } from '../../../types/unified';
@@ -69,7 +68,6 @@ export default function MyTicketsPage() {
     CRITICAL: primaryDarkest,
   };
   const router = useRouter();
-  const { user } = useAuthStore();
   const { canCreate: canCreateTicket } = useCanCreateTicket();
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
@@ -88,12 +86,21 @@ export default function MyTicketsPage() {
   } = useSearch();
 
   const searchQuery = getSearchQuery();
+  
+  // Check if we need client-side filtering (resolution time or SLA breach time)
+  const needsClientSideFiltering =
+    typeof searchFilters.minResolutionHours === 'number' ||
+    typeof searchFilters.maxResolutionHours === 'number' ||
+    typeof searchFilters.minSlaBreachHours === 'number' ||
+    typeof searchFilters.maxSlaBreachHours === 'number';
+
   // Fetch tickets where user is either the requester OR assigned to
   const ticketsQuery = {
     ...searchQuery,
-    page: currentPage,
-    limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
-    // Don't filter by requesterId here - we'll get both created and assigned tickets
+    page: needsClientSideFiltering ? 1 : currentPage,
+    limit: needsClientSideFiltering
+      ? 1000 // Fetch more tickets for client-side filtering
+      : PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
     // The backend should handle showing tickets relevant to the user
   };
 
@@ -102,16 +109,14 @@ export default function MyTicketsPage() {
     isLoading,
     error,
     isFetching,
-  } = useTicketsWithPagination(ticketsQuery);
+  } = useMyTicketsWithPagination(ticketsQuery);
 
   // Get total count of all tickets (no filters)
   const { data: totalTicketsCount } = useTotalTicketsCount();
 
-  // Filter tickets to show only those created by or assigned to the current user
-  let myTickets = (ticketsData?.tickets || []).filter((t: Ticket) => 
-    user && (t.requester?.id === user.id || t.assignedTo?.id === user.id)
-  );
-  const pagination = ticketsData?.pagination;
+  // Get tickets from the response (already filtered by backend to show only user's tickets)
+  let allMyTickets = ticketsData?.tickets || [];
+  const backendPagination = ticketsData?.pagination;
 
   // Client-side filters for resolution time and SLA breach time (in hours)
   if (
@@ -120,7 +125,7 @@ export default function MyTicketsPage() {
   ) {
     const minH = searchFilters.minResolutionHours ?? 0;
     const maxH = searchFilters.maxResolutionHours ?? Number.POSITIVE_INFINITY;
-    myTickets = myTickets.filter(t => {
+    allMyTickets = allMyTickets.filter(t => {
       // Only include CLOSED tickets when filtering by resolution time
       if (t.status !== 'CLOSED') return false;
       const hours =
@@ -136,7 +141,7 @@ export default function MyTicketsPage() {
   ) {
     const minB = searchFilters.minSlaBreachHours ?? 0;
     const maxB = searchFilters.maxSlaBreachHours ?? Number.POSITIVE_INFINITY;
-    myTickets = myTickets.filter(t => {
+    allMyTickets = allMyTickets.filter(t => {
       if (!t.dueDate || !t.closedAt) return false;
       const due = new Date(t.dueDate).getTime();
       const closed = new Date(t.closedAt).getTime();
@@ -146,6 +151,27 @@ export default function MyTicketsPage() {
       const breachHours = (closed - due) / (1000 * 60 * 60);
       return breachHours >= minB && breachHours <= maxB;
     });
+  }
+
+  // Apply client-side pagination if we did client-side filtering
+  let myTickets = allMyTickets;
+  let pagination = backendPagination;
+
+  if (needsClientSideFiltering) {
+    const pageSize = PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const totalFilteredTickets = allMyTickets.length;
+    const totalPages = Math.ceil(totalFilteredTickets / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    myTickets = allMyTickets.slice(startIndex, endIndex);
+
+    pagination = {
+      page: currentPage,
+      limit: pageSize,
+      total: totalFilteredTickets,
+      totalPages: totalPages,
+    };
   }
 
   const handleViewTicket = (ticketId: string) => {

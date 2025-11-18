@@ -27,7 +27,10 @@ type UserWithRelations = Prisma.UserGetPayload<{
   include: typeof USER_TICKET_RELATIONS;
 }>;
 
+type UserWithoutRelations = Prisma.UserGetPayload<Record<string, never>>;
+
 type SanitizedUser = Omit<UserWithRelations, 'password'>;
+type SanitizedUserWithoutRelations = Omit<UserWithoutRelations, 'password'>;
 
 @Injectable()
 export class UsersService {
@@ -68,10 +71,9 @@ export class UsersService {
           ...createUserDto,
           password: hashedPassword,
         },
-        include: USER_TICKET_RELATIONS,
       });
 
-      const userWithoutPassword = this.sanitizeUser(user);
+      const userWithoutPassword = this.sanitizeUserSimple(user);
       this.logger.log(`User created: ${user.email}`);
       return userWithoutPassword;
     } catch (error) {
@@ -130,13 +132,12 @@ export class UsersService {
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
-          include: USER_TICKET_RELATIONS,
         }),
         this.prisma.user.count({ where }),
       ]);
 
       return {
-        data: users.map(user => this.sanitizeUser(user)),
+        data: users.map(user => this.sanitizeUserSimple(user)),
         pagination: {
           page,
           limit,
@@ -161,27 +162,25 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
-        include: USER_TICKET_RELATIONS,
       });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      return this.sanitizeUser(user);
+      return this.sanitizeUserSimple(user);
     } catch (error) {
       this.handleServiceError(error, 'Failed to find user');
     }
   }
 
-  async findByEmail(email: string): Promise<SanitizedUser | null> {
+  async findByEmail(email: string): Promise<SanitizedUserWithoutRelations | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
-        include: USER_TICKET_RELATIONS,
       });
 
-      return user ? this.sanitizeUser(user) : null;
+      return user ? this.sanitizeUserSimple(user) : null;
     } catch (error) {
       this.handleServiceError(error, 'Failed to find user by email');
     }
@@ -224,11 +223,10 @@ export class UsersService {
       const user = await this.prisma.user.update({
         where: { id },
         data: updateData,
-        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User updated: ${user.email}`);
-      return this.sanitizeUser(user);
+      return this.sanitizeUserSimple(user);
     } catch (error) {
       this.handleServiceError(error, 'Failed to update user');
     }
@@ -250,11 +248,10 @@ export class UsersService {
           isActive: false,
           updatedAt: new Date(),
         },
-        include: USER_TICKET_RELATIONS,
       });
 
       this.logger.log(`User deactivated: ${user.email}`);
-      return this.sanitizeUser(user);
+      return this.sanitizeUserSimple(user);
     } catch (error) {
       this.handleServiceError(error, 'Failed to deactivate user');
     }
@@ -277,11 +274,10 @@ export class UsersService {
           roles: { has: role },
           isActive: true,
         },
-        include: USER_TICKET_RELATIONS,
         orderBy: { name: 'asc' },
       });
 
-      return users.map(user => this.sanitizeUser(user));
+      return users.map(user => this.sanitizeUserSimple(user));
     } catch (error) {
       this.handleServiceError(error, 'Failed to get users by role');
     }
@@ -415,6 +411,12 @@ export class UsersService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...safeUser } = user;
     return safeUser as SanitizedUser;
+  }
+
+  private sanitizeUserSimple(user: UserWithoutRelations): SanitizedUserWithoutRelations {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...safeUser } = user;
+    return safeUser as SanitizedUserWithoutRelations;
   }
 
   private handleServiceError(error: unknown, userMessage: string): never {
