@@ -42,7 +42,7 @@ import { useCreateComment } from '../../hooks/useComments';
 import {
   showSuccessNotification,
   showErrorNotification,
-} from '@/lib/notifications';
+} from '../../lib/notifications';
 import { useTranslations } from 'next-intl';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 

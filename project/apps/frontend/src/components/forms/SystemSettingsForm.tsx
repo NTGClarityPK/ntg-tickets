@@ -15,7 +15,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showErrorNotification } from '@/lib/notifications';
+import { showErrorNotification } from '../../lib/notifications';
 
 // System settings interface
 export interface SystemSettings {

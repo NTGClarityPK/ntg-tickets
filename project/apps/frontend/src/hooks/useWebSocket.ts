@@ -7,7 +7,7 @@ import {
   showErrorNotification,
   showInfoNotification,
   showWarningNotification,
-} from '@/lib/notifications';
+} from '../lib/notifications';
 import { WEBSOCKET_CONFIG, API_CONFIG } from '../lib/constants';
 
 // WebSocket event data types

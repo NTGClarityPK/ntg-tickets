@@ -45,7 +45,7 @@ import { EmailTemplateType } from '../../../types/unified';
 import {
   EMAIL_TEMPLATE_TYPES,
   EMAIL_TEMPLATE_VARIABLES,
-} from '@/lib/constants';
+} from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 interface EmailTemplateFormData {

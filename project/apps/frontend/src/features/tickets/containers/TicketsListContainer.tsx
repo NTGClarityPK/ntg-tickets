@@ -15,7 +15,7 @@ import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import {
   showSuccessNotification,
   showErrorNotification,
-} from '@/lib/notifications';
+} from '../../../lib/notifications';
 import { useRouter } from 'next/navigation';
 import { Ticket, TicketStatus, TicketFilters } from '../../../types/unified';
 import { TicketsListPresenter } from '../presenters/TicketsListPresenter';

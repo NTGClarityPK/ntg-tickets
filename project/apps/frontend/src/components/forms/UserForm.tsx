@@ -14,7 +14,7 @@ import {
   Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showErrorNotification } from '@/lib/notifications';
+import { showErrorNotification } from '../../lib/notifications';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
 import { VALIDATION_RULES } from '../../lib/constants';
 

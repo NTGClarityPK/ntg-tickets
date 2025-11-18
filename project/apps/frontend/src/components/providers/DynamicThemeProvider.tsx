@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { useDynamicTheme } from '@ntg/shared-library';
 
 /**
  * Provider component that updates CSS custom properties based on the current theme

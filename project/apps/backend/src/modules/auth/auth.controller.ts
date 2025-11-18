@@ -21,8 +21,7 @@ import { AuthService } from './auth.service';
 import { NextAuthJwtGuard } from './guards/nextauth-jwt.guard';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 // import { User } from '../users/entities/user.entity'; // Removed unused import
-import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
-import { SanitizationService } from '../../common/validation/sanitization.service';
+import { RateLimitGuard, SanitizationService } from '@ntg/shared-library/dist/backend';
 import { TokenBlacklistService } from '../../common/security/token-blacklist.service';
 // import { CsrfGuard } from '../../common/guards/csrf.guard';
 

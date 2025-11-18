@@ -36,7 +36,7 @@ import {
   useElasticsearchAggregations,
   useElasticsearchHealth,
 } from '../../hooks/useElasticsearch';
-import { showErrorNotification } from '@/lib/notifications';
+import { showErrorNotification } from '../../lib/notifications';
 import { DatePickerInput } from '@mantine/dates';
 import { Ticket } from '../../types/unified';
 

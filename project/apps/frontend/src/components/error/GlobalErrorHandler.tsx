@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconWifiOff } from '@tabler/icons-react';
-import { UI_CONFIG } from '@/lib/constants';
-import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { UI_CONFIG } from '../../lib/constants';
+import { useDynamicTheme } from '@ntg/shared-library';
 
 export const GlobalErrorHandler = () => {
   const { primaryLight, primaryDark } = useDynamicTheme();

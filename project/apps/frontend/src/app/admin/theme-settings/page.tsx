@@ -16,7 +16,6 @@ import {
   Grid,
   Divider,
   Badge,
-  Modal,
   ColorSwatch,
   Center,
   Loader,
@@ -30,6 +29,7 @@ import { themeSettingsApi } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useThemePreview } from '../../../contexts/ThemePreviewContext';
 import { Logo } from '../../../components/common/Logo';
 
 interface ThemeSettings {
@@ -63,8 +63,7 @@ export default function ThemeSettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { primary } = useDynamicTheme();
-  const [previewMode, setPreviewMode] = useState(false);
-  const [previewColor, setPreviewColor] = useState<string>('');
+  const { setPreviewColor } = useThemePreview();
   const [logoImageError, setLogoImageError] = useState(false);
   const formInitialized = useRef(false);
 
@@ -167,6 +166,8 @@ export default function ThemeSettingsPage() {
       return response.data;
     },
     onSuccess: () => {
+      // Clear preview color after successful save
+      setPreviewColor(null);
       notifications.show({
         title: 'Success',
         message: 'Theme settings updated successfully',
@@ -242,13 +243,23 @@ export default function ThemeSettingsPage() {
   // Update form when theme settings load (only on initial load, not after saves)
   useEffect(() => {
     if (themeSettings && !formInitialized.current) {
+      const initialColor = themeSettings.primaryColor || '#f0940a';
       form.setValues({
-        primaryColor: themeSettings.primaryColor || '#f0940a',
+        primaryColor: initialColor,
         logoFile: null,
       });
+      // Clear any preview when loading initial settings
+      setPreviewColor(null);
       formInitialized.current = true;
     }
-  }, [themeSettings, form]);
+  }, [themeSettings, form, setPreviewColor]);
+
+  // Clear preview when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      setPreviewColor(null);
+    };
+  }, [setPreviewColor]);
 
   // Redirect if not admin
   if (user?.activeRole !== 'ADMIN') {
@@ -260,12 +271,9 @@ export default function ThemeSettingsPage() {
     updateThemeMutation.mutate(values);
   };
 
-  const handlePreview = (color: string) => {
-    setPreviewColor(color);
-    setPreviewMode(true);
-  };
-
   const handleReset = () => {
+    // Clear preview
+    setPreviewColor(null);
     // Reset form values
     form.setValues({
       primaryColor: '#f0940a',
@@ -307,13 +315,6 @@ export default function ThemeSettingsPage() {
             >
               Reset to Default
             </Button>
-            <Button
-              variant="outline"
-              leftSection={<IconPalette size={16} />}
-              onClick={() => handlePreview(form.values.primaryColor)}
-            >
-              Preview
-            </Button>
           </Group>
         </Group>
 
@@ -336,7 +337,11 @@ export default function ThemeSettingsPage() {
                       label="Primary Color"
                       placeholder="Select a color"
                       value={form.values.primaryColor}
-                      onChange={(value) => form.setFieldValue('primaryColor', value)}
+                      onChange={(value) => {
+                        form.setFieldValue('primaryColor', value);
+                        // Apply temporary preview immediately
+                        setPreviewColor(value);
+                      }}
                       withEyeDropper={false}
                       format="hex"
                     />
@@ -352,7 +357,11 @@ export default function ThemeSettingsPage() {
                             color={color}
                             size={32}
                             style={{ cursor: 'pointer' }}
-                            onClick={() => form.setFieldValue('primaryColor', color)}
+                            onClick={() => {
+                              form.setFieldValue('primaryColor', color);
+                              // Apply temporary preview immediately
+                              setPreviewColor(color);
+                            }}
                           />
                         ))}
                       </Group>
@@ -493,8 +502,7 @@ export default function ThemeSettingsPage() {
 
                 <Alert color="blue" variant="light">
                   <Text size="sm">
-                    Changes will be applied immediately after saving. 
-                    You may need to refresh the page to see all changes.
+                    Color changes are previewed immediately. Click "Save Theme Settings" to permanently save your changes.
                   </Text>
                 </Alert>
               </Stack>
@@ -503,41 +511,6 @@ export default function ThemeSettingsPage() {
         </form>
       </Stack>
 
-      {/* Preview Modal */}
-      <Modal
-        opened={previewMode}
-        onClose={() => setPreviewMode(false)}
-        title="Color Preview"
-        size="lg"
-      >
-        <Stack gap="md">
-          <Text size="sm" c="dimmed">
-            This is how your selected color will look in the application:
-          </Text>
-          
-          <Paper p="md" withBorder>
-            <Group>
-              <ColorSwatch color={previewColor} size={40} />
-              <div>
-                <Text fw={500}>Primary Color</Text>
-                <Text size="sm" c="dimmed">{previewColor}</Text>
-              </div>
-            </Group>
-          </Paper>
-
-          <Group justify="flex-end">
-            <Button variant="outline" onClick={() => setPreviewMode(false)}>
-              Close
-            </Button>
-            <Button onClick={() => {
-              form.setFieldValue('primaryColor', previewColor);
-              setPreviewMode(false);
-            }}>
-              Use This Color
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Container>
   );
 }

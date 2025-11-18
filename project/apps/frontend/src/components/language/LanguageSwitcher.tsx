@@ -3,9 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { Button, Menu, Group, Text, useMantineTheme } from '@mantine/core';
 import { IconWorld } from '@tabler/icons-react';
-import { RTLChevronDown } from '../ui/RTLIcon';
+import { RTLChevronDown, useRTL } from '@ntg/shared-library';
 import { useState, useEffect } from 'react';
-import { useRTL } from '../../hooks/useRTL';
 import { useRouter } from 'next/navigation';
 
 const languages: Array<{ code: string; name: string; flag: string }> = [

@@ -54,7 +54,7 @@ import { useRouter } from 'next/navigation';
 import {
   showSuccessNotification,
   showErrorNotification,
-} from '@/lib/notifications';
+} from '../../../lib/notifications';
 import { AdvancedSearchModal } from '../../../components/search/AdvancedSearchModal';
 import { SimpleFiltersModal } from '../../../components/forms/SimpleFiltersModal';
 import { SearchBar } from '../../../components/search/SearchBar';

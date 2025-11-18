@@ -21,7 +21,7 @@ import {
   IconAlertCircle,
   IconInfoCircle,
 } from '@tabler/icons-react';
-import { showErrorNotification } from '@/lib/notifications';
+import { showErrorNotification } from '../../lib/notifications';
 import { useTranslations } from 'next-intl';
 import { useAutoAssignSettings } from '../../hooks/useAutoAssignSettings';
 import { useActiveCategories, useSubcategories } from '../../hooks/useCategories';
@@ -32,7 +32,7 @@ import {
   IMPACT_OPTIONS,
   PRIORITY_OPTIONS,
   SLA_LEVEL_OPTIONS,
-} from '@/lib/constants';
+} from '../../lib/constants';
 
 // Subcategory option interface for form display
 interface SubcategoryOption {

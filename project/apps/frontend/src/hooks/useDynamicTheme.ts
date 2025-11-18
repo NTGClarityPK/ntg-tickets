@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTheme } from './useTheme';
 import { generateThemeColors, PRIMARY_COLOR, setPrimaryColor } from '../lib/colorConfig';
 import { useThemeSettings, usePublicThemeSettings } from './useThemeSettings';
+import { useThemePreview } from '../contexts/ThemePreviewContext';
 
 /**
  * Hook that provides dynamic theme colors based on the current theme mode
@@ -11,9 +12,17 @@ export function useDynamicTheme() {
   const { isDark, resolvedTheme } = useTheme();
   const { data: adminThemeSettings } = useThemeSettings();
   const { data: publicThemeSettings } = usePublicThemeSettings();
+  const { previewColor } = useThemePreview();
   
-  // Use public theme settings first (works for all users), then admin settings, then fall back to config
+  // Priority: preview color (temporary) > public theme settings > admin settings > default
   const primaryColor = useMemo(() => {
+    // If there's a preview color, use it (temporary preview)
+    if (previewColor) {
+      const adjustedColor = setPrimaryColor(previewColor);
+      return adjustedColor;
+    }
+    
+    // Otherwise use saved settings
     const customColor = publicThemeSettings?.primaryColor || adminThemeSettings?.primaryColor;
     if (customColor) {
       // Use the custom color directly, with validation
@@ -21,7 +30,7 @@ export function useDynamicTheme() {
       return adjustedColor;
     }
     return PRIMARY_COLOR;
-  }, [adminThemeSettings?.primaryColor, publicThemeSettings?.primaryColor]);
+  }, [previewColor, adminThemeSettings?.primaryColor, publicThemeSettings?.primaryColor]);
   
   // Generate theme colors based on current mode and primary color
   const themeColors = useMemo(() => {

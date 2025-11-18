@@ -3,9 +3,8 @@ import { getMessages } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from '../components/providers/Providers';
-import { ConditionalLayout } from '@/components/layouts/ConditionalLayout';
-import { LanguageDetector } from '../components/language/LanguageDetector';
-import { RTLProvider } from '../components/providers/RTLProvider';
+import { ConditionalLayout } from '../components/layouts/ConditionalLayout';
+import { LanguageDetector, RTLProvider } from '@ntg/shared-library';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });

@@ -7,13 +7,11 @@ import { Notifications } from '@mantine/notifications';
 import { createDynamicTheme } from '../../lib/theme';
 import { AuthProvider } from './AuthProvider';
 import { WebSocketProvider } from './WebSocketProvider';
-import { DynamicThemeProvider } from './DynamicThemeProvider';
+import { DynamicThemeProvider, useTheme, useDynamicTheme, ErrorBoundary } from '@ntg/shared-library';
 import { useEffect, useState } from 'react';
-import { useTheme } from '../../hooks/useTheme';
-import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 import { SkipLink } from '../accessibility/SkipLink';
-import { ErrorBoundary } from '../error/ErrorBoundary';
 import { GlobalErrorHandler } from '../error/GlobalErrorHandler';
+import { ThemePreviewProvider } from '../../contexts/ThemePreviewContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,11 +68,13 @@ export function Providers({ children }: ProvidersProps) {
             <GlobalErrorHandler />
             <main id='main-content' role='main'>
               <Notifications position='top-right' />
-              <DynamicThemeProvider>
-                <AuthProvider>
-                  <WebSocketProvider>{children}</WebSocketProvider>
-                </AuthProvider>
-              </DynamicThemeProvider>
+              <ThemePreviewProvider>
+                <DynamicThemeProvider>
+                  <AuthProvider>
+                    <WebSocketProvider>{children}</WebSocketProvider>
+                  </AuthProvider>
+                </DynamicThemeProvider>
+              </ThemePreviewProvider>
             </main>
           </ErrorBoundary>
         </ThemeProvider>

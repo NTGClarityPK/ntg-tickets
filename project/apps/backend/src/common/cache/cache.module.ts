@@ -1,9 +1,2 @@
-import { Global, Module } from '@nestjs/common';
-import { CacheService } from './cache.service';
-
-@Global()
-@Module({
-  providers: [CacheService],
-  exports: [CacheService],
-})
-export class CacheModule {}
+// Re-export from shared library
+export { CacheModule } from '@ntg/shared-library/dist/backend';

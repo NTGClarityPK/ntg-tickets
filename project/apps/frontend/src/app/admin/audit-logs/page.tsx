@@ -46,7 +46,7 @@ import {
   AUDIT_LOG_ACTIONS,
   AUDIT_LOG_FIELDS,
   PAGINATION_CONFIG,
-} from '@/lib/constants';
+} from '../../../lib/constants';
 
 interface AuditLogFilters {
   userId?: string;

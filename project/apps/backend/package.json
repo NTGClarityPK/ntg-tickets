@@ -41,6 +41,7 @@
     "@nestjs/swagger": "^7.1.16",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.2.10",
+    "@ntg/shared-library": "file:project/ntg-shared-library",
     "@prisma/client": "^5.7.1",
     "@types/multer": "^2.0.0",
     "apollo-server-express": "^3.13.0",

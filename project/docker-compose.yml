@@ -41,8 +41,8 @@ services:
 
   backend:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
       network: host  # Add this if backend also has build issues
     container_name: ntg-backend
     env_file:
@@ -78,8 +78,8 @@ services:
 
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
       network: host  # Add this line to fix network access during build
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}

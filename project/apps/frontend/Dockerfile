@@ -1,6 +1,8 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package*.json ./
+COPY apps/frontend/package*.json ./
+# Copy shared library
+COPY apps/backend/project/ntg-shared-library ./apps/backend/project/ntg-shared-library
 RUN npm ci
 # Pre-install the SWC binary for Alpine (musl libc)
 RUN npm install --no-save @next/swc-linux-x64-musl
@@ -20,7 +22,16 @@ ENV NEXTAUTH_URL=$NEXTAUTH_URL
 ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 ENV NODE_ENV=$NODE_ENV
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copy shared library and build it
+COPY apps/backend/project/ntg-shared-library ./apps/backend/project/ntg-shared-library
+WORKDIR /app/apps/backend/project/ntg-shared-library
+RUN npm install --include=dev && npm run build
+# Copy frontend source
+WORKDIR /app
+COPY apps/frontend .
+# Update package.json to use correct path
+RUN sed -i 's|file:../backend/project/ntg-shared-library|file:./apps/backend/project/ntg-shared-library|g' package.json || true
+RUN npm install
 RUN npm run build
 
 FROM node:20-alpine AS runner

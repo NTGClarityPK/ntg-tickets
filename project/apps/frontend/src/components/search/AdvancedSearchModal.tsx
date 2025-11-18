@@ -34,7 +34,7 @@ import {
   SLA_LEVEL_OPTIONS,
   STATUS_OPTIONS,
   URGENCY_OPTIONS,
-} from '@/lib/constants';
+} from '../../lib/constants';
 
 export interface AdvancedSearchCriteria {
   // Basic search

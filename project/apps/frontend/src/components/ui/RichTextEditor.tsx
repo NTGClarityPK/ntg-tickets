@@ -60,7 +60,7 @@ import {
   MenuDropdown,
   useMantineTheme,
 } from '@mantine/core';
-import { showErrorNotification } from '@/lib/notifications';
+import { showErrorNotification } from '../../lib/notifications';
 
 interface RichTextEditorProps {
   value?: string;

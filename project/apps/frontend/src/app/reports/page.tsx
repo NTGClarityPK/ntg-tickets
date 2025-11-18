@@ -53,7 +53,7 @@ import { DatePickerInput } from '@mantine/dates';
 import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
-} from '@/lib/constants';
+} from '../../lib/constants';
 import { useActiveCategories } from '../../hooks/useCategories';
 import { exportReportWithDashboardToPDF } from '../../lib/pdfExport';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';

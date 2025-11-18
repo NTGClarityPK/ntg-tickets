@@ -29,7 +29,7 @@ import { RTLArrowRight } from '../../../components/ui/RTLIcon';
 import Link from 'next/link';
 import { usePasswordValidation } from '../../../hooks/usePasswordValidation';
 import { userApi } from '../../../lib/apiClient';
-import { UserRole } from '@/types/unified';
+import { UserRole } from'../../../types/unified';
 import { AuthLayout } from '../../../components/layouts/AuthLayout';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 

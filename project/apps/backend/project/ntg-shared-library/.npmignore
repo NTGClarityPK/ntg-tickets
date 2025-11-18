@@ -1,0 +1,43 @@
+# Source files
+src/
+*.ts
+*.tsx
+!*.d.ts
+
+# Development files
+tsconfig.json
+.eslintrc*
+.prettierrc*
+*.log
+*.md
+!README.md
+!LOCAL_DEVELOPMENT.md
+
+# Test files
+test/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Build artifacts (keep dist)
+*.map
+!dist/**/*.map
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Examples (optional - remove if you want to include)
+examples/
+
+# Git
+.git/
+.gitignore
+

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRTL } from '../../hooks/useRTL';
+import { useRTL } from '@ntg/shared-library';
 import { SVGProps } from 'react';
 
 interface RTLIconProps extends SVGProps<SVGSVGElement> {

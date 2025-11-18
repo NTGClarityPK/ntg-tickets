@@ -2,7 +2,7 @@
 
 import { ActionIcon, Menu, Group, Text, useMantineTheme } from '@mantine/core';
 import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-react';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@ntg/shared-library';
 import { useState, useEffect } from 'react';
 
 export function ThemeToggle() {

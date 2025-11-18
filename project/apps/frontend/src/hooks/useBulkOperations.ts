@@ -3,7 +3,7 @@ import {
   showSuccessNotification,
   showErrorNotification,
   showWarningNotification,
-} from '@/lib/notifications';
+} from '../lib/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { ticketApi, notificationsApi } from '../lib/apiClient';
 import { BulkUpdateData, TicketPriority } from '../types/unified';

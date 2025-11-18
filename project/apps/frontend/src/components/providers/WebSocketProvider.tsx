@@ -9,7 +9,7 @@ import { Notification } from '../../types/notification';
 import { Ticket, Comment } from '../../types/unified';
 import { useSession } from 'next-auth/react';
 import { io, Socket } from 'socket.io-client';
-import { API_CONFIG } from '@/lib/constants';
+import { API_CONFIG } from '../../lib/constants';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface WebSocketProviderProps {
