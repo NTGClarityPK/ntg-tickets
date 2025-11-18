@@ -198,12 +198,32 @@ export class UsersService {
     isActive: boolean;
   }> {
     try {
+      const updateData: any = {
+        ...updateUserDto,
+        updatedAt: new Date(),
+      };
+
+      // Handle password update if provided
+      if (updateUserDto.password) {
+        // Validate password
+        const passwordValidation = this.validationService.validatePassword(
+          updateUserDto.password
+        );
+        if (!passwordValidation.isValid) {
+          throw new BadRequestException(passwordValidation.message);
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(updateUserDto.password, 12);
+        updateData.password = hashedPassword;
+      } else {
+        // Remove password from update data if not provided
+        delete updateData.password;
+      }
+
       const user = await this.prisma.user.update({
         where: { id },
-        data: {
-          ...updateUserDto,
-          updatedAt: new Date(),
-        },
+        data: updateData,
         include: USER_TICKET_RELATIONS,
       });
 

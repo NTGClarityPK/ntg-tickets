@@ -181,7 +181,6 @@ export function RoleSelectionModal({
                     size='sm'
                   >
                     {role.replace('_', ' ')}
-                    {activeRole === role && ' (Current)'}
                   </Badge>
                 </Group>
 

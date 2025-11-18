@@ -55,7 +55,7 @@ export function UserForm({
       password: '',
       confirmPassword: '',
     },
-    validate: {
+      validate: {
       name: value => (!value ? 'Name is required' : null),
       email: value => (!/^\S+@\S+\.\S+$/.test(value) ? 'Invalid email' : null),
       roles: value =>
@@ -67,6 +67,8 @@ export function UserForm({
       },
       confirmPassword: (value, values) => {
         if (!isEditing && value !== values.password)
+          return 'Passwords do not match';
+        if (isEditing && values.password && value !== values.password)
           return 'Passwords do not match';
         return null;
       },
@@ -80,7 +82,8 @@ export function UserForm({
       // Always remove confirmPassword as it's only for frontend validation
       delete formData.confirmPassword;
       
-      if (isEditing) {
+      // When editing, only include password if it's provided (not empty)
+      if (isEditing && !formData.password) {
         delete formData.password;
       }
       await onSubmit(formData);
@@ -168,10 +171,30 @@ export function UserForm({
         )}
 
         {isEditing && (
-          <Alert color='blue' title='Password'>
-            Leave password fields empty to keep the current password. Enter a
-            new password to change it.
-          </Alert>
+          <>
+            <Grid>
+              <Grid.Col span={6}>
+                <PasswordInput
+                  label='New Password'
+                  placeholder='Enter new password (leave empty to keep current)'
+                  description='Must contain uppercase, lowercase, number, and special character'
+                  {...form.getInputProps('password')}
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <PasswordInput
+                  label='Confirm New Password'
+                  placeholder='Confirm new password'
+                  description='Re-enter the new password to confirm'
+                  {...form.getInputProps('confirmPassword')}
+                />
+              </Grid.Col>
+            </Grid>
+            <Alert color='blue' title='Password'>
+              Leave password fields empty to keep the current password. Enter a
+              new password to change it.
+            </Alert>
+          </>
         )}
 
         <Group justify='flex-end' mt='xl'>
