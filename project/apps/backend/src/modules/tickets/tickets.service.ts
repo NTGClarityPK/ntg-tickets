@@ -780,6 +780,94 @@ export class TicketsService {
     this.logger.log(`Ticket deleted: ${ticket.ticketNumber}`, 'TicketsService');
   }
 
+  /**
+   * Bulk delete multiple tickets
+   * @param ids Array of ticket IDs to delete
+   * @param userId ID of the user performing the deletion
+   * @param userRole Role of the user performing the deletion
+   * @returns Object with deleted count and failed IDs
+   * @example
+   * ```typescript
+   * await ticketsService.bulkRemove(['ticket-1', 'ticket-2'], 'user-123', 'ADMIN')
+   * ```
+   */
+  async bulkRemove(ids: string[], userId: string, userRole: string) {
+    this.logger.log(
+      `Bulk deleting ${ids.length} tickets by user ${userId}`,
+      'TicketsService'
+    );
+
+    if (!ids || ids.length === 0) {
+      throw new BadRequestException('No ticket IDs provided');
+    }
+
+    // Fetch all tickets to check permissions
+    const tickets = await this.prisma.ticket.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, requesterId: true, ticketNumber: true },
+    });
+
+    if (tickets.length === 0) {
+      throw new NotFoundException('No tickets found');
+    }
+
+    // Check permissions for each ticket
+    const unauthorizedTickets: string[] = [];
+    if (userRole === 'END_USER') {
+      tickets.forEach(ticket => {
+        if (ticket.requesterId !== userId) {
+          unauthorizedTickets.push(ticket.ticketNumber);
+        }
+      });
+    }
+
+    if (unauthorizedTickets.length > 0) {
+      throw new ForbiddenException(
+        `Access denied: You can only delete your own tickets. Unauthorized tickets: ${unauthorizedTickets.join(', ')}`
+      );
+    }
+
+    const ticketIds = tickets.map(t => t.id);
+    const deletedTicketNumbers = tickets.map(t => t.ticketNumber);
+
+    // Delete from Elasticsearch
+    const elasticsearchErrors: string[] = [];
+    for (const id of ticketIds) {
+      try {
+        await this.elasticsearch.deleteTicket(id);
+      } catch (error) {
+        this.logger.error(
+          `Failed to delete ticket ${id} from Elasticsearch`,
+          error
+        );
+        elasticsearchErrors.push(id);
+      }
+    }
+
+    // Bulk delete tickets (cascade will handle related records)
+    const deleteResult = await this.prisma.ticket.deleteMany({
+      where: { id: { in: ticketIds } },
+    });
+
+    this.logger.log(
+      `Bulk deleted ${deleteResult.count} tickets: ${deletedTicketNumbers.join(', ')}`,
+      'TicketsService'
+    );
+
+    if (elasticsearchErrors.length > 0) {
+      this.logger.warn(
+        `Some tickets were not deleted from Elasticsearch: ${elasticsearchErrors.join(', ')}`,
+        'TicketsService'
+      );
+    }
+
+    return {
+      deletedCount: deleteResult.count,
+      deletedTicketNumbers,
+      elasticsearchErrors,
+    };
+  }
+
   async updateStatus(
     id: string,
     status: string,

@@ -336,4 +336,32 @@ export class TicketsController {
     );
     return result;
   }
+
+  @Post('bulk-delete')
+  @ApiOperation({ summary: 'Bulk delete tickets' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tickets deleted successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - No IDs provided' })
+  @ApiResponse({ status: 404, description: 'No tickets found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  async bulkDelete(
+    @Body() body: { ids: string[] },
+    @Request() req
+  ) {
+    const result = await this.ticketsService.bulkRemove(
+      body.ids,
+      req.user.id,
+      req.user.activeRole
+    );
+    return {
+      data: result,
+      message: `Successfully deleted ${result.deletedCount} ticket(s)`,
+    };
+  }
 }

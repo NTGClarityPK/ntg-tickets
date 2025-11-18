@@ -4,14 +4,17 @@ import {
   showErrorNotification,
   showWarningNotification,
 } from '@/lib/notifications';
+import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { ticketApi, notificationsApi } from '../lib/apiClient';
 import { BulkUpdateData, TicketPriority } from '../types/unified';
+import { useDynamicTheme } from './useDynamicTheme';
 
 export const useBulkOperations = () => {
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
+  const { primaryLight } = useDynamicTheme();
 
   const selectTicket = useCallback((ticketId: string) => {
     setSelectedTickets(prev => [...prev, ticketId]);
@@ -71,60 +74,94 @@ export const useBulkOperations = () => {
       setIsProcessing(true);
 
       try {
-        const promises = selectedTickets.map(ticketId => {
-          switch (action) {
-            case 'status':
-              return ticketApi.updateStatus(
-                ticketId,
-                (data as { status: string; resolution?: string }).status,
-                (data as { status: string; resolution?: string }).resolution
+        let successful = 0;
+        let failed = 0;
+
+        // Handle bulk delete separately with a single API call
+        if (action === 'delete') {
+          try {
+            const result = await ticketApi.bulkDeleteTickets(selectedTickets);
+            successful = result.data.data.deletedCount || selectedTickets.length;
+            failed = selectedTickets.length - successful;
+            
+            // Note: Elasticsearch errors are logged on the backend
+            // We can show a warning if some deletions failed
+            if (failed > 0) {
+              showWarningNotification(
+                'Partial Deletion',
+                `${successful} tickets deleted, but ${failed} could not be deleted`
               );
-
-            case 'assign':
-              return ticketApi.assignTicket(
-                ticketId,
-                (data as { assignedToId: string }).assignedToId
-              );
-
-            case 'priority':
-              return ticketApi.updateTicket(ticketId, {
-                priority: (data as { priority: TicketPriority }).priority,
-              });
-
-            case 'delete':
-              return ticketApi.deleteTicket(ticketId);
-
-            case 'notify':
-              return notificationsApi.sendBulkNotification(
-                selectedTickets,
-                (data as { message: string }).message
-              );
-
-            default:
-              throw new Error(`Unknown bulk action: ${action}`);
+            }
+          } catch (error) {
+            failed = selectedTickets.length;
+            throw error;
           }
-        });
+        } else {
+          // Handle other bulk operations with individual API calls
+          const promises = selectedTickets.map(ticketId => {
+            switch (action) {
+              case 'status':
+                return ticketApi.updateStatus(
+                  ticketId,
+                  (data as { status: string; resolution?: string }).status,
+                  (data as { status: string; resolution?: string }).resolution
+                );
 
-        const results = await Promise.allSettled(promises);
-        const successful = results.filter(
-          result => result.status === 'fulfilled'
-        ).length;
-        const failed = results.filter(
-          result => result.status === 'rejected'
-        ).length;
+              case 'assign':
+                return ticketApi.assignTicket(
+                  ticketId,
+                  (data as { assignedToId: string }).assignedToId
+                );
 
-        if (successful > 0) {
-          showSuccessNotification(
-            'Bulk Operation Successful',
-            `${successful} tickets updated successfully`
-          );
+              case 'priority':
+                return ticketApi.updateTicket(ticketId, {
+                  priority: (data as { priority: TicketPriority }).priority,
+                });
+
+              case 'notify':
+                return notificationsApi.sendBulkNotification(
+                  selectedTickets,
+                  (data as { message: string }).message
+                );
+
+              default:
+                throw new Error(`Unknown bulk action: ${action}`);
+            }
+          });
+
+          const results = await Promise.allSettled(promises);
+          successful = results.filter(
+            result => result.status === 'fulfilled'
+          ).length;
+          failed = results.filter(
+            result => result.status === 'rejected'
+          ).length;
         }
 
-        if (failed > 0) {
-          showWarningNotification(
-            'Some Operations Failed',
-            `${failed} tickets could not be updated`
-          );
+        if (action === 'delete') {
+          // For delete, we already handled notifications above
+          if (successful > 0 && failed === 0) {
+            notifications.show({
+              title: 'Bulk Delete Successful',
+              message: `Successfully deleted ${successful} ticket(s)`,
+              color: primaryLight,
+            });
+          }
+        } else {
+          // For other operations, show standard notifications
+          if (successful > 0) {
+            showSuccessNotification(
+              'Bulk Operation Successful',
+              `${successful} tickets updated successfully`
+            );
+          }
+
+          if (failed > 0) {
+            showWarningNotification(
+              'Some Operations Failed',
+              `${failed} tickets could not be updated`
+            );
+          }
         }
 
         // Invalidate queries to refresh the ticket list
@@ -159,7 +196,7 @@ export const useBulkOperations = () => {
         setIsProcessing(false);
       }
     },
-    [selectedTickets, clearSelection, queryClient]
+    [selectedTickets, clearSelection, queryClient, primaryLight]
   );
 
   return {

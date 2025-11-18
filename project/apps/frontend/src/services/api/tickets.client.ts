@@ -38,6 +38,12 @@ export const ticketsClient = {
 
   deleteTicket: (id: string) => httpClient.delete(`/tickets/${id}`),
 
+  bulkDeleteTickets: (ids: string[]) =>
+    httpClient.post<ApiResponse<{ deletedCount: number; deletedTicketNumbers: string[]; elasticsearchErrors: string[] }>>(
+      '/tickets/bulk-delete',
+      { ids }
+    ),
+
   assignTicket: (id: string, assignedToId: string) =>
     httpClient.patch<ApiResponse<Ticket>>(`/tickets/${id}/assign`, {
       assignedToId,
