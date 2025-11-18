@@ -1167,25 +1167,94 @@ export class TicketsService {
     const year = new Date().getFullYear();
     const prefix = `TKT-${year}-`;
 
-    // Get the last ticket number for this year
-    const lastTicket = await this.prisma.ticket.findFirst({
-      where: {
-        ticketNumber: {
-          startsWith: prefix,
-        },
+    // Get ALL tickets (not just current year) to find the absolute maximum number
+    // This ensures continuous numbering across years and prevents reuse of deleted ticket numbers
+    const allTickets = await this.prisma.ticket.findMany({
+      select: {
+        ticketNumber: true,
       },
       orderBy: {
         ticketNumber: 'desc',
       },
+      take: 1000, // Get last 1000 tickets to find the maximum
     });
 
-    let nextNumber = 1;
-    if (lastTicket) {
-      const lastNumber = parseInt(lastTicket.ticketNumber.replace(prefix, ''));
-      nextNumber = lastNumber + 1;
+    // Extract numeric parts from ALL tickets and find the absolute maximum
+    // This handles cases where tickets from different years exist
+    let maxNumber = 0;
+    const ticketNumberRegex = /^TKT-\d{4}-(\d+)$/;
+    
+    for (const ticket of allTickets) {
+      const match = ticket.ticketNumber.match(ticketNumberRegex);
+      if (match) {
+        const number = parseInt(match[1], 10);
+        if (!isNaN(number) && number > maxNumber) {
+          maxNumber = number;
+        }
+      }
     }
 
-    return `${prefix}${nextNumber.toString().padStart(6, '0')}`;
+    // If we got 1000 tickets, there might be more, so do a full scan to be absolutely sure
+    if (allTickets.length === 1000) {
+      const allTicketsFull = await this.prisma.ticket.findMany({
+        select: {
+          ticketNumber: true,
+        },
+      });
+
+      for (const ticket of allTicketsFull) {
+        const match = ticket.ticketNumber.match(ticketNumberRegex);
+        if (match) {
+          const number = parseInt(match[1], 10);
+          if (!isNaN(number) && number > maxNumber) {
+            maxNumber = number;
+          }
+        }
+      }
+    }
+
+    // Always increment from the absolute maximum to ensure uniqueness
+    // This prevents reuse even if tickets are deleted or from different years
+    const nextNumber = maxNumber + 1;
+
+    const ticketNumber = `${prefix}${nextNumber.toString().padStart(6, '0')}`;
+
+    // Double-check uniqueness to prevent race conditions
+    const existing = await this.prisma.ticket.findUnique({
+      where: { ticketNumber },
+    });
+
+    if (existing) {
+      // If somehow the ticket number exists, recursively try the next one
+      // This handles race conditions where multiple tickets are created simultaneously
+      return this.generateTicketNumberWithRetry(prefix, nextNumber + 1, 10);
+    }
+
+    return ticketNumber;
+  }
+
+  private async generateTicketNumberWithRetry(
+    prefix: string,
+    startNumber: number,
+    maxRetries: number
+  ): Promise<string> {
+    for (let i = 0; i < maxRetries; i++) {
+      const candidate = `${prefix}${startNumber.toString().padStart(6, '0')}`;
+      const existing = await this.prisma.ticket.findUnique({
+        where: { ticketNumber: candidate },
+      });
+
+      if (!existing) {
+        return candidate;
+      }
+
+      startNumber++;
+    }
+
+    // If we've exhausted retries, throw an error
+    throw new Error(
+      `Unable to generate unique ticket number after ${maxRetries} attempts`
+    );
   }
 
   async getTicketsApproachingSLA() {
