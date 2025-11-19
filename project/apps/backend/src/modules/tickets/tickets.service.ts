@@ -30,6 +30,7 @@ interface TicketFilters {
   page?: number;
   limit?: number;
   cursor?: string;
+  viewType?: 'all' | 'my' | 'assigned' | 'overdue' | 'breached-sla' | 'approaching-sla';
   status?: string[];
   priority?: string[];
   category?: string[];
@@ -372,31 +373,96 @@ export class TicketsService {
    */
   async findAll(filters: TicketFilters, userId: string, userRole: string) {
     this.logger.log(
-      `Finding tickets for user ${userId} with role ${userRole}`,
+      `Finding tickets for user ${userId} with role ${userRole}, viewType: ${filters.viewType || 'all'}`,
       'TicketsService'
     );
 
     const where: Prisma.TicketWhereInput = {};
 
-    // NOTE: All roles can see all tickets on the "All Tickets" page
-    // Role-based filtering is only applied on the "My Tickets" page (findMyTickets method)
-    // This follows the requirement that:
-    // - "All Tickets" shows all tickets for everyone
-    // - "My Tickets" shows tickets created by or assigned to the user
+    // Apply viewType filter
+    const viewType = filters.viewType || 'all';
+    const now = new Date();
+    
+    if (viewType === 'my') {
+      // My tickets: tickets created by OR assigned to the user
+      where.OR = [
+        { requesterId: userId },
+        { assignedToId: userId },
+      ];
+    } else if (viewType === 'assigned') {
+      // Assigned tickets: only tickets assigned to the user
+      // Only support staff, managers, and admins can view assigned tickets
+      if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
+        throw new BadRequestException(
+          'Only support staff, managers, and admins can view assigned tickets'
+        );
+      }
+      where.assignedToId = userId;
+    } else if (viewType === 'overdue') {
+      // Overdue tickets: dueDate < now, status not RESOLVED/CLOSED
+      // Only support staff, managers, and admins can view overdue tickets
+      if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
+        throw new BadRequestException(
+          'Only support staff, managers, and admins can view overdue tickets'
+        );
+      }
+      where.dueDate = { lt: now };
+      where.status = { notIn: ['RESOLVED', 'CLOSED'] };
+    } else if (viewType === 'breached-sla') {
+      // Breached SLA tickets: dueDate < now, status not RESOLVED/CLOSED
+      // Only support staff, managers, and admins can view breached SLA tickets
+      if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
+        throw new BadRequestException(
+          'Only support staff, managers, and admins can view breached SLA tickets'
+        );
+      }
+      where.dueDate = { lt: now };
+      where.status = { notIn: ['RESOLVED', 'CLOSED'] };
+    } else if (viewType === 'approaching-sla') {
+      // Approaching SLA tickets: dueDate between now and 2 hours from now, status not RESOLVED/CLOSED
+      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      where.dueDate = {
+        lte: twoHoursFromNow,
+        gte: now,
+      };
+      where.status = { notIn: ['RESOLVED', 'CLOSED'] };
+    }
+    // For 'all' viewType, no additional filtering is applied (all tickets visible)
 
     // Apply filters
+    // For SLA-related viewTypes, we need to ensure RESOLVED/CLOSED are excluded
+    // and combine with user-provided status filters if any
     if (filters.status && filters.status.length > 0) {
-      where.status = {
-        in: filters.status as (
-          | 'NEW'
-          | 'OPEN'
-          | 'IN_PROGRESS'
-          | 'ON_HOLD'
-          | 'RESOLVED'
-          | 'CLOSED'
-          | 'REOPENED'
-        )[],
-      };
+      const statusFilter = filters.status as (
+        | 'NEW'
+        | 'OPEN'
+        | 'IN_PROGRESS'
+        | 'ON_HOLD'
+        | 'RESOLVED'
+        | 'CLOSED'
+        | 'REOPENED'
+      )[];
+      
+      // For SLA-related viewTypes, filter out RESOLVED and CLOSED from user's status filter
+      // and combine with the existing notIn condition
+      if (viewType === 'overdue' || viewType === 'breached-sla' || viewType === 'approaching-sla') {
+        // Filter out RESOLVED and CLOSED from user's status filter
+        const filteredStatuses = statusFilter.filter(s => s !== 'RESOLVED' && s !== 'CLOSED');
+        if (filteredStatuses.length > 0) {
+          // Combine: status must be in filteredStatuses AND not in [RESOLVED, CLOSED]
+          const existingAnd = Array.isArray(where.AND) ? where.AND : (where.AND ? [where.AND] : []);
+          where.AND = [
+            ...existingAnd,
+            { status: { in: filteredStatuses } },
+            { status: { notIn: ['RESOLVED', 'CLOSED'] } },
+          ];
+          // Remove the status filter that was set by viewType since we're now using AND
+          delete where.status;
+        }
+        // If all statuses were filtered out, keep the existing notIn condition
+      } else {
+        where.status = { in: statusFilter };
+      }
     }
 
     if (filters.priority && filters.priority.length > 0) {
@@ -421,12 +487,26 @@ export class TicketsService {
       where.requesterId = { in: filters.requesterId };
     }
 
+    // Handle search filter - combine with viewType OR if needed
     if (filters.search) {
-      where.OR = [
+      const searchConditions: Prisma.TicketWhereInput[] = [
         { title: { contains: filters.search, mode: 'insensitive' } },
         { description: { contains: filters.search, mode: 'insensitive' } },
         { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
       ];
+
+      // If viewType is 'my', we need to combine the OR conditions
+      if (viewType === 'my' && where.OR) {
+        // Wrap both conditions in AND: (user filter) AND (search filter)
+        where.AND = [
+          { OR: where.OR }, // My tickets condition
+          { OR: searchConditions }, // Search condition
+        ];
+        delete where.OR;
+      } else {
+        // For other viewTypes, just use OR for search
+        where.OR = searchConditions;
+      }
     }
 
     if (filters.dateFrom || filters.dateTo) {
@@ -443,6 +523,16 @@ export class TicketsService {
     const limit = Math.min(filters.limit || 20, 100);
     const skip = (page - 1) * limit;
 
+    // Determine orderBy based on viewType
+    let orderBy: Prisma.TicketOrderByWithRelationInput;
+    if (viewType === 'overdue' || viewType === 'breached-sla') {
+      // Order overdue and breached SLA tickets by dueDate ascending (most urgent first)
+      orderBy = { dueDate: 'asc' };
+    } else {
+      // Default ordering by updatedAt descending
+      orderBy = { updatedAt: 'desc' };
+    }
+
     const [tickets, total] = await Promise.all([
       this.prisma.ticket.findMany({
         where,
@@ -458,9 +548,7 @@ export class TicketsService {
             },
           },
         },
-        orderBy: {
-          updatedAt: 'desc',
-        },
+        orderBy,
         skip,
         take: limit,
       }),

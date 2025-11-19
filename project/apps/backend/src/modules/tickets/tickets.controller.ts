@@ -21,10 +21,9 @@ import {
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { TicketFiltersDto } from './dto/ticket-filters.dto';
+import { TicketFiltersDto, TicketViewType } from './dto/ticket-filters.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
-import { TicketPriority } from '@prisma/client';
 
 @ApiTags('Tickets')
 @Controller('tickets')
@@ -51,9 +50,10 @@ export class TicketsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all tickets with pagination and filtering' })
+  @ApiOperation({ summary: 'List tickets with filters' })
   @ApiResponse({ status: 200, description: 'Tickets retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiQuery({ name: 'viewType', required: false, enum: TicketViewType })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, type: [String] })
@@ -77,156 +77,7 @@ export class TicketsController {
     };
   }
 
-  @Get('my')
-  @ApiOperation({ summary: 'Get current user tickets' })
-  @ApiResponse({
-    status: 200,
-    description: 'User tickets retrieved successfully',
-  })
-  async getMyTickets(@Query() filters: TicketFiltersDto, @Request() req) {
-    const tickets = await this.ticketsService.findMyTickets(
-      req.user.id,
-      req.user.activeRole
-    );
 
-    // Apply filters to the result
-    let filteredTickets = tickets;
-    if (filters.status && filters.status.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.status.includes(ticket.status)
-      );
-    }
-    if (filters.priority && filters.priority.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority as TicketPriority)
-      );
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filteredTickets = filteredTickets.filter(ticket => 
-        ticket.title.toLowerCase().includes(searchLower) ||
-        ticket.description.toLowerCase().includes(searchLower) ||
-        ticket.ticketNumber.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedTickets,
-      pagination: {
-        page,
-        limit,
-        total: filteredTickets.length,
-        totalPages: Math.ceil(filteredTickets.length / limit),
-      },
-      message: 'Your tickets retrieved successfully',
-    };
-  }
-
-  @Get('assigned')
-  @ApiOperation({ summary: 'Get tickets assigned to current user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Assigned tickets retrieved successfully',
-  })
-  async getAssignedTickets(@Query() filters: TicketFiltersDto, @Request() req) {
-    // Debug logging removed for production
-
-    const result = await this.ticketsService.findAssignedTickets(
-      req.user.id,
-      req.user.activeRole
-    );
-
-    // Apply filters to the result
-    let filteredTickets = result.data;
-    if (filters.status && filters.status.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.status.includes(ticket.status)
-      );
-    }
-    if (filters.priority && filters.priority.length > 0) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        filters.priority.includes(ticket.priority as TicketPriority)
-      );
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filteredTickets = filteredTickets.filter(ticket => 
-        ticket.title.toLowerCase().includes(searchLower) ||
-        ticket.description.toLowerCase().includes(searchLower) ||
-        ticket.ticketNumber.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedTickets,
-      pagination: {
-        page,
-        limit,
-        total: filteredTickets.length,
-        totalPages: Math.ceil(filteredTickets.length / limit),
-      },
-      message: 'Assigned tickets retrieved successfully',
-    };
-  }
-
-  @Get('overdue')
-  @ApiOperation({ summary: 'Get overdue tickets' })
-  @ApiResponse({
-    status: 200,
-    description: 'Overdue tickets retrieved successfully',
-  })
-  async getOverdueTickets(@Request() req) {
-    const tickets = await this.ticketsService.findOverdueTickets(
-      req.user.id,
-      req.user.activeRole
-    );
-    return {
-      data: tickets,
-      message: 'Overdue tickets retrieved successfully',
-    };
-  }
-
-  @Get('approaching-sla')
-  @ApiOperation({ summary: 'Get tickets approaching SLA breach' })
-  @ApiResponse({
-    status: 200,
-    description: 'Tickets approaching SLA retrieved successfully',
-  })
-  async getTicketsApproachingSLA() {
-    const tickets = await this.ticketsService.getTicketsApproachingSLA();
-    return {
-      data: tickets,
-      message: 'Tickets approaching SLA retrieved successfully',
-    };
-  }
-
-  @Get('breached-sla')
-  @ApiOperation({ summary: 'Get tickets that have breached SLA' })
-  @ApiResponse({
-    status: 200,
-    description: 'Breached SLA tickets retrieved successfully',
-  })
-  async getBreachedSLATickets() {
-    const tickets = await this.ticketsService.getBreachedSLATickets();
-    return {
-      data: tickets,
-      message: 'Breached SLA tickets retrieved successfully',
-    };
-  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ticket by ID' })

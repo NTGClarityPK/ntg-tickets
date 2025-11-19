@@ -105,25 +105,31 @@ export const ticketsClient = {
   deleteAttachment: (id: string) =>
     httpClient.delete<ApiResponse<{ message: string }>>(`/attachments/${id}`),
 
-  // Additional ticket endpoints
+  // Additional ticket endpoints (now using unified endpoint with viewType)
   getMyTickets: (filters?: TicketFilters) =>
-    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets/my', {
-      params: filters,
+    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets', {
+      params: { ...filters, viewType: 'my' },
     }),
 
   getAssignedTickets: (filters?: TicketFilters) =>
-    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets/assigned', {
-      params: filters,
+    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets', {
+      params: { ...filters, viewType: 'assigned' },
     }),
 
-  getOverdueTickets: () =>
-    httpClient.get<ApiResponse<Ticket[]>>('/tickets/overdue'),
+  getOverdueTickets: (filters?: TicketFilters) =>
+    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets', {
+      params: { ...filters, viewType: 'overdue' },
+    }),
 
-  getTicketsApproachingSLA: () =>
-    httpClient.get<ApiResponse<Ticket[]>>('/tickets/approaching-sla'),
+  getTicketsApproachingSLA: (filters?: TicketFilters) =>
+    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets', {
+      params: { ...filters, viewType: 'approaching-sla' },
+    }),
 
-  getBreachedSLATickets: () =>
-    httpClient.get<ApiResponse<Ticket[]>>('/tickets/breached-sla'),
+  getBreachedSLATickets: (filters?: TicketFilters) =>
+    httpClient.get<ApiResponse<PaginatedTicketsResponse>>('/tickets', {
+      params: { ...filters, viewType: 'breached-sla' },
+    }),
 };
 
 

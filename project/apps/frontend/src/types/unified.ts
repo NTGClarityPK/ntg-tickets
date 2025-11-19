@@ -189,9 +189,12 @@ export interface UpdateTicketInput extends Partial<CreateTicketInput> {
   resolution?: string;
 }
 
+export type TicketViewType = 'all' | 'my' | 'assigned' | 'overdue' | 'breached-sla' | 'approaching-sla';
+
 export interface TicketFilters {
   page?: number;
   limit?: number;
+  viewType?: TicketViewType; // 'all' (default), 'my', 'assigned', 'overdue', 'breached-sla', or 'approaching-sla'
   search?: string;
   status?: TicketStatus[];
   priority?: TicketPriority[];

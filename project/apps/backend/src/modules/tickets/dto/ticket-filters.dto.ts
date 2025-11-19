@@ -10,7 +10,26 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { TicketPriority } from '@prisma/client';
 
+export enum TicketViewType {
+  ALL = 'all',
+  MY = 'my',
+  ASSIGNED = 'assigned',
+  OVERDUE = 'overdue',
+  BREACHED_SLA = 'breached-sla',
+  APPROACHING_SLA = 'approaching-sla',
+}
+
 export class TicketFiltersDto {
+  @ApiProperty({
+    description: 'View type: all, my (created by or assigned to me), assigned, overdue, breached-sla, or approaching-sla',
+    enum: TicketViewType,
+    example: TicketViewType.ALL,
+    required: false,
+    default: TicketViewType.ALL,
+  })
+  @IsOptional()
+  @IsEnum(TicketViewType)
+  viewType?: TicketViewType;
   @ApiProperty({
     description: 'Page number',
     example: 1,
