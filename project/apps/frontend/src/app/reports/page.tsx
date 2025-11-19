@@ -620,27 +620,6 @@ export default function ReportsPage() {
       // Create structured data for Excel export
       const exportData = {
         summaryCards: [
-          { title: 'Total Users', value: filteredUsers.length },
-          {
-            title: 'Active Users',
-            value: filteredUsers.filter(user => user.isActive).length,
-          },
-          {
-            title: 'Inactive Users',
-            value: filteredUsers.filter(user => !user.isActive).length,
-          },
-          {
-            title: 'Support Staff',
-            value: filteredUsers.filter(
-              user => user.activeRole === 'SUPPORT_STAFF'
-            ).length,
-          },
-          {
-            title: 'Support Managers',
-            value: filteredUsers.filter(
-              user => user.activeRole === 'SUPPORT_MANAGER'
-            ).length,
-          },
           {
             title: 'New Users',
             value: filteredUsers.filter(user => {
@@ -652,21 +631,19 @@ export default function ReportsPage() {
               );
             }).length,
           },
-          {
-            title: 'Suspended Users',
-            value: filteredUsers.filter(user => !user.isActive).length,
-          },
           { title: 'Failed Logins', value: 0 },
-          { title: 'Password Resets', value: 0 },
-          { title: 'Audit Entries', value: 0 },
-          { title: 'Active Sessions', value: 0 },
-          { title: 'Total Tickets', value: filteredTicketsForAdmin.length },
           {
-            title: 'Open Tickets',
-            value: filteredTicketsForAdmin.filter(ticket =>
-              ['NEW', 'OPEN', 'IN_PROGRESS'].includes(ticket.status)
-            ).length,
+            title: 'New Tickets',
+            value: filteredTicketsForAdmin.filter(ticket => {
+              const ticketDate = new Date(ticket.createdAt);
+              const now = new Date();
+              return (
+                ticketDate.getMonth() === now.getMonth() &&
+                ticketDate.getFullYear() === now.getFullYear()
+              );
+            }).length,
           },
+          { title: 'Password Resets', value: 0 },
         ],
         usersByRole: [
           {
@@ -1693,48 +1670,9 @@ export default function ReportsPage() {
           </Card>
 
           {/* Summary Cards */}
-          <div id="report-overview-section" style={{ marginBottom: '2rem' }}>
+          <div id="report-overview-section">
             <Grid>
               {[
-              {
-                title: 'Total Users',
-                value: filteredUsers.length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Total number of registered users in the system',
-              },
-              {
-                title: 'Active Users',
-                value: filteredUsers.filter(user => user.isActive).length,
-                icon: IconCheck,
-                color: primaryLight,
-                tooltip: 'Users with active accounts',
-              },
-              {
-                title: 'Inactive Users',
-                value: filteredUsers.filter(user => !user.isActive).length,
-                icon: IconAlertCircle,
-                color: primaryLight,
-                tooltip: 'Users with inactive accounts',
-              },
-              {
-                title: 'Support Staff',
-                value: filteredUsers.filter(
-                  user => user.activeRole === 'SUPPORT_STAFF'
-                ).length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Number of support staff members',
-              },
-              {
-                title: 'Support Managers',
-                value: filteredUsers.filter(
-                  user => user.activeRole === 'SUPPORT_MANAGER'
-                ).length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Number of support managers',
-              },
               {
                 title: 'New Users',
                 value: filteredUsers.filter(user => {
@@ -1750,13 +1688,6 @@ export default function ReportsPage() {
                 tooltip: 'Users registered in the current month',
               },
               {
-                title: 'Suspended Users',
-                value: filteredUsers.filter(user => !user.isActive).length,
-                icon: IconAlertTriangle,
-                color: primaryLight,
-                tooltip: 'Users with inactive/suspended accounts',
-              },
-              {
                 title: 'Failed Logins',
                 value: 0, // This would need to be implemented in the backend
                 icon: IconAlertCircle,
@@ -1764,51 +1695,28 @@ export default function ReportsPage() {
                 tooltip: 'Failed login attempts in the last 30 days',
               },
               {
-                title: 'Total Tickets',
-                value: filteredTicketsForAdmin.length,
+                title: 'New Tickets',
+                value: filteredTicketsForAdmin.filter(ticket => {
+                  const ticketDate = new Date(ticket.createdAt);
+                  const now = new Date();
+                  return (
+                    ticketDate.getMonth() === now.getMonth() &&
+                    ticketDate.getFullYear() === now.getFullYear()
+                  );
+                }).length,
                 icon: IconTicket,
-                color: primaryLight, // Cycle back
-                tooltip: 'Total number of tickets in the system',
-              },
-              {
-                title: 'Open Tickets',
-                value: filteredTicketsForAdmin.filter(ticket =>
-                  ['NEW', 'OPEN', 'IN_PROGRESS'].includes(ticket.status)
-                ).length,
-                icon: IconClock,
-                color: primaryLight, // Cycle back
-                tooltip: 'Currently open tickets across all users',
-              },
-              {
-                title: 'Failed Logins',
-                value: 0, // This would need to be implemented in the backend
-                icon: IconShield,
-                color: primaryLight, // Cycle back
-                tooltip: 'Failed login attempts in the last 30 days',
+                color: primaryLight,
+                tooltip: 'Tickets created in the current month',
               },
               {
                 title: 'Password Resets',
                 value: 0, // This would need to be implemented in the backend
                 icon: IconKey,
-                color: primaryLight, // Cycle back
+                color: primaryLight,
                 tooltip: 'Password reset requests in the last 30 days',
               },
-              {
-                title: 'Audit Entries',
-                value: 0, // This would need to be implemented in the backend
-                icon: IconHistory,
-                color: primaryLight, // Cycle back
-                tooltip: 'System audit log entries in the last 30 days',
-              },
-              {
-                title: 'Active Sessions',
-                value: 0, // This would need to be implemented in the backend
-                icon: IconActivity,
-                color: primaryLight, // Cycle back
-                tooltip: 'Currently active user sessions',
-              },
             ].map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 2.4 }}>
+              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
                 <MetricCard
                   title={stat.title}
                   value={stat.value}
@@ -1822,7 +1730,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Breakdown Tables - Masonry two-column layout */}
-          <div id="report-content-section" style={{ marginTop: '2rem' }}>
+          <div id="report-content-section" style={{ marginTop: '1.5rem' }}>
           <div
             style={{
               columnCount: isSmall ? 1 : 2,
