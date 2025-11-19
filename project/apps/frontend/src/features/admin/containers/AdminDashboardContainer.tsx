@@ -11,6 +11,9 @@ import {
   IconKey,
   IconHistory,
   IconActivity,
+  IconCheck,
+  IconX,
+  IconAlertCircle,
 } from '@tabler/icons-react';
 import { useUsers } from '../../../hooks/useUsers';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
@@ -18,6 +21,7 @@ import { useSystemStats } from '../../../hooks/useSystemMonitoring';
 import { useAuditLogStats, useSystemAuditLogs } from '../../../hooks/useAuditLogs';
 import { AdminDashboardPresenter } from '../presenters/AdminDashboardPresenter';
 import { AdminMetrics } from '../types/admin.types';
+import { UserRole } from '../../../types/unified';
 
 export function AdminDashboardContainer() {
   const [refreshing, setRefreshing] = useState(false);
@@ -74,11 +78,21 @@ export function AdminDashboardContainer() {
     // Calculate user metrics
     const totalUsers = (systemStats?.totalUsers ?? users?.length) || 0;
     const activeUsers = (systemStats?.activeUsers ?? users?.filter(user => user.isActive).length) || 0;
-    const newUsers =
-      users?.filter(
-        user => user.createdAt && new Date(user.createdAt) > sevenDaysAgo
-      ).length || 0;
     const inactiveUsers = users?.filter(user => !user.isActive).length || 0;
+
+    // Calculate role-based user counts
+    const supportManagerCount = users?.filter(u =>
+      u.roles?.includes(UserRole.SUPPORT_MANAGER)
+    ).length || 0;
+    const supportStaffCount = users?.filter(u =>
+      u.roles?.includes(UserRole.SUPPORT_STAFF)
+    ).length || 0;
+    const endUserCount = users?.filter(u =>
+      u.roles?.includes(UserRole.END_USER)
+    ).length || 0;
+    const adminCount = users?.filter(u =>
+      u.roles?.includes(UserRole.ADMIN)
+    ).length || 0;
 
     // Calculate security metrics from audit logs
     const auditLogItems = recentAuditLogs?.items || [];
@@ -92,19 +106,9 @@ export function AdminDashboardContainer() {
       log.fieldName === 'password'
     ).length;
 
-    const auditEntries = (auditLogStats as { totalLogs?: number })?.totalLogs || auditLogItems.length || 0;
-    
-    // Estimate active sessions from recent LOGIN actions (last 24 hours)
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const activeSessions = auditLogItems.filter(
-      log => log.action === 'LOGIN' && 
-      log.createdAt && new Date(log.createdAt) > oneDayAgo &&
-      log.metadata && (log.metadata as { success?: boolean })?.success === true
-    ).length;
-
     const userStats = [
       {
-        title: 'Total Users',
+        title: 'TotalUsers',
         value: totalUsers,
         icon: IconUsers,
         color: primaryLight,
@@ -112,49 +116,54 @@ export function AdminDashboardContainer() {
       {
         title: 'Active Users',
         value: activeUsers,
-        icon: IconUserCheck,
+        icon: IconCheck,
         color: primaryLight,
       },
       {
-        title: 'New Users',
-        value: newUsers,
-        icon: IconUserPlus,
-        color: primaryLight,
-      },
-      {
-        title: 'Inactive Users',
+        title: 'Inactive users',
         value: inactiveUsers,
-        icon: IconUserX,
+        icon: IconX,
         color: primaryLight,
       },
-    ];
-
-    const securityStats = [
       {
-        title: 'Failed Logins',
-        value: failedLogins,
+        title: 'Support Manager',
+        value: supportManagerCount,
         icon: IconShield,
         color: primaryLight,
       },
       {
-        title: 'Password Resets',
+        title: 'Support Staff',
+        value: supportStaffCount,
+        icon: IconUsers,
+        color: primaryLight,
+      },
+      {
+        title: 'End user',
+        value: endUserCount,
+        icon: IconUsers,
+        color: primaryLight,
+      },
+      {
+        title: 'Admin',
+        value: adminCount,
+        icon: IconShield,
+        color: primaryLight,
+      },
+      {
+        title: 'Failed Login',
+        value: failedLogins,
+        icon: IconAlertCircle,
+        color: primaryLight,
+      },
+      {
+        title: 'Pwd reset',
         value: passwordResets,
         icon: IconKey,
         color: primaryLight,
       },
-      {
-        title: 'Audit Entries',
-        value: auditEntries,
-        icon: IconHistory,
-        color: primaryLight,
-      },
-      {
-        title: 'Active Sessions',
-        value: activeSessions,
-        icon: IconActivity,
-        color: primaryLight,
-      },
     ];
+
+    const securityStats: typeof userStats = [];
 
     return {
       userStats,

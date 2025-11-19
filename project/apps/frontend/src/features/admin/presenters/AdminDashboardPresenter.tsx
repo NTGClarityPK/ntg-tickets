@@ -48,42 +48,14 @@ export function AdminDashboardPresenter({
           </Button>
         </Group>
 
-        {/* User Management Stats */}
+        {/* Overview Stats */}
         <div>
           <Title order={3} mb='md'>
-            User Management
+            Overview
           </Title>
           <Grid>
             {metrics.userStats.map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
-                <Card withBorder>
-                  <Group>
-                    <Avatar color={stat.color} size='lg'>
-                      <stat.icon size={24} />
-                    </Avatar>
-                    <div style={{ flex: 1 }}>
-                      <Text size='lg' fw={600}>
-                        {stat.value}
-                      </Text>
-                      <Text size='sm' c='dimmed'>
-                        {stat.title}
-                      </Text>
-                    </div>
-                  </Group>
-                </Card>
-              </Grid.Col>
-            ))}
-          </Grid>
-        </div>
-
-        {/* Security & Compliance Stats */}
-        <div>
-          <Title order={3} mb='md'>
-            Security & Compliance
-          </Title>
-          <Grid>
-            {metrics.securityStats.map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
+              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 4 }}>
                 <Card withBorder>
                   <Group>
                     <Avatar color={stat.color} size='lg'>

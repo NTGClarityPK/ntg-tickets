@@ -1674,49 +1674,78 @@ export default function ReportsPage() {
             <Grid>
               {[
               {
-                title: 'New Users',
-                value: filteredUsers.filter(user => {
-                  const userDate = new Date(user.createdAt);
-                  const now = new Date();
-                  return (
-                    userDate.getMonth() === now.getMonth() &&
-                    userDate.getFullYear() === now.getFullYear()
-                  );
-                }).length,
-                icon: IconTrendingUp,
+                title: 'TotalUsers',
+                value: filteredUsers.length,
+                icon: IconUsers,
                 color: primaryLight,
-                tooltip: 'Users registered in the current month',
+                tooltip: 'Total number of users in the system',
               },
               {
-                title: 'Failed Logins',
+                title: 'Active Users',
+                value: filteredUsers.filter(u => u.isActive).length,
+                icon: IconCheck,
+                color: primaryLight,
+                tooltip: 'Number of active users',
+              },
+              {
+                title: 'Inactive Users',
+                value: filteredUsers.filter(u => !u.isActive).length,
+                icon: IconX,
+                color: primaryLight,
+                tooltip: 'Number of inactive users',
+              },
+              {
+                title: 'Support Manager',
+                value: filteredUsers.filter(u =>
+                  u.roles?.includes(UserRole.SUPPORT_MANAGER)
+                ).length,
+                icon: IconShield,
+                color: primaryLight,
+                tooltip: 'Number of Support Manager users',
+              },
+              {
+                title: 'Support Staff',
+                value: filteredUsers.filter(u =>
+                  u.roles?.includes(UserRole.SUPPORT_STAFF)
+                ).length,
+                icon: IconUsers,
+                color: primaryLight,
+                tooltip: 'Number of Support Staff users',
+              },
+              {
+                title: 'End user',
+                value: filteredUsers.filter(u =>
+                  u.roles?.includes(UserRole.END_USER)
+                ).length,
+                icon: IconUsers,
+                color: primaryLight,
+                tooltip: 'Number of End User accounts',
+              },
+              {
+                title: 'Admin',
+                value: filteredUsers.filter(u =>
+                  u.roles?.includes(UserRole.ADMIN)
+                ).length,
+                icon: IconShield,
+                color: primaryLight,
+                tooltip: 'Number of Administrator accounts',
+              },
+              {
+                title: 'Failed Login',
                 value: 0, // This would need to be implemented in the backend
                 icon: IconAlertCircle,
                 color: primaryLight,
                 tooltip: 'Failed login attempts in the last 30 days',
               },
               {
-                title: 'New Tickets',
-                value: filteredTicketsForAdmin.filter(ticket => {
-                  const ticketDate = new Date(ticket.createdAt);
-                  const now = new Date();
-                  return (
-                    ticketDate.getMonth() === now.getMonth() &&
-                    ticketDate.getFullYear() === now.getFullYear()
-                  );
-                }).length,
-                icon: IconTicket,
-                color: primaryLight,
-                tooltip: 'Tickets created in the current month',
-              },
-              {
-                title: 'Password Resets',
+                title: 'Pwd reset',
                 value: 0, // This would need to be implemented in the backend
                 icon: IconKey,
                 color: primaryLight,
                 tooltip: 'Password reset requests in the last 30 days',
               },
             ].map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
+              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 4 }}>
                 <MetricCard
                   title={stat.title}
                   value={stat.value}
