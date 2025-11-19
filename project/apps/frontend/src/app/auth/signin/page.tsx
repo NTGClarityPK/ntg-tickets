@@ -15,7 +15,7 @@ import {
   Group,
   Box,
   ThemeIcon,
-  Anchor,
+  Checkbox,
 } from '@mantine/core';
 import {
   IconAlertCircle,
@@ -24,8 +24,6 @@ import {
   IconClock,
   IconCheck,
 } from '@tabler/icons-react';
-import { RTLArrowRight, RTLArrowLeft } from '../../../components/ui/RTLIcon';
-import Link from 'next/link';
 import { useLoginAttempts } from '../../../hooks/useLoginAttempts';
 import { AuthLayout } from '../../../components/layouts/AuthLayout';
 import { RoleSelectionModal } from '../../../components/modals/RoleSelectionModal';
@@ -34,16 +32,15 @@ import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SignInPage() {
   const t = useTranslations('auth');
-  const tCommon = useTranslations('common');
   const { primary, primaryDark } = useDynamicTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState<
-    'email' | 'password' | 'complete'
-  >('email');
-  const [emailValid, setEmailValid] = useState(false);
+    'login' | 'complete'
+  >('login');
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [roleSelectionLoading, setRoleSelectionLoading] = useState(false);
@@ -65,27 +62,6 @@ export default function SignInPage() {
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    setEmailValid(validateEmail(value));
-    setError('');
-  };
-
-  const handleEmailNext = () => {
-    if (emailValid) {
-      setCurrentStep('password');
-    } else {
-      setError(t('emailInvalid'));
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep === 'password') {
-      setCurrentStep('email');
-      setError('');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,7 +99,6 @@ export default function SignInPage() {
             t('invalidCredentialsRemaining', { attempts: remainingAttempts })
           );
         }
-        setCurrentStep('password'); // Stay on password step to retry
         return;
       }
 
@@ -208,115 +183,19 @@ export default function SignInPage() {
     }
   };
 
-  // Guided step content
+  // Render login form
   const renderStepContent = () => {
     switch (currentStep) {
-      case 'email':
-        return (
-          <Stack gap='lg'>
-            <Box>
-              <Title order={2} size='1.8rem' fw={700} mb='xs'>
-                {t('welcome')}
-              </Title>
-              <Text c='dimmed' size='sm'>
-                {t('enterEmailToContinue')}
-              </Text>
-            </Box>
-
-            {error && (
-              <Alert
-                icon={<IconAlertCircle size={16} />}
-                color='red'
-                variant='light'
-                radius='md'
-              >
-                {error}
-              </Alert>
-            )}
-
-            <TextInput
-              label={t('email')}
-              placeholder='your@email.com'
-              required
-              leftSection={<IconMail size={18} />}
-              value={email}
-              onChange={e => handleEmailChange(e.currentTarget.value)}
-              type='email'
-              size='lg'
-              radius='md'
-              autoComplete='email'
-              name='email'
-              id='email'
-              dir='auto'
-              error={email && !emailValid ? t('emailInvalid') : ''}
-              styles={theme => ({
-                input: {
-                  border: `2px solid ${theme.colors.gray[3]}`,
-                  '&:focus': {
-                    borderColor: primary,
-                  },
-                },
-              })}
-            />
-
-            <Button
-              onClick={handleEmailNext}
-              fullWidth
-              disabled={!emailValid}
-              size='lg'
-              radius='md'
-              rightSection={<RTLArrowRight size={18} />}
-              style={theme => ({
-                background: emailValid
-                  ? `linear-gradient(135deg, ${primary} 0%, ${primaryDark} 100%)`
-                  : theme.colors.gray[3],
-                border: 'none',
-                fontWeight: 600,
-                color: emailValid ? 'white' : theme.colors.gray[6],
-              })}
-            >
-              {tCommon('next')}
-            </Button>
-
-            <Group justify='center'>
-              <Text size='sm' c='dimmed'>
-                {t('dontHaveAccount')}{' '}
-                <Anchor
-                  component={Link}
-                  href='/auth/signup'
-                  fw={600}
-                  style={{
-                    color: primary,
-                    textDecoration: 'none',
-                  }}
-                >
-                  {t('signUp')}
-                </Anchor>
-              </Text>
-            </Group>
-          </Stack>
-        );
-
-      case 'password':
+      case 'login':
         return (
           <form onSubmit={handleSubmit}>
             <Stack gap='lg'>
               <Box>
-                <Button
-                  variant='subtle'
-                  leftSection={<RTLArrowLeft size={16} />}
-                  onClick={handleBack}
-                  size='sm'
-                  mb='md'
-                  style={{ alignSelf: 'flex-start' }}
-                >
-                  {tCommon('back')}
-                </Button>
                 <Title order={2} size='1.8rem' fw={700} mb='xs'>
-                  {t('password')}
+                  Welcome Back
                 </Title>
                 <Text c='dimmed' size='sm'>
-                  {t('welcomeBack')}, {email}
+                  Sign in to your account to continue
                 </Text>
               </Box>
 
@@ -355,16 +234,47 @@ export default function SignInPage() {
                 </Alert>
               )}
 
+              <TextInput
+                label='Email'
+                placeholder='your@email.com'
+                required
+                leftSection={<IconMail size={18} />}
+                value={email}
+                onChange={e => {
+                  setEmail(e.currentTarget.value);
+                  setError('');
+                }}
+                type='email'
+                size='lg'
+                radius='md'
+                autoComplete='email'
+                name='email'
+                id='email'
+                dir='auto'
+                error={email && !validateEmail(email) ? t('emailInvalid') : ''}
+                styles={theme => ({
+                  input: {
+                    border: `2px solid ${theme.colors.gray[3]}`,
+                    '&:focus': {
+                      borderColor: primary,
+                    },
+                  },
+                })}
+                disabled={loading}
+              />
+
               <PasswordInput
-                label={t('password')}
+                label='Password'
                 placeholder='Enter your password'
                 required
                 leftSection={<IconLock size={18} />}
                 value={password}
-                onChange={e => setPassword(e.currentTarget.value)}
+                onChange={e => {
+                  setPassword(e.currentTarget.value);
+                  setError('');
+                }}
                 size='lg'
                 radius='md'
-                autoFocus
                 autoComplete='current-password'
                 name='password'
                 id='password'
@@ -377,7 +287,27 @@ export default function SignInPage() {
                     },
                   },
                 })}
+                disabled={loading}
               />
+
+              <Group justify='space-between'>
+                <Checkbox
+                  label='Remember me'
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.currentTarget.checked)}
+                  disabled={loading}
+                />
+                <Text
+                  size='sm'
+                  c={primary}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    // TODO: Implement password reset
+                  }}
+                >
+                  Forgot password?
+                </Text>
+              </Group>
 
               <Button
                 type='submit'
@@ -392,24 +322,8 @@ export default function SignInPage() {
                   fontWeight: 600,
                 }}
               >
-                {t('signIn')}
+                Sign In
               </Button>
-
-              <Group justify='center'>
-                <Text size='sm' c='dimmed'>
-                  {t('forgotPassword')}{' '}
-                  <Anchor
-                    href='#'
-                    fw={600}
-                    style={{
-                      color: primary,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {t('resetPassword')}
-                  </Anchor>
-                </Text>
-              </Group>
             </Stack>
           </form>
         );
