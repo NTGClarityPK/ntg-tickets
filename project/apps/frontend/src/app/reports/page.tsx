@@ -33,14 +33,11 @@ import {
   IconAlertCircle,
   IconFileExport,
   IconShield,
-  IconAlertTriangle,
   IconTrendingUp,
   IconStar,
   IconStarFilled,
   IconInfoCircle,
   IconKey,
-  IconHistory,
-  IconActivity,
 } from '@tabler/icons-react';
 import { useSlaReport, useExportReport } from '../../hooks/useReports';
 import { useMediaQuery } from '@mantine/hooks';

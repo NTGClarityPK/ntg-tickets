@@ -4,13 +4,8 @@ import { useState, useMemo } from 'react';
 import { Container, Group, Loader, Text } from '@mantine/core';
 import {
   IconUsers,
-  IconUserCheck,
-  IconUserPlus,
-  IconUserX,
   IconShield,
   IconKey,
-  IconHistory,
-  IconActivity,
   IconCheck,
   IconX,
   IconAlertCircle,
@@ -18,7 +13,7 @@ import {
 import { useUsers } from '../../../hooks/useUsers';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useSystemStats } from '../../../hooks/useSystemMonitoring';
-import { useAuditLogStats, useSystemAuditLogs } from '../../../hooks/useAuditLogs';
+import { useSystemAuditLogs } from '../../../hooks/useAuditLogs';
 import { AdminDashboardPresenter } from '../presenters/AdminDashboardPresenter';
 import { AdminMetrics } from '../types/admin.types';
 import { UserRole } from '../../../types/unified';
@@ -48,12 +43,6 @@ export function AdminDashboardContainer() {
   const sevenDaysAgo = useMemo(() => new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), [now]);
   const dateFrom = useMemo(() => sevenDaysAgo.toISOString().split('T')[0], [sevenDaysAgo]);
 
-  const {
-    data: auditLogStats,
-    isLoading: auditStatsLoading,
-    refetch: refetchAuditStats,
-  } = useAuditLogStats(dateFrom || '');
-
   // Fetch recent audit logs to calculate failed logins and password resets
   const {
     data: recentAuditLogs,
@@ -66,7 +55,6 @@ export function AdminDashboardContainer() {
       await Promise.all([
         refetchUsers(),
         refetchSystemStats(),
-        refetchAuditStats(),
       ]);
     } finally {
       setRefreshing(false);
@@ -171,9 +159,9 @@ export function AdminDashboardContainer() {
       failedLogins,
       isLoading: false,
     };
-  }, [users, systemStats, auditLogStats, recentAuditLogs, sevenDaysAgo, now, primaryLight]);
+  }, [users, systemStats, recentAuditLogs, primaryLight]);
 
-  const isLoading = usersLoading || systemStatsLoading || auditStatsLoading || auditLogsLoading;
+  const isLoading = usersLoading || systemStatsLoading || auditLogsLoading;
 
   if (isLoading) {
     return (
