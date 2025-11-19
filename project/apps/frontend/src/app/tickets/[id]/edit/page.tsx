@@ -168,7 +168,7 @@ export default function EditTicketPage() {
             Back to Ticket
           </Button>
           <div>
-            <Title order={1}>Edit Ticket #{ticket.ticketNumber}</Title>
+            <Title order={1}>Edit Ticket {ticket.ticketNumber}</Title>
             <Text c='dimmed'>Update ticket information and status</Text>
           </div>
         </Group>
@@ -357,7 +357,7 @@ export default function EditTicketPage() {
                       Ticket Number
                     </Text>
                     <Text size='sm' c='dimmed'>
-                      #{ticket.ticketNumber}
+                      {ticket.ticketNumber}
                     </Text>
                   </Group>
                   <Group justify='space-between'>

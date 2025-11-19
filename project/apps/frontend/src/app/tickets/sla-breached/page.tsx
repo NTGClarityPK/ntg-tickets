@@ -188,7 +188,7 @@ function SLABreachedTicketsPageContent() {
                   SLA Breached
                 </Badge>
                 <Text size='sm' c='dimmed'>
-                  #{ticket.ticketNumber}
+                  {ticket.ticketNumber}
                 </Text>
               </Group>
               <Menu shadow='md' width={200}>

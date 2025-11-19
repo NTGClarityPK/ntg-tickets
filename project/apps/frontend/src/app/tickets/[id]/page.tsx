@@ -423,7 +423,7 @@ export default function TicketDetailPage() {
             Back
           </Button>
           <div>
-            <Title order={1}>Ticket #{ticket.ticketNumber}</Title>
+            <Title order={1}>Ticket {ticket.ticketNumber}</Title>
             <Text c='dimmed'>{ticket.title}</Text>
           </div>
         </Group>
@@ -1261,7 +1261,7 @@ export default function TicketDetailPage() {
       >
         <Stack gap='md'>
           <Text>
-            Are you sure you want to delete ticket #{ticket.ticketNumber}? This
+            Are you sure you want to delete ticket {ticket.ticketNumber}? This
             action cannot be undone.
           </Text>
           <Group justify='flex-end'>
