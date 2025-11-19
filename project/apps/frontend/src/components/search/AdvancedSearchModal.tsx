@@ -370,9 +370,9 @@ export function AdvancedSearchModal({
         <Stack gap='md'>
           {/* Active Filters */}
           {activeFilters.length > 0 && (
-            <Card withBorder p='md' radius='md' bg='blue.0'>
+            <Card withBorder p='md' radius='md'>
               <Group justify='space-between' mb='sm'>
-                <Text size='sm' fw={500} c='blue.7'>
+                <Text size='sm' fw={500}>
                   {t('activeFilters')} ({activeFilters.length})
                 </Text>
               </Group>
