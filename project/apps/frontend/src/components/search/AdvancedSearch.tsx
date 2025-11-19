@@ -21,6 +21,7 @@ import {
   Divider,
   Loader,
   Center,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -85,6 +86,7 @@ const PRIORITY_OPTIONS = [
 ];
 
 export function AdvancedSearch() {
+  const theme = useMantineTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -191,7 +193,7 @@ export function AdvancedSearch() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      open: 'blue',
+      open: theme.primaryColor,
       in_progress: 'yellow',
       resolved: 'green',
       closed: 'gray',
@@ -393,7 +395,7 @@ export function AdvancedSearch() {
                             </Text>
                           </Table.Td>
                           <Table.Td>
-                            <Badge color='blue' variant='light' size='sm'>
+                            <Badge color={theme.primaryColor} variant='light' size='sm'>
                               {Math.round(result.score * 100)}%
                             </Badge>
                           </Table.Td>
@@ -511,7 +513,7 @@ export function AdvancedSearch() {
               >
                 {selectedResult.priority}
               </Badge>
-              <Badge color='blue' variant='light'>
+              <Badge color={theme.primaryColor} variant='light'>
                 Score: {Math.round(selectedResult.score * 100)}%
               </Badge>
             </Group>

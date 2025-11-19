@@ -15,6 +15,7 @@ import {
   ActionIcon,
   Menu,
   Modal,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconFilter,
@@ -52,6 +53,7 @@ export function TicketsListPresenter({
   onCloseAdvancedSearch,
   onCloseSimpleFilters,
 }: TicketsListPresenterProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('tickets');
 
   return (
@@ -61,7 +63,7 @@ export function TicketsListPresenter({
           <Title order={1}>{t('title')}</Title>
           <Text c='dimmed'>Manage and track support tickets</Text>
           {metrics.hasActiveFilters && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {metrics.filteredCount} of{' '}
               {metrics.needsClientSideFiltering
                 ? metrics.filteredCount

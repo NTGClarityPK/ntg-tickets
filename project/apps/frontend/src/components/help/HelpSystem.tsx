@@ -16,6 +16,7 @@ import {
   Divider,
   Grid,
   Alert,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconHelp,
@@ -276,6 +277,7 @@ const getQuickActions = (
 ];
 
 export function HelpSystem({ opened, onClose }: HelpSystemProps) {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('help');
   const tTickets = useTranslations('tickets');
@@ -301,7 +303,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
       case 'medium':
         return 'orange';
       case 'low':
-        return 'blue';
+        return theme.primaryColor;
       default:
         return 'gray';
     }
@@ -348,7 +350,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
               <Button
                 key={section.id}
                 variant={activeSection === section.id ? 'light' : 'subtle'}
-                color={activeSection === section.id ? 'blue' : 'gray'}
+                color={activeSection === section.id ? theme.primaryColor : 'gray'}
                 justify='flex-start'
                 leftSection={<section.icon size={16} />}
                 onClick={() => setActiveSection(section.id)}

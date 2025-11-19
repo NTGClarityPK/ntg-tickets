@@ -19,6 +19,7 @@ import {
   TextInput,
   Select,
   Pagination,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -45,6 +46,7 @@ import {
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function BackupsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const [selectedBackup, setSelectedBackup] = useState<Backup | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -120,7 +122,7 @@ export default function BackupsPage() {
     notifications.show({
       title: 'Download Started',
       message: `Downloading backup: ${backup.filename}`,
-      color: 'blue',
+      color: theme.primaryColor,
     });
   };
 
@@ -295,7 +297,7 @@ export default function BackupsPage() {
                 </Group>
                 <Group justify='space-between'>
                   <Text size='sm'>In Progress</Text>
-                  <Text fw={500} c='blue'>
+                  <Text fw={500} c={theme.colors[theme.primaryColor][6]}>
                     0
                   </Text>
                 </Group>

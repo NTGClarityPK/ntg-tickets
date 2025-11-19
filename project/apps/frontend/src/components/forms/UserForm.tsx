@@ -12,6 +12,7 @@ import {
   Switch,
   PasswordInput,
   Alert,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showErrorNotification } from '@/lib/notifications';
@@ -45,6 +46,7 @@ export function UserForm({
 }: UserFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { validatePassword } = usePasswordValidation();
+  const theme = useMantineTheme();
 
   const form = useForm<UserFormData>({
     initialValues: {
@@ -158,7 +160,7 @@ export function UserForm({
                 />
               </Grid.Col>
             </Grid>
-            <Alert color='blue' title='Password Requirements'>
+            <Alert color={theme.primaryColor} title='Password Requirements'>
               <ul style={{ margin: 0, paddingLeft: '20px' }}>
                 <li>At least {VALIDATION_RULES.PASSWORD.MIN_LENGTH} characters long</li>
                 <li>At least one uppercase letter (A-Z)</li>
@@ -190,7 +192,7 @@ export function UserForm({
                 />
               </Grid.Col>
             </Grid>
-            <Alert color='blue' title='Password'>
+            <Alert color={theme.primaryColor} title='Password'>
               Leave password fields empty to keep the current password. Enter a
               new password to change it.
             </Alert>

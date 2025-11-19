@@ -16,6 +16,7 @@ import {
   Alert,
   ActionIcon,
   Tooltip,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconHistory,
@@ -39,6 +40,7 @@ export function TicketAuditLogs({
   onClose,
   ticketId,
 }: TicketAuditLogsProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const [page, setPage] = useState(1);
   const limit = PAGINATION_CONFIG.COMPLIANCE_PAGE_SIZE;
@@ -51,7 +53,7 @@ export function TicketAuditLogs({
 
   const actionColors: Record<string, string> = {
     CREATE: 'green',
-    UPDATE: 'blue',
+    UPDATE: theme.primaryColor,
     DELETE: 'red',
     LOGIN: 'cyan',
     LOGOUT: 'gray',

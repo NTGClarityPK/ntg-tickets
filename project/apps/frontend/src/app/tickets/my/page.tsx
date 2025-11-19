@@ -21,6 +21,7 @@ import {
   Loader,
   Alert,
   Pagination,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -49,6 +50,7 @@ import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 
 export default function MyTicketsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
 
   const statusColors: Record<TicketStatus, string> = {
@@ -210,7 +212,7 @@ export default function MyTicketsPage() {
           <Title order={1}>My Tickets</Title>
           <Text c='dimmed'>Tickets created by or assigned to you</Text>
           {hasActiveFilters() && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {myTickets.length} of {totalTicketsCount || 0} tickets
             </Text>
           )}

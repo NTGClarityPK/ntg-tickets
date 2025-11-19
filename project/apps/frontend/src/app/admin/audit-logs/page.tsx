@@ -23,6 +23,7 @@ import {
   Loader,
   Center,
   ScrollArea,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -64,6 +65,7 @@ const ACTION_OPTIONS = AUDIT_LOG_ACTIONS;
 const FIELD_OPTIONS = AUDIT_LOG_FIELDS;
 
 export default function AuditLogsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<AuditLogFilters>({
@@ -130,13 +132,13 @@ export default function AuditLogsPage() {
   const getActionColor = (action: string) => {
     const colors: Record<string, string> = {
       CREATE: 'green',
-      UPDATE: 'blue',
+      UPDATE: theme.primaryColor,
       DELETE: 'red',
       LOGIN: 'green',
       LOGOUT: 'gray',
       ASSIGN: 'yellow',
       STATUS_CHANGE: 'purple',
-      COMMENT: 'blue',
+      COMMENT: theme.primaryColor,
       ATTACHMENT: 'orange',
     };
     return colors[action] || 'gray';

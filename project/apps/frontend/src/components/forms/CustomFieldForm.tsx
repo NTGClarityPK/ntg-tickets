@@ -10,6 +10,7 @@ import {
   Grid,
   Switch,
   Alert,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -65,6 +66,7 @@ export function CustomFieldForm({
   initialData,
   isEditing = false,
 }: CustomFieldFormProps) {
+  const theme = useMantineTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CustomFieldFormData>({
@@ -136,7 +138,7 @@ export function CustomFieldForm({
         </Grid>
 
         {currentFieldType === CustomFieldType.SELECT && (
-          <Alert color='blue' title='Select Options'>
+          <Alert color={theme.primaryColor} title='Select Options'>
             For SELECT field type, you need to provide options. This would be
             implemented with a dynamic options editor.
           </Alert>

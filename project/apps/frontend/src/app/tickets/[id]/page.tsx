@@ -48,6 +48,7 @@ import {
   Avatar,
   Timeline,
   Progress,
+  useMantineTheme,
   Grid,
   Select,
   ScrollArea,
@@ -88,6 +89,7 @@ import { ROLE_GROUPS } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function TicketDetailPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
 
   const statusColors: Record<TicketStatus, string> = {
@@ -943,7 +945,7 @@ export default function TicketDetailPage() {
                           {fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase())}
                         </Text>
                         <Badge
-                          color='blue'
+                          color={theme.primaryColor}
                           variant='light'
                           size='sm'
                         >

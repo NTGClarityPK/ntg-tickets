@@ -20,6 +20,7 @@ import {
   ColorSwatch,
   Center,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -63,6 +64,7 @@ export default function ThemeSettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { primary } = useDynamicTheme();
+  const theme = useMantineTheme();
   const [previewMode, setPreviewMode] = useState(false);
   const [previewColor, setPreviewColor] = useState<string>('');
   const [logoImageError, setLogoImageError] = useState(false);
@@ -216,7 +218,7 @@ export default function ThemeSettingsPage() {
       notifications.show({
         title: 'Reset to Default',
         message: 'Theme settings have been reset to default values',
-        color: 'blue',
+        color: theme.primaryColor,
         icon: <IconRefresh size={16} />,
       });
       queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
@@ -395,7 +397,7 @@ export default function ThemeSettingsPage() {
                           notifications.show({
                             title: 'Logo URL Cleared',
                             message: 'Logo URL has been cleared because a file was uploaded',
-                            color: 'blue',
+                            color: theme.primaryColor,
                             icon: <IconPhoto size={16} />,
                           });
                         }
@@ -403,7 +405,7 @@ export default function ThemeSettingsPage() {
                     />
 
                     {form.values.logoFile && (
-                      <Alert color="blue" variant="light">
+                      <Alert color={theme.primaryColor} variant="light">
                         <Text size="sm">
                           Selected file: {form.values.logoFile.name} ({(form.values.logoFile.size / 1024).toFixed(1)} KB)
                         </Text>
@@ -491,7 +493,7 @@ export default function ThemeSettingsPage() {
                   Save Theme Settings
                 </Button>
 
-                <Alert color="blue" variant="light">
+                <Alert color={theme.primaryColor} variant="light">
                   <Text size="sm">
                     Changes will be applied immediately after saving. 
                     You may need to refresh the page to see all changes.

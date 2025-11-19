@@ -21,6 +21,7 @@ import {
   Stack,
   Pagination,
   Grid,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconFilter,
@@ -44,6 +45,7 @@ import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { Ticket } from '../../../types/unified';
 
 function SLABreachedTicketsPageContent() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
@@ -125,7 +127,7 @@ function SLABreachedTicketsPageContent() {
             Tickets that have severely breached their SLA deadlines
           </Text>
           {hasActiveFilters() && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {tickets.length} of {totalTicketsCount || 0} tickets
             </Text>
           )}

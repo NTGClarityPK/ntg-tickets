@@ -18,6 +18,7 @@ import {
   Tabs,
   TextInput,
   Divider,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconRefresh,
@@ -42,6 +43,7 @@ import { notifications } from '@mantine/notifications';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function ElasticsearchPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters] = useState({
@@ -230,7 +232,7 @@ export default function ElasticsearchPage() {
                 <Title order={4}>Active Shards</Title>
                 <IconDatabase size={24} />
               </Group>
-              <Text size='xl' fw={700} c='blue'>
+              <Text size='xl' fw={700} c={theme.colors[theme.primaryColor][6]}>
                 N/A
               </Text>
               <Text size='sm' c='dimmed'>

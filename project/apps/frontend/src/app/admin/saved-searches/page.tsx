@@ -20,6 +20,7 @@ import {
   ActionIcon,
   Alert,
   Tabs,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -61,6 +62,7 @@ interface SavedSearchFormData {
 }
 
 export default function SavedSearchesPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSearch, setSelectedSearch] = useState<{
@@ -318,7 +320,7 @@ export default function SavedSearchesPage() {
                           <Group>
                             <Text fw={500}>{search.name}</Text>
                             {false && (
-                              <Badge color='blue' variant='light' size='xs'>
+                              <Badge color={theme.primaryColor} variant='light' size='xs'>
                                 Default
                               </Badge>
                             )}
@@ -372,7 +374,7 @@ export default function SavedSearchesPage() {
                             <ActionIcon
                               variant='light'
                               size='sm'
-                              color='blue'
+                              color={theme.primaryColor}
                               onClick={() =>
                                 handleDuplicateSearch({
                                   id: search.id,
@@ -419,7 +421,7 @@ export default function SavedSearchesPage() {
           <Card mt='md'>
             <Stack>
               <Title order={4}>Public Saved Searches</Title>
-              <Alert color='blue' title='Public Searches'>
+              <Alert color={theme.primaryColor} title='Public Searches'>
                 These searches are shared with all users and can be used by
                 anyone.
               </Alert>
@@ -453,7 +455,7 @@ export default function SavedSearchesPage() {
                             <ActionIcon
                               variant='light'
                               size='sm'
-                              color='blue'
+                              color={theme.primaryColor}
                               onClick={() =>
                                 handleDuplicateSearch({
                                   id: search.id,
@@ -501,7 +503,7 @@ export default function SavedSearchesPage() {
                         <Text fw={500}>{search.name}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Badge color='blue' variant='light'>
+                        <Badge color={theme.primaryColor} variant='light'>
                           {search.usageCount} uses
                         </Badge>
                       </Table.Td>
@@ -515,7 +517,7 @@ export default function SavedSearchesPage() {
                           <ActionIcon
                             variant='light'
                             size='sm'
-                            color='blue'
+                            color={theme.primaryColor}
                             onClick={() => handleDuplicateSearch(search)}
                           >
                             <IconCopy size={14} />

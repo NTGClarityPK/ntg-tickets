@@ -19,6 +19,7 @@ import {
   Pagination,
   Loader,
   Center,
+  useMantineTheme,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {
@@ -48,6 +49,7 @@ export function AuditTrail({
   userId,
   ticketId,
 }: AuditTrailProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const tAdmin = useTranslations('admin');
   const [page, setPage] = useState(1);
@@ -73,7 +75,7 @@ export function AuditTrail({
 
   const actionColors: Record<string, string> = {
     CREATE: 'green',
-    UPDATE: 'blue',
+    UPDATE: theme.primaryColor,
     DELETE: 'red',
     LOGIN: 'cyan',
     LOGOUT: 'gray',

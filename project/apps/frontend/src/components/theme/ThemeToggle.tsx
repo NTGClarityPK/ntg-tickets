@@ -89,7 +89,7 @@ export function ThemeToggle() {
           <Group justify='space-between'>
             <Text size='sm'>Light</Text>
             {theme === 'light' && (
-              <Text size='xs' c='blue'>
+              <Text size='xs' c={mantineTheme.colors[mantineTheme.primaryColor][6]}>
                 ✓
               </Text>
             )}
@@ -130,7 +130,7 @@ export function ThemeToggle() {
           <Group justify='space-between'>
             <Text size='sm'>Dark</Text>
             {theme === 'dark' && (
-              <Text size='xs' c='blue'>
+              <Text size='xs' c={mantineTheme.colors[mantineTheme.primaryColor][6]}>
                 ✓
               </Text>
             )}
@@ -171,7 +171,7 @@ export function ThemeToggle() {
           <Group justify='space-between'>
             <Text size='sm'>Auto</Text>
             {theme === 'auto' && (
-              <Text size='xs' c='blue'>
+              <Text size='xs' c={mantineTheme.colors[mantineTheme.primaryColor][6]}>
                 ✓
               </Text>
             )}

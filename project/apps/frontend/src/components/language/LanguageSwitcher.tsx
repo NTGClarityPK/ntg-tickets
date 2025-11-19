@@ -118,7 +118,7 @@ export function LanguageSwitcher() {
               <Group justify='space-between'>
                 <Text size='sm'>{language.name}</Text>
                 {locale === language.code && (
-                  <Text size='xs' c='blue'>
+                  <Text size='xs' c={theme.colors[theme.primaryColor][6]}>
                     ✓
                   </Text>
                 )}

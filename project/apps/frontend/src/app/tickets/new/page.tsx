@@ -25,6 +25,7 @@ import {
   ActionIcon,
   Menu,
   Modal,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconFilter,
@@ -66,6 +67,7 @@ import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function NewTicketsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
 
   const statusColors: Record<TicketStatus, string> = {
@@ -276,7 +278,7 @@ export default function NewTicketsPage() {
             Tickets requiring assignment or initial attention
           </Text>
           {hasActiveFilters() && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {filteredTickets.length} of{' '}
               {needsClientSideFiltering
                 ? allFilteredTickets.length

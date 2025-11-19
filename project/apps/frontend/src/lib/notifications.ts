@@ -16,13 +16,14 @@ export interface NotificationOptions {
     | 'cyan'
     | 'teal'
     | 'lime'
-    | 'pink';
+    | 'pink'
+    | 'dynamic';
   autoClose?: number | false;
   icon?: React.ReactNode;
 }
 
 export const showNotification = (options: NotificationOptions) => {
-  const { title, message, color = 'blue', autoClose, icon } = options;
+  const { title, message, color = 'dynamic', autoClose, icon } = options;
 
   // Determine autoClose duration based on color if not specified
   let defaultAutoClose: number | false;
@@ -102,7 +103,7 @@ export const showInfoNotification = (
   return showNotification({
     title,
     message,
-    color: 'blue',
+    color: 'dynamic',
     icon,
   });
 };

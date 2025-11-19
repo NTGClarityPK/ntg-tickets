@@ -13,6 +13,7 @@ import {
   Text,
   Alert,
   Code,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -58,6 +59,7 @@ export function EmailTemplateForm({
   initialData,
   isEditing = false,
 }: EmailTemplateFormProps) {
+  const theme = useMantineTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<EmailTemplateFormData>({
@@ -137,7 +139,7 @@ export function EmailTemplateForm({
           </Text>
         </div>
 
-        <Alert color='blue' title='Template Variables'>
+        <Alert color={theme.primaryColor} title='Template Variables'>
           <Text size='sm'>
             You can use the following variables in your template:
           </Text>

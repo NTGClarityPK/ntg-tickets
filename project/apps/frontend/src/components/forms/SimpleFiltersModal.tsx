@@ -10,6 +10,7 @@ import {
   Title,
   Text,
   Badge,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconFilter } from '@tabler/icons-react';
 import { useActiveCategories } from '../../hooks/useCategories';
@@ -53,6 +54,7 @@ export function SimpleFiltersModal({
   onApply,
   initialFilters,
 }: SimpleFiltersModalProps) {
+  const theme = useMantineTheme();
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedPriority, setSelectedPriority] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
@@ -153,7 +155,7 @@ export function SimpleFiltersModal({
               </Badge>
             ))}
             {selectedCategory.map(category => (
-              <Badge key={category} size='sm' variant='light' color='blue'>
+              <Badge key={category} size='sm' variant='light' color={theme.primaryColor}>
                 {categoryOptions.find(opt => opt.value === category)?.label}
               </Badge>
             ))}

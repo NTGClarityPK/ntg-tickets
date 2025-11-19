@@ -16,6 +16,7 @@ import {
   Box,
   ThemeIcon,
   Anchor,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconAlertCircle,
@@ -37,6 +38,7 @@ export default function SignUpPage() {
   const t = useTranslations('common');
   const tAuth = useTranslations('auth');
   const { primary, primaryDark } = useDynamicTheme();
+  const theme = useMantineTheme();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -511,7 +513,7 @@ export default function SignUpPage() {
               })}
             >
               <Group gap='sm'>
-                <ThemeIcon size='sm' variant='light' color='blue'>
+                <ThemeIcon size='sm' variant='light' color={theme.primaryColor}>
                   <IconShield size={14} />
                 </ThemeIcon>
                 <Text size='xs' c='blue.7' fw={500}>

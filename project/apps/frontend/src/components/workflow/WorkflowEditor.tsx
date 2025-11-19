@@ -41,6 +41,7 @@ import {
   Alert,
   Table,
   ScrollArea,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -278,6 +279,7 @@ interface WorkflowEditorProps {
 }
 
 export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorProps) {
+  const theme = useMantineTheme();
   const isReadOnly = !onSave;
   
   const [nodes, setNodes, onNodesChange] = useNodesState(
@@ -833,7 +835,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               </ReactFlow>
             </div>
 
-            <Alert color="blue" variant="light">
+            <Alert color={theme.primaryColor} variant="light">
               <Text size="sm">
                 {isReadOnly
                   ? 'This is a read-only view of the workflow. You cannot make changes.'
@@ -889,7 +891,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                             {roles.length > 0 ? (
                               <Group gap={4}>
                                 {roles.map((role: string) => (
-                                  <Badge key={role} size="sm" variant="light" color="blue">
+                                  <Badge key={role} size="sm" variant="light" color={theme.primaryColor}>
                                     {formatRoleName(role)}
                                   </Badge>
                                 ))}
@@ -950,7 +952,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           {selectedNode && (
             <Stack gap="md">
               {selectedNode.id === 'create' && (
-                <Alert color="blue" variant="light">
+                <Alert color={theme.primaryColor} variant="light">
                   <Text size="sm">
                     The "Create Ticket" state is required and cannot be renamed or deleted.
                   </Text>
@@ -1023,7 +1025,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           {selectedEdge && (
             <Stack gap="md">
               {selectedEdge.data?.isCreateTransition && (
-                <Alert color="blue" variant="light">
+                <Alert color={theme.primaryColor} variant="light">
                   <Text size="sm">
                     This is the ticket creation transition. Configure who can create tickets and what actions should occur.
                   </Text>

@@ -19,6 +19,7 @@ import {
   Tooltip,
   TextInput,
   Grid,
+  useMantineTheme,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {
@@ -44,6 +45,7 @@ export function UserActivityLogs({
   onClose,
   userId,
 }: UserActivityLogsProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const [page, setPage] = useState(1);
   const [searchUserId, setSearchUserId] = useState(userId || '');
@@ -65,7 +67,7 @@ export function UserActivityLogs({
 
   const actionColors: Record<string, string> = {
     CREATE: 'green',
-    UPDATE: 'blue',
+    UPDATE: theme.primaryColor,
     DELETE: 'red',
     LOGIN: 'cyan',
     LOGOUT: 'gray',

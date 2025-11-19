@@ -12,6 +12,7 @@ import {
   ThemeIcon,
   ActionIcon,
   Badge,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   showSuccessNotification,
@@ -58,6 +59,7 @@ export function FileUpload({
   ],
   disabled = false,
 }: FileUploadProps) {
+  const theme = useMantineTheme();
   const [files, setFiles] = useState<UploadedFile[]>([]);
 
   const handleDrop = useCallback(
@@ -166,7 +168,7 @@ export function FileUpload({
       case 'error':
         return 'red';
       case 'uploading':
-        return 'blue';
+        return theme.primaryColor;
       default:
         return 'gray';
     }

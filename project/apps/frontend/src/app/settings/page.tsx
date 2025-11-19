@@ -17,6 +17,7 @@ import {
   Alert,
   Loader,
   Tabs,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconBell,
@@ -57,6 +58,7 @@ interface UserSettings {
 }
 
 export default function SettingsPage() {
+  const mantineTheme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('settings');
   const { user } = useAuthStore();
@@ -142,7 +144,7 @@ export default function SettingsPage() {
           {isLoading && <Loader size='sm' />}
           <Button
             leftSection={<IconDeviceFloppy size={16} />}
-            color={saved ? 'green' : 'blue'}
+            color={saved ? 'green' : mantineTheme.primaryColor}
             loading={isLoading}
             onClick={() => form.onSubmit(handleSave)()}
           >

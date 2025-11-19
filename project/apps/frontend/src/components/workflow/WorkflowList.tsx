@@ -20,6 +20,7 @@ import {
   ScrollArea,
   Menu,
   Divider,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -58,6 +59,7 @@ export function WorkflowList({
   onDeactivate,
 }: WorkflowListProps) {
   const { primaryLight, primaryDark } = useDynamicTheme();
+  const theme = useMantineTheme();
   const [showEditor, setShowEditor] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
@@ -279,7 +281,7 @@ export function WorkflowList({
                                   notifications.show({
                                     title: 'Feature Coming Soon',
                                     message: 'Duplicate workflow feature will be available soon',
-                                    color: 'blue',
+                                    color: theme.primaryColor,
                                   });
                                 }}
                               >
@@ -317,7 +319,7 @@ export function WorkflowList({
             </ScrollArea>
 
             {filteredWorkflows.length === 0 && (
-              <Alert color="blue" variant="light">
+              <Alert color={theme.primaryColor} variant="light">
                 <Text>No workflows found. Create your first workflow to get started.</Text>
               </Alert>
             )}

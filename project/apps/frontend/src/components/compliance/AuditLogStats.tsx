@@ -18,6 +18,7 @@ import {
   Alert,
   Tabs,
   Paper,
+  useMantineTheme,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {
@@ -36,6 +37,7 @@ interface AuditLogStatsProps {
 }
 
 export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
+  const theme = useMantineTheme();
   const [activeTab, setActiveTab] = useState('overview');
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
@@ -67,7 +69,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
 
   const actionColors: Record<string, string> = {
     CREATE: 'green',
-    UPDATE: 'blue',
+    UPDATE: theme.primaryColor,
     DELETE: 'red',
     LOGIN: 'cyan',
     LOGOUT: 'gray',
@@ -182,7 +184,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                     </Text>
                     <Group justify='space-between'>
                       <div>
-                        <Text size='xl' fw={700} c='blue'>
+                        <Text size='xl' fw={700} c={theme.colors[theme.primaryColor][6]}>
                           {(statsData as { totalLogs?: number })?.totalLogs || 0}
                         </Text>
                         <Text size='sm' c='dimmed'>

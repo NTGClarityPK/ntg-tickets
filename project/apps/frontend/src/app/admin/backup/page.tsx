@@ -20,6 +20,7 @@ import {
   Divider,
   Loader,
   Center,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -45,6 +46,7 @@ import { FILE_CONSTANTS, FILE_SIZE_UNITS } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function BackupPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const [selectedBackup, setSelectedBackup] = useState<{
     id: string;
@@ -145,7 +147,7 @@ export default function BackupPage() {
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       completed: 'green',
-      in_progress: 'blue',
+      in_progress: theme.primaryColor,
       failed: 'red',
       pending: 'yellow',
     };

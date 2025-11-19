@@ -19,6 +19,7 @@ import {
   Tabs,
   Alert,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconSettings,
@@ -39,6 +40,7 @@ import { SYSTEM_DEFAULTS } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SettingsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('common');
   const tSettings = useTranslations('settings');
@@ -128,7 +130,7 @@ export default function SettingsPage() {
           <Button
             leftSection={<IconDeviceFloppy size={16} />}
             onClick={handleSave}
-            color={saved ? 'green' : 'blue'}
+            color={saved ? 'green' : theme.primaryColor}
             loading={updateSettingsMutation.isPending}
           >
             {saved ? t('saved') : tSettings('saveChanges')}

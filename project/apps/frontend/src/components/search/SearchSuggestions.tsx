@@ -11,6 +11,7 @@ import {
   Divider,
   ScrollArea,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconSearch, IconTag, IconUser, IconTicket } from '@tabler/icons-react';
 
@@ -34,6 +35,7 @@ export function SearchSuggestions({
   recentSearches,
   maxItems = 8,
 }: SearchSuggestionsProps) {
+  const theme = useMantineTheme();
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -131,7 +133,7 @@ export function SearchSuggestions({
   const getSuggestionColor = (type: SearchSuggestion['type']) => {
     switch (type) {
       case 'recent':
-        return 'blue';
+        return theme.primaryColor;
       case 'category':
         return 'green';
       case 'user':

@@ -16,6 +16,7 @@ import {
   Alert,
   Loader,
   Center,
+  useMantineTheme,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -72,6 +73,7 @@ import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 type EditingItem = User | CustomField | EmailTemplate;
 
 export function AdminPanel() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('admin');
   const [activeTab, setActiveTab] = useState('users');
@@ -727,7 +729,7 @@ export function AdminPanel() {
                     Define states, transitions, conditions, and actions for your ticket system.
                   </Text>
                   
-                  <Alert color='blue' variant='light'>
+                  <Alert color={theme.primaryColor} variant='light'>
                     <Text size='sm'>
                       <strong>Note:</strong> Workflow changes only affect new tickets. 
                       Existing tickets will continue to follow their original workflow.

@@ -21,6 +21,7 @@ import {
   Stack,
   Pagination,
   Grid,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconFilter,
@@ -44,6 +45,7 @@ import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { Ticket, TicketStatus } from '../../../types/unified';
 
 function OverdueTicketsPageContent() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
@@ -110,7 +112,7 @@ function OverdueTicketsPageContent() {
       case 'HIGH':
         return 'orange';
       case 'MEDIUM':
-        return 'blue';
+        return theme.primaryColor;
       case 'LOW':
         return 'green';
       default:
@@ -121,7 +123,7 @@ function OverdueTicketsPageContent() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'OPEN':
-        return 'blue';
+        return theme.primaryColor;
       case 'IN_PROGRESS':
         return 'yellow';
       case 'PENDING':
@@ -150,7 +152,7 @@ function OverdueTicketsPageContent() {
             Tickets that have exceeded their SLA deadlines
           </Text>
           {hasActiveFilters() && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {tickets.length} of {totalTicketsCount || 0} tickets
             </Text>
           )}

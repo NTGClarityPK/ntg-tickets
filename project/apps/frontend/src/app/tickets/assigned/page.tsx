@@ -21,6 +21,7 @@ import {
   Alert,
   Grid,
   Pagination,
+  useMantineTheme,
 } from '@mantine/core';
 import { StaffAndAbove } from '../../../components/guards/RouteGuard';
 import {
@@ -50,6 +51,7 @@ import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 
 function AssignedTicketsPageContent() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
 
   const statusColors: Record<TicketStatus, string> = {
@@ -177,7 +179,7 @@ function AssignedTicketsPageContent() {
           <Title order={1}>Assigned to Me</Title>
           <Text c='dimmed'>Tickets assigned to you</Text>
           {hasActiveFilters() && (
-            <Text size='sm' c='blue' mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {assignedTickets.length} of {totalTicketsCount || 0}{' '}
               tickets
             </Text>
