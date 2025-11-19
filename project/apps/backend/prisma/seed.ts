@@ -2318,7 +2318,7 @@ async function main() {
           type: 'smoothstep',
           markerEnd: { type: 'arrowclosed' },
           data: {
-            roles: ['END_USER', 'ADMIN'],
+            roles: ['END_USER'],
             conditions: [],
             actions: [],
             isCreateTransition: true,

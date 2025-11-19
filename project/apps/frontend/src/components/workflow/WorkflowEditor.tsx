@@ -343,7 +343,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         data: {
-          roles: ['END_USER', 'ADMIN'],
+          roles: ['END_USER'],
           conditions: [],
           actions: [],
           isCreateTransition: true, // Special flag

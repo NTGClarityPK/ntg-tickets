@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -85,7 +86,7 @@ async function updateDefaultWorkflow() {
           type: 'smoothstep',
           markerEnd: { type: 'arrowclosed' },
           data: {
-            roles: ['END_USER', 'ADMIN'],
+            roles: ['END_USER'],
             conditions: [],
             actions: [],
             isCreateTransition: true,

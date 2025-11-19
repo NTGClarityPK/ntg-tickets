@@ -94,7 +94,7 @@ BEGIN
                         "type": "smoothstep",
                         "markerEnd": {"type": "arrowclosed"},
                         "data": {
-                            "roles": ["END_USER", "SUPPORT_STAFF", "SUPPORT_MANAGER", "ADMIN"],
+                            "roles": ["END_USER", "SUPPORT_STAFF", "SUPPORT_MANAGER"],
                             "conditions": [],
                             "actions": [],
                             "isCreateTransition": true
