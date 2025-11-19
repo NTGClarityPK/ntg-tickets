@@ -32,7 +32,6 @@ import {
   IconChartBar,
   IconAlertCircle,
   IconFileExport,
-  IconShield,
   IconTrendingUp,
   IconStar,
   IconStarFilled,
@@ -44,6 +43,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useUsers } from '../../hooks/useUsers';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useTickets, useAllTicketsForCounting } from '../../hooks/useTickets';
+import { useSystemAuditLogs } from '../../hooks/useAuditLogs';
 import { Ticket, UserRole, ReportFilters } from '../../types/unified';
 import { notifications } from '@mantine/notifications';
 import { DatePickerInput } from '@mantine/dates';
@@ -131,6 +131,17 @@ export default function ReportsPage() {
   }));
   const { data: users } = useUsers({ limit: 1000 });
   const exportReport = useExportReport();
+
+  // Calculate date range for audit logs (last 30 days for Reports)
+  const nowForAudit = useMemo(() => new Date(), []);
+  const thirtyDaysAgo = useMemo(() => new Date(nowForAudit.getTime() - 30 * 24 * 60 * 60 * 1000), [nowForAudit]);
+  const auditDateFrom = useMemo(() => thirtyDaysAgo.toISOString().split('T')[0], [thirtyDaysAgo]);
+
+  // Fetch recent audit logs for Admin reports (failed logins and password resets)
+  const {
+    data: recentAuditLogs,
+    isLoading: auditLogsLoading,
+  } = useSystemAuditLogs(1, 1000, auditDateFrom || '');
 
   // Filter tickets based on user active role
   const myTickets = useMemo(() => {
@@ -339,6 +350,74 @@ export default function ReportsPage() {
       return true;
     });
   }, [allTicketsForStats, filters]);
+
+  // Calculate Admin report metrics (moved after filteredUsers and filteredTicketsForAdmin declarations)
+  const adminReportStats = useMemo(() => {
+    if (user?.activeRole !== 'ADMIN') return [];
+
+    // Calculate New Users (users created in current month)
+    const now = new Date();
+    const newUsers = filteredUsers.filter(user => {
+      const userDate = new Date(user.createdAt);
+      return (
+        userDate.getMonth() === now.getMonth() &&
+        userDate.getFullYear() === now.getFullYear()
+      );
+    }).length;
+
+    // Calculate Failed Logins from audit logs
+    const auditLogItems = recentAuditLogs?.items || [];
+    const failedLogins = auditLogItems.filter(
+      log => log.action === 'LOGIN' && log.metadata && 
+      (log.metadata as { success?: boolean })?.success === false
+    ).length;
+
+    // Calculate New Tickets (tickets created in current month)
+    const newTickets = filteredTicketsForAdmin.filter(ticket => {
+      const ticketDate = new Date(ticket.createdAt);
+      return (
+        ticketDate.getMonth() === now.getMonth() &&
+        ticketDate.getFullYear() === now.getFullYear()
+      );
+    }).length;
+
+    // Calculate Password Resets from audit logs
+    const passwordResets = auditLogItems.filter(
+      log => log.action === 'UPDATE' && log.resource === 'user' && 
+      log.fieldName === 'password'
+    ).length;
+
+    return [
+      {
+        title: 'New User',
+        value: newUsers,
+        icon: IconUsers,
+        color: primaryLight,
+        tooltip: 'New users registered in the current month',
+      },
+      {
+        title: 'Failed login',
+        value: failedLogins,
+        icon: IconAlertCircle,
+        color: primaryLight,
+        tooltip: 'Failed login attempts in the last 30 days',
+      },
+      {
+        title: 'New Ticket',
+        value: newTickets,
+        icon: IconTicket,
+        color: primaryLight,
+        tooltip: 'New tickets created in the current month',
+      },
+      {
+        title: 'pwd reset',
+        value: passwordResets,
+        icon: IconKey,
+        color: primaryLight,
+        tooltip: 'Password reset requests in the last 30 days',
+      },
+    ];
+  }, [user?.activeRole, filteredUsers, filteredTicketsForAdmin, recentAuditLogs, primaryLight]);
 
   const priorityBreakdown = useMemo(() => {
     const breakdown = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, UNKNOWN: 0 };
@@ -803,7 +882,7 @@ export default function ReportsPage() {
   };
 
   // Show loading state
-  if (ticketsLoading) {
+  if (ticketsLoading || auditLogsLoading) {
     return (
       <Container size='xl' py='md'>
         <Group justify='center' py='xl'>
@@ -1669,89 +1748,17 @@ export default function ReportsPage() {
           {/* Summary Cards */}
           <div id="report-overview-section">
             <Grid>
-              {[
-              {
-                title: 'TotalUsers',
-                value: filteredUsers.length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Total number of users in the system',
-              },
-              {
-                title: 'Active Users',
-                value: filteredUsers.filter(u => u.isActive).length,
-                icon: IconCheck,
-                color: primaryLight,
-                tooltip: 'Number of active users',
-              },
-              {
-                title: 'Inactive Users',
-                value: filteredUsers.filter(u => !u.isActive).length,
-                icon: IconX,
-                color: primaryLight,
-                tooltip: 'Number of inactive users',
-              },
-              {
-                title: 'Support Manager',
-                value: filteredUsers.filter(u =>
-                  u.roles?.includes(UserRole.SUPPORT_MANAGER)
-                ).length,
-                icon: IconShield,
-                color: primaryLight,
-                tooltip: 'Number of Support Manager users',
-              },
-              {
-                title: 'Support Staff',
-                value: filteredUsers.filter(u =>
-                  u.roles?.includes(UserRole.SUPPORT_STAFF)
-                ).length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Number of Support Staff users',
-              },
-              {
-                title: 'End user',
-                value: filteredUsers.filter(u =>
-                  u.roles?.includes(UserRole.END_USER)
-                ).length,
-                icon: IconUsers,
-                color: primaryLight,
-                tooltip: 'Number of End User accounts',
-              },
-              {
-                title: 'Admin',
-                value: filteredUsers.filter(u =>
-                  u.roles?.includes(UserRole.ADMIN)
-                ).length,
-                icon: IconShield,
-                color: primaryLight,
-                tooltip: 'Number of Administrator accounts',
-              },
-              {
-                title: 'Failed Login',
-                value: 0, // This would need to be implemented in the backend
-                icon: IconAlertCircle,
-                color: primaryLight,
-                tooltip: 'Failed login attempts in the last 30 days',
-              },
-              {
-                title: 'Pwd reset',
-                value: 0, // This would need to be implemented in the backend
-                icon: IconKey,
-                color: primaryLight,
-                tooltip: 'Password reset requests in the last 30 days',
-              },
-            ].map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 4 }}>
-                <MetricCard
-                  title={stat.title}
-                  value={stat.value}
-                  icon={stat.icon}
-                  color={stat.color}
-                  tooltip={stat.tooltip}
-                />
-              </Grid.Col>
-            ))}
+              {adminReportStats.map(stat => (
+                <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
+                  <MetricCard
+                    title={stat.title}
+                    value={stat.value}
+                    icon={stat.icon}
+                    color={stat.color}
+                    tooltip={stat.tooltip}
+                  />
+                </Grid.Col>
+              ))}
             </Grid>
           </div>
 
