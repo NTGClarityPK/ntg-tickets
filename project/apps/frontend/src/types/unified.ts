@@ -199,8 +199,8 @@ export interface TicketFilters {
   status?: TicketStatus[];
   priority?: TicketPriority[];
   category?: string[]; // Category IDs
-  assignedTo?: string;
-  requester?: string;
+  assignedToId?: string[]; // Array of assigned user IDs
+  requesterId?: string[]; // Array of requester user IDs
   dateFrom?: string;
   dateTo?: string;
   sortBy?: string;

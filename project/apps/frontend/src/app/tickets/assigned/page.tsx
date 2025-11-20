@@ -94,7 +94,7 @@ function AssignedTicketsPageContent() {
     ...baseQuery,
     page: currentPage,
     limit: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
-    assignedToId: [user?.id],
+    assignedToId: user?.id ? [user.id] : undefined,
   };
 
   const {

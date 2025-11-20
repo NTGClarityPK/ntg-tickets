@@ -175,10 +175,18 @@ export const useSearch = () => {
       query.priority = filters.priority as TicketPriority[];
     if (filters.category && filters.category.length > 0)
       query.category = filters.category;
-    if (filters.assignedTo && filters.assignedTo.length > 0)
-      query.assignedTo = filters.assignedTo[0];
-    if (filters.requester && filters.requester.length > 0)
-      query.requester = filters.requester[0];
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      const filteredAssignedTo = filters.assignedTo.filter((id): id is string => Boolean(id));
+      if (filteredAssignedTo.length > 0) {
+        query.assignedToId = filteredAssignedTo;
+      }
+    }
+    if (filters.requester && filters.requester.length > 0) {
+      const filteredRequester = filters.requester.filter((id): id is string => Boolean(id));
+      if (filteredRequester.length > 0) {
+        query.requesterId = filteredRequester;
+      }
+    }
     if (filters.dateFrom) query.dateFrom = filters.dateFrom.toISOString();
     if (filters.dateTo) query.dateTo = filters.dateTo.toISOString();
 
