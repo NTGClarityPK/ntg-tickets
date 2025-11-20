@@ -47,7 +47,6 @@ import {
   Paper,
   Avatar,
   Timeline,
-  Progress,
   useMantineTheme,
   Grid,
   Select,
@@ -1079,30 +1078,6 @@ export default function TicketDetailPage() {
               </Stack>
             </Card>
 
-            {/* SLA Card */}
-            {ticket.slaCompliance !== undefined && (
-              <Card withBorder p='md'>
-                <Title order={4} mb='md'>
-                  SLA Compliance
-                </Title>
-                <Stack gap='sm'>
-                  <div>
-                    <Group justify='space-between' mb='xs'>
-                      <Text size='sm'>Response Time</Text>
-                      <Text size='sm' fw={500}>
-                        {ticket.responseTime
-                          ? `${ticket.responseTime}h`
-                          : 'N/A'}
-                      </Text>
-                    </Group>
-                    <Progress value={ticket.slaCompliance} size='sm' />
-                  </div>
-                  <Text size='xs' c='dimmed'>
-                    SLA Level: {ticket.slaLevel}
-                  </Text>
-                </Stack>
-              </Card>
-            )}
           </Stack>
         </Grid.Col>
       </Grid>

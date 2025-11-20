@@ -4,7 +4,6 @@ import {
   TicketPriority,
   TicketImpact,
   TicketUrgency,
-  SLALevel,
   TicketCategory,
   CustomFieldType,
   WorkflowStatus,
@@ -479,19 +478,22 @@ async function main() {
   const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  // Helper function to calculate due date based on SLA level and creation time
-  function calculateDueDate(slaLevel: string, createdAt: Date): Date {
+  // Helper function to calculate due date based on priority and creation time
+  function calculateDueDate(priority: TicketPriority, createdAt: Date): Date {
     let hoursToAdd: number;
-    switch (slaLevel) {
-      case 'CRITICAL_SUPPORT':
+    switch (priority) {
+      case TicketPriority.CRITICAL:
         hoursToAdd = 4; // 4 hours
         break;
-      case 'PREMIUM':
-        hoursToAdd = 16; // 16 hours (2 business days)
+      case TicketPriority.HIGH:
+        hoursToAdd = 8; // 8 hours
         break;
-      case 'STANDARD':
+      case TicketPriority.MEDIUM:
+        hoursToAdd = 48; // 2 days
+        break;
+      case TicketPriority.LOW:
       default:
-        hoursToAdd = 40; // 40 hours (5 business days)
+        hoursToAdd = 168; // 7 days
         break;
     }
     return new Date(createdAt.getTime() + hoursToAdd * 60 * 60 * 1000);
@@ -510,7 +512,6 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.CRITICAL,
       urgency: TicketUrgency.IMMEDIATE,
-      slaLevel: SLALevel.CRITICAL_SUPPORT,
       requesterId: manager.id,
       assignedToId: supportStaff1.id,
       dueDate: threeDaysAgo, // Overdue by 3 days
@@ -527,7 +528,6 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: endUser1.id,
       assignedToId: supportStaff2.id,
       dueDate: twoDaysAgo, // Overdue by 2 days
@@ -544,7 +544,6 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.STANDARD,
       requesterId: admin.id,
       assignedToId: supportStaff3.id,
       dueDate: oneDayAgo, // Overdue by 1 day
@@ -563,7 +562,6 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser2.id,
       assignedToId: supportStaff4.id,
       dueDate: new Date(now.getTime() + 2 * 60 * 60 * 1000), // Due in 2 hours
@@ -580,7 +578,6 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser3.id,
       assignedToId: supportStaff1.id,
       dueDate: new Date(now.getTime() + 4 * 60 * 60 * 1000), // Due in 4 hours
@@ -599,11 +596,10 @@ async function main() {
       status: 'NEW',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser4.id,
       createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.MEDIUM,
         new Date(now.getTime() - 2 * 60 * 60 * 1000)
       ),
     },
@@ -618,11 +614,10 @@ async function main() {
       status: 'NEW',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: manager.id,
       createdAt: new Date(now.getTime() - 1 * 60 * 60 * 1000), // 1 hour ago
       dueDate: calculateDueDate(
-        'PREMIUM',
+        TicketPriority.HIGH,
         new Date(now.getTime() - 1 * 60 * 60 * 1000)
       ),
     },
@@ -637,11 +632,10 @@ async function main() {
       status: 'NEW',
       impact: TicketImpact.MINOR,
       urgency: TicketUrgency.LOW,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser5.id,
       createdAt: new Date(now.getTime() - 30 * 60 * 1000), // 30 minutes ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.LOW,
         new Date(now.getTime() - 30 * 60 * 1000)
       ),
     },
@@ -658,11 +652,10 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: endUser6.id,
       assignedToId: supportStaff2.id,
       createdAt: twoDaysAgo,
-      dueDate: calculateDueDate('PREMIUM', twoDaysAgo),
+      dueDate: calculateDueDate(TicketPriority.HIGH, twoDaysAgo),
     },
     {
       ticketNumber: 'TKT-2024-000010',
@@ -675,11 +668,10 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MINOR,
       urgency: TicketUrgency.LOW,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser1.id,
       assignedToId: supportStaff3.id,
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('STANDARD', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneDayAgo),
     },
 
     // ON HOLD TICKETS
@@ -694,11 +686,10 @@ async function main() {
       status: 'ON_HOLD',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: admin.id,
       assignedToId: supportStaff1.id,
       createdAt: oneWeekAgo,
-      dueDate: calculateDueDate('STANDARD', oneWeekAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneWeekAgo),
     },
     {
       ticketNumber: 'TKT-2024-000012',
@@ -711,11 +702,10 @@ async function main() {
       status: 'ON_HOLD',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: manager.id,
       assignedToId: supportStaff4.id,
       createdAt: twoWeeksAgo,
-      dueDate: calculateDueDate('STANDARD', twoWeeksAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, twoWeeksAgo),
     },
 
     // RESOLVED TICKETS
@@ -730,14 +720,13 @@ async function main() {
       status: 'RESOLVED',
       impact: TicketImpact.MINOR,
       urgency: TicketUrgency.LOW,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser2.id,
       assignedToId: supportStaff1.id,
       resolution:
         'Password reset link sent to user email. User has successfully reset their password and can now access their account.',
       createdAt: oneDayAgo,
       closedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000), // 12 hours ago
-      dueDate: calculateDueDate('STANDARD', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneDayAgo),
     },
     {
       ticketNumber: 'TKT-2024-000014',
@@ -750,14 +739,13 @@ async function main() {
       status: 'RESOLVED',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser3.id,
       assignedToId: supportStaff2.id,
       resolution:
         'Replaced monitor cable and updated display drivers. Monitor is now working properly.',
       createdAt: twoDaysAgo,
       closedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000), // 6 hours ago
-      dueDate: calculateDueDate('STANDARD', twoDaysAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, twoDaysAgo),
     },
 
     // CLOSED TICKETS
@@ -772,14 +760,13 @@ async function main() {
       status: 'CLOSED',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser4.id,
       assignedToId: supportStaff3.id,
       resolution:
         'Microsoft Office 365 installed successfully. User has been provided with login credentials and training materials.',
       createdAt: oneWeekAgo,
       closedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      dueDate: calculateDueDate('STANDARD', oneWeekAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneWeekAgo),
     },
     {
       ticketNumber: 'TKT-2024-000016',
@@ -792,14 +779,13 @@ async function main() {
       status: 'CLOSED',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser5.id,
       assignedToId: supportStaff4.id,
       resolution:
         'Replaced faulty network switch in marketing department. Internet connectivity is now stable.',
       createdAt: twoWeeksAgo,
       closedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      dueDate: calculateDueDate('STANDARD', twoWeeksAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, twoWeeksAgo),
     },
 
     // REOPENED TICKETS
@@ -814,12 +800,11 @@ async function main() {
       status: 'REOPENED',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser6.id,
       assignedToId: supportStaff1.id,
       createdAt: oneMonthAgo,
       closedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // Was closed 3 days ago
-      dueDate: calculateDueDate('STANDARD', oneMonthAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneMonthAgo),
     },
 
     // TICKETS ASSIGNED TO DIFFERENT USERS
@@ -834,11 +819,10 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: admin.id,
       assignedToId: manager.id, // Assigned to manager
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('PREMIUM', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.HIGH, oneDayAgo),
     },
     {
       ticketNumber: 'TKT-2024-000019',
@@ -851,11 +835,10 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.CRITICAL_SUPPORT,
       requesterId: manager.id,
       assignedToId: admin.id, // Assigned to admin
       createdAt: twoDaysAgo,
-      dueDate: calculateDueDate('CRITICAL_SUPPORT', twoDaysAgo),
+      dueDate: calculateDueDate(TicketPriority.HIGH, twoDaysAgo),
     },
     {
       ticketNumber: 'TKT-2024-000020',
@@ -868,11 +851,10 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser1.id,
       assignedToId: supportStaff2.id,
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('STANDARD', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneDayAgo),
     },
 
     // ADDITIONAL SCENARIOS
@@ -887,11 +869,10 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: endUser2.id,
       assignedToId: supportStaff3.id,
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('PREMIUM', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.HIGH, oneDayAgo),
     },
     {
       ticketNumber: 'TKT-2024-000022',
@@ -904,11 +885,10 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser3.id,
       assignedToId: supportStaff4.id,
       createdAt: twoDaysAgo,
-      dueDate: calculateDueDate('STANDARD', twoDaysAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, twoDaysAgo),
     },
     {
       ticketNumber: 'TKT-2024-000023',
@@ -921,11 +901,10 @@ async function main() {
       status: 'NEW',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser4.id,
       createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000), // 3 hours ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.MEDIUM,
         new Date(now.getTime() - 3 * 60 * 60 * 1000)
       ),
     },
@@ -940,11 +919,10 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser5.id,
       assignedToId: supportStaff1.id,
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('STANDARD', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneDayAgo),
     },
     {
       ticketNumber: 'TKT-2024-000025',
@@ -957,11 +935,10 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: endUser6.id,
       assignedToId: supportStaff2.id,
       createdAt: oneDayAgo,
-      dueDate: calculateDueDate('STANDARD', oneDayAgo),
+      dueDate: calculateDueDate(TicketPriority.MEDIUM, oneDayAgo),
     },
 
     // ADMIN-SPECIFIC TICKETS
@@ -976,7 +953,6 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.CRITICAL,
       urgency: TicketUrgency.IMMEDIATE,
-      slaLevel: SLALevel.CRITICAL_SUPPORT,
       requesterId: manager.id,
       assignedToId: admin.id,
       dueDate: new Date(now.getTime() + 24 * 60 * 60 * 1000), // Due in 1 day
@@ -993,7 +969,6 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: manager.id,
       assignedToId: admin.id,
       dueDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // Due in 2 days
@@ -1010,12 +985,11 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: admin.id,
       assignedToId: admin.id,
       createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.MEDIUM,
         new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1030,12 +1004,11 @@ async function main() {
       status: 'ON_HOLD',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: admin.id,
       assignedToId: admin.id,
       createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       dueDate: calculateDueDate(
-        'PREMIUM',
+        TicketPriority.HIGH,
         new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1050,7 +1023,6 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.CRITICAL,
       urgency: TicketUrgency.IMMEDIATE,
-      slaLevel: SLALevel.CRITICAL_SUPPORT,
       requesterId: admin.id,
       assignedToId: admin.id,
       dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // Due in 1 week
@@ -1067,12 +1039,11 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: manager.id,
       assignedToId: admin.id,
       createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
       dueDate: calculateDueDate(
-        'PREMIUM',
+        TicketPriority.HIGH,
         new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1087,7 +1058,6 @@ async function main() {
       status: 'RESOLVED',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: admin.id,
       assignedToId: admin.id,
       resolution:
@@ -1095,7 +1065,7 @@ async function main() {
       createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
       closedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.MEDIUM,
         new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1110,12 +1080,11 @@ async function main() {
       status: 'OPEN',
       impact: TicketImpact.MODERATE,
       urgency: TicketUrgency.NORMAL,
-      slaLevel: SLALevel.STANDARD,
       requesterId: admin.id,
       assignedToId: admin.id,
       createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       dueDate: calculateDueDate(
-        'STANDARD',
+        TicketPriority.MEDIUM,
         new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1130,12 +1099,11 @@ async function main() {
       status: 'ON_HOLD',
       impact: TicketImpact.MAJOR,
       urgency: TicketUrgency.HIGH,
-      slaLevel: SLALevel.PREMIUM,
       requesterId: admin.id,
       assignedToId: admin.id,
       createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
       dueDate: calculateDueDate(
-        'PREMIUM',
+        TicketPriority.HIGH,
         new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
       ),
     },
@@ -1150,7 +1118,6 @@ async function main() {
       status: 'IN_PROGRESS',
       impact: TicketImpact.CRITICAL,
       urgency: TicketUrgency.IMMEDIATE,
-      slaLevel: SLALevel.CRITICAL_SUPPORT,
       requesterId: manager.id,
       assignedToId: admin.id,
       dueDate: new Date(now.getTime() + 4 * 60 * 60 * 1000), // Due in 4 hours
@@ -1196,7 +1163,6 @@ async function main() {
         status: ticketData.status,
         impact: ticketData.impact,
         urgency: ticketData.urgency,
-        slaLevel: ticketData.slaLevel,
         dueDate: ticketData.dueDate,
         resolution: ticketData.resolution,
         closedAt: ticketData.closedAt,
@@ -2218,19 +2184,6 @@ async function main() {
       }),
       userId: admin.id,
       isPublic: false,
-    },
-    {
-      name: 'SLA Breached - Admin Review',
-      description: 'All tickets that have breached SLA and need admin review',
-      searchCriteria: JSON.stringify({
-        status: ['NEW', 'OPEN', 'IN_PROGRESS'],
-        dueDate: {
-          operator: 'lt',
-          value: new Date().toISOString(),
-        },
-      }),
-      userId: admin.id,
-      isPublic: true,
     },
   ];
 

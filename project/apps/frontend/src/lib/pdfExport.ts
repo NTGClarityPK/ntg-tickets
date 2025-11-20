@@ -118,11 +118,6 @@ async function addReportSectionsToPDF(
       selectors: ['[data-section="reports-header"]', '#report-overview-section'], 
       name: 'Header & Overview' 
     },
-    // SLA Performance section
-    { 
-      selectors: ['[data-section="sla-performance"]'], 
-      name: 'SLA Performance' 
-    },
     // Breakdown tables section
     { 
       selectors: ['#report-content-section'], 

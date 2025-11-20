@@ -36,7 +36,6 @@ const templateTypes = [
   { value: EmailTemplateType.TICKET_ASSIGNED, label: 'Ticket Assigned' },
   { value: EmailTemplateType.STATUS_CHANGED, label: 'Status Changed' },
   { value: EmailTemplateType.COMMENT_ADDED, label: 'Comment Added' },
-  { value: EmailTemplateType.SLA_WARNING, label: 'SLA Warning' },
   { value: EmailTemplateType.AUTO_CLOSE_WARNING, label: 'Auto-Close Warning' },
 ];
 

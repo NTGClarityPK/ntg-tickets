@@ -11,14 +11,12 @@ import {
   TicketPriority,
   TicketImpact,
   TicketUrgency,
-  SLALevel,
   Prisma,
 } from '@prisma/client';
 import { LoggerService } from '../../common/logger/logger.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
-import { SLAService } from '../../common/sla/sla.service';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
@@ -30,7 +28,7 @@ interface TicketFilters {
   page?: number;
   limit?: number;
   cursor?: string;
-  viewType?: 'all' | 'my' | 'assigned' | 'overdue' | 'breached-sla' | 'approaching-sla';
+  viewType?: 'all' | 'my' | 'assigned' | 'overdue';
   status?: string[];
   priority?: string[];
   category?: string[];
@@ -50,7 +48,6 @@ interface TicketUpdateData {
   priority?: TicketPriority;
   impact?: TicketImpact;
   urgency?: TicketUrgency;
-  slaLevel?: SLALevel;
   categoryId?: string;
   subcategoryId?: string;
   assignedToId?: string;
@@ -87,7 +84,6 @@ interface WorkflowDefinition {
  * - Creating, reading, updating, and deleting tickets
  * - Status management and workflow enforcement
  * - Assignment and reassignment of tickets
- * - SLA monitoring and escalation
  * - Integration with notification and search systems
  *
  * @example
@@ -104,7 +100,6 @@ export class TicketsService {
     private readonly redis: RedisService,
     private readonly notifications: NotificationsService,
     private readonly elasticsearch: ElasticsearchService,
-    private readonly slaService: SLAService,
     private readonly websocketGateway: WebSocketGateway,
     private readonly systemConfigService: SystemConfigService,
     private readonly workflowExecutionService: WorkflowExecutionService,
@@ -115,7 +110,7 @@ export class TicketsService {
    * Creates a new ticket in the system.
    *
    * This method creates a new ticket with the provided data, validates the requester,
-   * calculates priority and SLA information, and sends appropriate notifications.
+   * calculates priority information, and sends appropriate notifications.
    *
    * @param createTicketDto - The ticket data to create
    * @param userId - The ID of the user creating the ticket
@@ -220,11 +215,8 @@ export class TicketsService {
     // Generate ticket number
     const ticketNumber = await this.generateTicketNumber();
 
-    // Calculate due date based on SLA level using SLA service
-    const dueDate = this.slaService.calculateDueDate(
-      createTicketDto.slaLevel,
-      createTicketDto.priority
-    );
+    // Calculate due date based on priority (simple calculation, no SLA system)
+    const dueDate = this.calculateDueDate(createTicketDto.priority);
 
     // Find category by ID (already validated above, but need for ticket creation)
     const ticketCategory = await this.prisma.category.findUnique({
@@ -264,7 +256,6 @@ export class TicketsService {
         priority: createTicketDto.priority,
         impact: createTicketDto.impact,
         urgency: createTicketDto.urgency,
-        slaLevel: createTicketDto.slaLevel,
         requesterId: userId,
         assignedToId: assignedToId,
         dueDate,
@@ -408,30 +399,10 @@ export class TicketsService {
       }
       where.dueDate = { lt: now };
       where.status = { notIn: ['RESOLVED', 'CLOSED'] };
-    } else if (viewType === 'breached-sla') {
-      // Breached SLA tickets: dueDate < now, status not RESOLVED/CLOSED
-      // Only support staff, managers, and admins can view breached SLA tickets
-      if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
-        throw new BadRequestException(
-          'Only support staff, managers, and admins can view breached SLA tickets'
-        );
-      }
-      where.dueDate = { lt: now };
-      where.status = { notIn: ['RESOLVED', 'CLOSED'] };
-    } else if (viewType === 'approaching-sla') {
-      // Approaching SLA tickets: dueDate between now and 2 hours from now, status not RESOLVED/CLOSED
-      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-      where.dueDate = {
-        lte: twoHoursFromNow,
-        gte: now,
-      };
-      where.status = { notIn: ['RESOLVED', 'CLOSED'] };
     }
     // For 'all' viewType, no additional filtering is applied (all tickets visible)
 
     // Apply filters
-    // For SLA-related viewTypes, we need to ensure RESOLVED/CLOSED are excluded
-    // and combine with user-provided status filters if any
     if (filters.status && filters.status.length > 0) {
       const statusFilter = filters.status as (
         | 'NEW'
@@ -443,23 +414,18 @@ export class TicketsService {
         | 'REOPENED'
       )[];
       
-      // For SLA-related viewTypes, filter out RESOLVED and CLOSED from user's status filter
-      // and combine with the existing notIn condition
-      if (viewType === 'overdue' || viewType === 'breached-sla' || viewType === 'approaching-sla') {
-        // Filter out RESOLVED and CLOSED from user's status filter
+      // For overdue viewType, filter out RESOLVED and CLOSED from user's status filter
+      if (viewType === 'overdue') {
         const filteredStatuses = statusFilter.filter(s => s !== 'RESOLVED' && s !== 'CLOSED');
         if (filteredStatuses.length > 0) {
-          // Combine: status must be in filteredStatuses AND not in [RESOLVED, CLOSED]
           const existingAnd = Array.isArray(where.AND) ? where.AND : (where.AND ? [where.AND] : []);
           where.AND = [
             ...existingAnd,
             { status: { in: filteredStatuses } },
             { status: { notIn: ['RESOLVED', 'CLOSED'] } },
           ];
-          // Remove the status filter that was set by viewType since we're now using AND
           delete where.status;
         }
-        // If all statuses were filtered out, keep the existing notIn condition
       } else {
         where.status = { in: statusFilter };
       }
@@ -525,8 +491,8 @@ export class TicketsService {
 
     // Determine orderBy based on viewType
     let orderBy: Prisma.TicketOrderByWithRelationInput;
-    if (viewType === 'overdue' || viewType === 'breached-sla') {
-      // Order overdue and breached SLA tickets by dueDate ascending (most urgent first)
+    if (viewType === 'overdue') {
+      // Order overdue tickets by dueDate ascending (most urgent first)
       orderBy = { dueDate: 'asc' };
     } else {
       // Default ordering by updatedAt descending
@@ -1345,12 +1311,30 @@ export class TicketsService {
     );
   }
 
-  async getTicketsApproachingSLA() {
-    return this.slaService.getTicketsApproachingSLA();
-  }
 
-  async getBreachedSLATickets() {
-    return this.slaService.getBreachedSLATickets();
+  /**
+   * Calculate due date based on priority (simple calculation)
+   */
+  private calculateDueDate(priority: TicketPriority): Date {
+    const now = new Date();
+    let hoursToAdd = 72; // Default: 3 days
+
+    switch (priority) {
+      case 'CRITICAL':
+        hoursToAdd = 4; // 4 hours
+        break;
+      case 'HIGH':
+        hoursToAdd = 8; // 8 hours
+        break;
+      case 'MEDIUM':
+        hoursToAdd = 48; // 2 days
+        break;
+      case 'LOW':
+        hoursToAdd = 168; // 7 days
+        break;
+    }
+
+    return new Date(now.getTime() + hoursToAdd * 60 * 60 * 1000);
   }
 
   // DEPRECATED: This method is no longer used. Status transitions are now controlled by the workflow system.
@@ -2023,7 +2007,6 @@ export class TicketsService {
       status: ticket.status,
       impact: ticket.impact,
       urgency: ticket.urgency,
-      slaLevel: ticket.slaLevel,
       requester: this.transformUser(ticket.requester),
       assignedTo: ticket.assignedTo ? this.transformUser(ticket.assignedTo) : null,
       dueDate: ticket.dueDate,
@@ -2033,7 +2016,6 @@ export class TicketsService {
       createdAt: ticket.createdAt,
       updatedAt: ticket.updatedAt,
       closedAt: ticket.closedAt,
-      slaCompliance: ticket.slaCompliance,
       responseTime: ticket.responseTime,
       resolutionTime: ticket.resolutionTime,
       customFields,

@@ -14,7 +14,6 @@ import {
   TicketPriority,
   TicketImpact,
   TicketUrgency,
-  SLALevel,
 } from '@prisma/client';
 
 export class CreateTicketDto {
@@ -88,16 +87,6 @@ export class CreateTicketDto {
   @IsEnum(TicketUrgency)
   @IsOptional()
   urgency?: TicketUrgency = TicketUrgency.NORMAL;
-
-  @ApiProperty({
-    description: 'SLA level',
-    enum: SLALevel,
-    example: SLALevel.STANDARD,
-    default: SLALevel.STANDARD,
-  })
-  @IsEnum(SLALevel)
-  @IsOptional()
-  slaLevel?: SLALevel = SLALevel.STANDARD;
 
   @ApiProperty({
     description: 'ID of the user assigned to this ticket',

@@ -592,7 +592,6 @@ export class ReportsController {
               { Metric: 'Resolved', Value: resolvedTickets },
               { Metric: 'Closed', Value: closedTickets },
               { Metric: 'Overdue Tickets', Value: overdueTickets },
-              { Metric: 'SLA Breached', Value: slaBreachedTickets },
               {
                 Metric: 'Critical Priority',
                 Value: priorityBreakdown['CRITICAL'] || 0,
@@ -637,15 +636,6 @@ export class ReportsController {
                 Status: 'Compliant',
               },
             ];
-
-            const slaPerformanceSheet =
-              XLSX.utils.json_to_sheet(slaPerformanceData);
-            XLSX.utils.book_append_sheet(
-              workbook,
-              slaPerformanceSheet,
-              'SLA Performance'
-            );
-
             // Sheet 3: Tickets by Category
             const categoryData = Object.entries(categoryBreakdown).map(
               ([category, count]) => ({

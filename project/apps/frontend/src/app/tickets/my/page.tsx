@@ -92,9 +92,7 @@ export default function MyTicketsPage() {
   // Check if we need client-side filtering (resolution time or SLA breach time)
   const needsClientSideFiltering =
     typeof searchFilters.minResolutionHours === 'number' ||
-    typeof searchFilters.maxResolutionHours === 'number' ||
-    typeof searchFilters.minSlaBreachHours === 'number' ||
-    typeof searchFilters.maxSlaBreachHours === 'number';
+    typeof searchFilters.maxResolutionHours === 'number' 
 
   // Fetch tickets where user is either the requester OR assigned to
   const ticketsQuery = {
@@ -134,24 +132,6 @@ export default function MyTicketsPage() {
         typeof t.resolutionTime === 'number' ? t.resolutionTime : undefined;
       if (typeof hours !== 'number') return false;
       return hours >= minH && hours <= maxH;
-    });
-  }
-
-  if (
-    typeof searchFilters.minSlaBreachHours === 'number' ||
-    typeof searchFilters.maxSlaBreachHours === 'number'
-  ) {
-    const minB = searchFilters.minSlaBreachHours ?? 0;
-    const maxB = searchFilters.maxSlaBreachHours ?? Number.POSITIVE_INFINITY;
-    allMyTickets = allMyTickets.filter(t => {
-      if (!t.dueDate || !t.closedAt) return false;
-      const due = new Date(t.dueDate).getTime();
-      const closed = new Date(t.closedAt).getTime();
-      if (isNaN(due) || isNaN(closed)) return false;
-      // Breach if closed after due
-      if (closed <= due) return false;
-      const breachHours = (closed - due) / (1000 * 60 * 60);
-      return breachHours >= minB && breachHours <= maxB;
     });
   }
 
@@ -392,7 +372,6 @@ export default function MyTicketsPage() {
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
           urgency: (searchFilters.urgency as string[]) || [],
-          slaLevel: (searchFilters.slaLevel as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom:

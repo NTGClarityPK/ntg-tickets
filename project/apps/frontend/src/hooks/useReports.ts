@@ -29,16 +29,6 @@ export function useUserReport(filters?: ReportFilters) {
   });
 }
 
-export function useSlaReport(filters?: ReportFilters) {
-  return useQuery({
-    queryKey: ['sla-report', filters],
-    queryFn: async () => {
-      const response = await reportsApi.getSlaReport(filters);
-      return response.data.data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
 
 export function useSystemMetrics() {
   return useQuery({

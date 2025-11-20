@@ -28,15 +28,3 @@ export {
   canDeleteTickets,
 } from './permissions.utils';
 
-// SLA utilities
-export {
-  isTicketOverdue,
-  hasTicketBreachedSLA,
-  getSlaBreachHours,
-  getResolutionTimeHours,
-  filterOverdueTickets,
-  filterSlaBreachedTickets,
-  calculateSlaCompliance,
-  getTimeRemainingHours,
-} from './sla.utils';
-

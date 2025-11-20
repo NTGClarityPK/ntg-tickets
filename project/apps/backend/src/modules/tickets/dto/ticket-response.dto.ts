@@ -158,9 +158,6 @@ export class TicketResponseDto {
   @ApiProperty()
   urgency: string;
 
-  @ApiProperty()
-  slaLevel: string;
-
   @ApiProperty({ type: () => TicketUserDto })
   requester: TicketUserDto;
 
@@ -187,9 +184,6 @@ export class TicketResponseDto {
 
   @ApiProperty({ nullable: true, required: false })
   closedAt?: Date | null;
-
-  @ApiProperty({ nullable: true, required: false })
-  slaCompliance?: number | null;
 
   @ApiProperty({ nullable: true, required: false })
   responseTime?: number | null;

@@ -30,7 +30,6 @@ import {
   TicketCategory,
   TicketImpact,
   TicketUrgency,
-  SlaLevel,
 } from '../../../../types/unified';
 import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
@@ -56,7 +55,6 @@ export default function EditTicketPage() {
       priority: ticket?.priority || TicketPriority.MEDIUM,
       impact: ticket?.impact || TicketImpact.MODERATE,
       urgency: ticket?.urgency || TicketUrgency.NORMAL,
-      slaLevel: ticket?.slaLevel || SlaLevel.STANDARD,
       status: ticket?.status || TicketStatus.NEW,
       resolution: ticket?.resolution || '',
     }),
@@ -283,18 +281,6 @@ export default function EditTicketPage() {
                         label: (urg as string).replace('_', ' '),
                       }))}
                       {...form.getInputProps('urgency')}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={4}>
-                    <Select
-                      label='SLA Level'
-                      placeholder='Select SLA level'
-                      required
-                      data={Object.values(SlaLevel).map(sla => ({
-                        value: sla as string,
-                        label: (sla as string).replace('_', ' '),
-                      }))}
-                      {...form.getInputProps('slaLevel')}
                     />
                   </Grid.Col>
                 </Grid>

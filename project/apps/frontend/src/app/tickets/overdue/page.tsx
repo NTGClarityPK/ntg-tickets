@@ -326,7 +326,6 @@ function OverdueTicketsPageContent() {
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
           urgency: (searchFilters.urgency as string[]) || [],
-          slaLevel: (searchFilters.slaLevel as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom: searchFilters.dateFrom || undefined,

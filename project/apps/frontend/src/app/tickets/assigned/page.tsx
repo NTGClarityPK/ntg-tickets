@@ -110,7 +110,7 @@ function AssignedTicketsPageContent() {
   let assignedTickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination;
 
-  // Client-side filters for resolution time and SLA breach duration (hours)
+  // Client-side filters for resolution time (hours)
   if (
     typeof searchFilters.minResolutionHours === 'number' ||
     typeof searchFilters.maxResolutionHours === 'number'
@@ -123,23 +123,6 @@ function AssignedTicketsPageContent() {
         typeof t.resolutionTime === 'number' ? t.resolutionTime : undefined;
       if (typeof hours !== 'number') return false;
       return hours >= minH && hours <= maxH;
-    });
-  }
-
-  if (
-    typeof searchFilters.minSlaBreachHours === 'number' ||
-    typeof searchFilters.maxSlaBreachHours === 'number'
-  ) {
-    const minB = searchFilters.minSlaBreachHours ?? 0;
-    const maxB = searchFilters.maxSlaBreachHours ?? Number.POSITIVE_INFINITY;
-    assignedTickets = assignedTickets.filter(t => {
-      if (!t.dueDate || !t.closedAt) return false;
-      const due = new Date(t.dueDate).getTime();
-      const closed = new Date(t.closedAt).getTime();
-      if (isNaN(due) || isNaN(closed)) return false;
-      if (closed <= due) return false;
-      const breachHours = (closed - due) / (1000 * 60 * 60);
-      return breachHours >= minB && breachHours <= maxB;
     });
   }
 
@@ -353,7 +336,6 @@ function AssignedTicketsPageContent() {
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
           urgency: (searchFilters.urgency as string[]) || [],
-          slaLevel: (searchFilters.slaLevel as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom: searchFilters.dateFrom || undefined,
@@ -362,10 +344,6 @@ function AssignedTicketsPageContent() {
             .minResolutionHours,
           maxResolutionTime: (searchFilters as { maxResolutionHours?: number })
             .maxResolutionHours,
-          minSlaBreachTime: (searchFilters as { minSlaBreachHours?: number })
-            .minSlaBreachHours,
-          maxSlaBreachTime: (searchFilters as { maxSlaBreachHours?: number })
-            .maxSlaBreachHours,
         }}
         onSearch={advancedFilters => {
           const searchCriteria = {
@@ -375,7 +353,6 @@ function AssignedTicketsPageContent() {
             category: advancedFilters.category || [],
             impact: advancedFilters.impact || [],
             urgency: advancedFilters.urgency || [],
-            slaLevel: advancedFilters.slaLevel || [],
             assignedTo: advancedFilters.assignedTo || [],
             requester: advancedFilters.requester || [],
             dateFrom: advancedFilters.createdFrom || null,
@@ -384,8 +361,6 @@ function AssignedTicketsPageContent() {
             customFields: advancedFilters.customFields || {},
             minResolutionHours: advancedFilters.minResolutionTime,
             maxResolutionHours: advancedFilters.maxResolutionTime,
-            minSlaBreachHours: advancedFilters.minSlaBreachTime,
-            maxSlaBreachHours: advancedFilters.maxSlaBreachTime,
           };
           updateFilters(searchCriteria);
           if (advancedFilters.query) addRecentSearch(advancedFilters.query);

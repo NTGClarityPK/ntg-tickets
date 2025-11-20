@@ -55,7 +55,6 @@ export default function CreateTicketPage() {
         priority: values.priority as CreateTicketInput['priority'],
         impact: values.impact as CreateTicketInput['impact'],
         urgency: values.urgency as CreateTicketInput['urgency'],
-        slaLevel: values.slaLevel as CreateTicketInput['slaLevel'],
         customFields: (values.customFields || {}) as Record<string, string | number | boolean>,
       };
 

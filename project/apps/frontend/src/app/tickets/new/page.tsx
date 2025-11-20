@@ -124,9 +124,7 @@ export default function NewTicketsPage() {
   // Check if we need client-side filtering (resolution time or SLA breach time)
   const needsClientSideFiltering =
     typeof searchFilters.minResolutionHours === 'number' ||
-    typeof searchFilters.maxResolutionHours === 'number' ||
-    typeof searchFilters.minSlaBreachHours === 'number' ||
-    typeof searchFilters.maxSlaBreachHours === 'number';
+    typeof searchFilters.maxResolutionHours === 'number'
 
   const ticketsQuery = {
     ...searchQuery,
@@ -206,24 +204,6 @@ export default function NewTicketsPage() {
         typeof t.resolutionTime === 'number' ? t.resolutionTime : undefined;
       if (typeof hours !== 'number') return false;
       return hours >= minH && hours <= maxH;
-    });
-  }
-
-  // Client-side filters for SLA breach time (in hours)
-  if (
-    typeof searchFilters.minSlaBreachHours === 'number' ||
-    typeof searchFilters.maxSlaBreachHours === 'number'
-  ) {
-    const minB = searchFilters.minSlaBreachHours ?? 0;
-    const maxB = searchFilters.maxSlaBreachHours ?? Number.POSITIVE_INFINITY;
-    allFilteredTickets = allFilteredTickets.filter(t => {
-      // Only include CLOSED tickets when filtering by SLA breach time
-      if (t.status !== 'CLOSED') return false;
-      if (!t.closedAt || !t.dueDate) return false;
-      const breachHours =
-        (new Date(t.closedAt).getTime() - new Date(t.dueDate).getTime()) /
-        (1000 * 60 * 60);
-      return breachHours >= minB && breachHours <= maxB;
     });
   }
 
@@ -533,7 +513,6 @@ export default function NewTicketsPage() {
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
           urgency: (searchFilters.urgency as string[]) || [],
-          slaLevel: (searchFilters.slaLevel as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom:

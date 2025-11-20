@@ -12,7 +12,6 @@ import {
   Card,
   Avatar,
   Timeline,
-  Progress,
 } from '@mantine/core';
 import { AreaChart } from '@mantine/charts';
 import { IconTicket } from '@tabler/icons-react';
@@ -70,73 +69,6 @@ export function ManagerDashboardPresenter({
             </Card>
           ))}
         </div>
-
-        {/* Performance Metrics */}
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 12 }}>
-            <Paper withBorder p='md'>
-              <Title order={3} mb='md'>
-                SLA Performance
-              </Title>
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Response Time (Last 30 days)
-                    </Text>
-                    <Progress
-                      value={metrics.slaMetrics?.responseTime || 0}
-                      size='lg'
-                      style={{ '--progress-color': themeColors.primaryLight }}
-                    />
-                    <Text size='sm' mt={4}>
-                      {metrics.slaMetrics?.responseTime !== undefined
-                        ? `${metrics.slaMetrics.responseTime}%`
-                        : 'Loading...'}{' '}
-                      within SLA
-                    </Text>
-                  </div>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Resolution Time (Last 30 days)
-                    </Text>
-                    <Progress
-                      value={metrics.slaMetrics?.resolutionTime || 0}
-                      size='lg'
-                      style={{ '--progress-color': themeColors.primaryDark }}
-                    />
-                    <Text size='sm' mt={4}>
-                      {metrics.slaMetrics?.resolutionTime !== undefined
-                        ? `${metrics.slaMetrics.resolutionTime}%`
-                        : 'Loading...'}{' '}
-                      within SLA
-                    </Text>
-                  </div>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Customer Satisfaction
-                    </Text>
-                    <Progress
-                      value={metrics.slaMetrics?.customerSatisfaction || 92}
-                      size='lg'
-                      style={{ '--progress-color': themeColors.primaryLighter }}
-                    />
-                    <Text size='sm' mt={4}>
-                      {(
-                        (metrics.slaMetrics?.customerSatisfaction || 92) / 20
-                      ).toFixed(1)}
-                      /5.0 average
-                    </Text>
-                  </div>
-                </Grid.Col>
-              </Grid>
-            </Paper>
-          </Grid.Col>
-        </Grid>
 
         {/* Charts */}
         <Grid>

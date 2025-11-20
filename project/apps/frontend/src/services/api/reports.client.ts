@@ -4,7 +4,6 @@ import {
   ReportFilters,
   ReportData,
   User,
-  SlaMetrics,
   SystemMetrics,
   UserDistribution,
 } from '../../types/unified';
@@ -15,7 +14,6 @@ export interface UserReportResponse {
 }
 
 export interface SlaReportResponse {
-  slaMetrics: SlaMetrics;
   compliance: number;
   violations: number;
 }

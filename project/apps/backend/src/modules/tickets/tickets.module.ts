@@ -9,7 +9,6 @@ import { LoggerModule } from '../../common/logger/logger.module';
 import { RedisModule } from '../../common/redis/redis.module';
 import { ElasticsearchModule } from '../elasticsearch/elasticsearch.module';
 import { AuthModule } from '../auth/auth.module';
-import { SLAModule } from '../../common/sla/sla.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { WorkflowsModule } from '../workflows/workflows.module';
 
@@ -22,7 +21,6 @@ import { WorkflowsModule } from '../workflows/workflows.module';
     RedisModule,
     ElasticsearchModule,
     AuthModule,
-    SLAModule,
     WebSocketModule,
     WorkflowsModule,
   ],

@@ -22,8 +22,6 @@ import {
   IconFileText,
   IconClipboardList,
   IconMail,
-  IconClock,
-  IconExclamationMark,
 } from '@tabler/icons-react';
 import { RTLChevronDown, RTLChevronRight } from '../ui/RTLIcon';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -69,15 +67,6 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
 
   // Use React Query data for accurate counts, fallback to store data
   const allTickets = allTicketsData || safeTickets;
-
-  // Debug logging removed for production
-  const slaBreachedTickets = safeTickets.filter((t: Ticket) => {
-    if (!t.dueDate) return false;
-    return (
-      new Date(t.dueDate) < new Date() &&
-      !['RESOLVED', 'CLOSED'].includes(t.status)
-    );
-  });
 
   // Essential navigation items (always visible) - sorted by importance and frequency
   const essentialItems: Array<{
@@ -131,13 +120,6 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       badge: user ? safeTickets.filter((t: Ticket) => 
         t.requester?.id === user.id || t.assignedTo?.id === user.id
       ).length : 0,
-    },
-    {
-      label: tTickets('slaBreached'),
-      icon: IconExclamationMark,
-      href: '/tickets/sla-breached',
-      show: hasRole('SUPPORT_MANAGER'), // Only for support managers
-      badge: slaBreachedTickets.length,
     },
     {
       label: tTickets('createTicket'),
@@ -197,14 +179,6 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       href: '/admin/workflows',
       show: hasRole('ADMIN'),
     },
-    {
-      label: tTickets('slaLevel'),
-      icon: IconClock,
-      href: '/admin/sla',
-      show: hasRole('ADMIN'),
-    },
-    // System Management
-    // Administration Features
   ];
 
   const isActive = (href: string) => {

@@ -9,7 +9,6 @@ import {
   IconTicket,
 } from '@tabler/icons-react';
 import { useTickets } from '../../../hooks/useTickets';
-import { useTicketReport } from '../../../hooks/useReports';
 import { useAuthUser } from '../../../stores/useAuthStore';
 import { Ticket } from '../../../types/unified';
 import { useTranslations } from 'next-intl';
@@ -17,7 +16,6 @@ import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { SupportStaffDashboardPresenter } from '../presenters/SupportStaffDashboardPresenter';
 import { SupportStaffDashboardMetrics } from '../types/dashboard.types';
-import { filterOverdueTickets, filterSlaBreachedTickets } from '../../../lib/utils';
 
 export function SupportStaffDashboardContainer() {
   const t = useTranslations('dashboard');
@@ -27,7 +25,6 @@ export function SupportStaffDashboardContainer() {
 
   const user = useAuthUser();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
-  const { data: reportData } = useTicketReport({ userId: user?.id });
 
   const metrics = useMemo((): SupportStaffDashboardMetrics => {
     const assignedTickets =
@@ -40,8 +37,12 @@ export function SupportStaffDashboardContainer() {
     const resolvedTickets = assignedTickets.filter(
       (ticket: Ticket) => ticket.status === 'RESOLVED'
     );
-    const overdueTickets = filterOverdueTickets(assignedTickets);
-    const slaBreachedTickets = filterSlaBreachedTickets(assignedTickets);
+    const overdueTickets = assignedTickets.filter((ticket: Ticket) => {
+      if (!ticket.dueDate || ['RESOLVED', 'CLOSED'].includes(ticket.status)) {
+        return false;
+      }
+      return new Date(ticket.dueDate) < new Date();
+    });
 
     const stats = [
       {
@@ -68,12 +69,6 @@ export function SupportStaffDashboardContainer() {
         icon: IconAlertCircle,
         color: primaryLight,
       },
-      {
-        title: 'SLA Breached',
-        value: slaBreachedTickets.length,
-        icon: IconAlertCircle,
-        color: primaryLight,
-      },
     ];
 
     const recentTickets = assignedTickets.slice(0, 5).map((ticket: Ticket) => ({
@@ -86,10 +81,9 @@ export function SupportStaffDashboardContainer() {
 
     return {
       stats,
-      slaMetrics: reportData?.slaMetrics,
       recentTickets,
     };
-  }, [tickets, user?.id, reportData, primaryLight]);
+  }, [tickets, user?.id, primaryLight]);
 
   if (ticketsLoading) {
     return (

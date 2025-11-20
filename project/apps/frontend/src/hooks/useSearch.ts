@@ -18,7 +18,6 @@ export const useSearch = () => {
     category: [],
     impact: [],
     urgency: [],
-    slaLevel: [],
     assignedTo: [],
     requester: [],
     dateFrom: null,
@@ -27,8 +26,6 @@ export const useSearch = () => {
     customFields: {},
     minResolutionHours: undefined,
     maxResolutionHours: undefined,
-    minSlaBreachHours: undefined,
-    maxSlaBreachHours: undefined,
   });
 
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
@@ -88,7 +85,6 @@ export const useSearch = () => {
       category: [],
       impact: [],
       urgency: [],
-      slaLevel: [],
       assignedTo: [],
       requester: [],
       dateFrom: null,
@@ -97,8 +93,6 @@ export const useSearch = () => {
       customFields: {},
       minResolutionHours: undefined,
       maxResolutionHours: undefined,
-      minSlaBreachHours: undefined,
-      maxSlaBreachHours: undefined,
     });
   }, []);
 
@@ -205,9 +199,7 @@ export const useSearch = () => {
       filters.dateTo ||
       (filters.tags && filters.tags.length > 0) ||
       typeof filters.minResolutionHours === 'number' ||
-      typeof filters.maxResolutionHours === 'number' ||
-      typeof filters.minSlaBreachHours === 'number' ||
-      typeof filters.maxSlaBreachHours === 'number'
+      typeof filters.maxResolutionHours === 'number'
     );
   }, [filters]);
 

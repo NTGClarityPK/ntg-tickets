@@ -15,13 +15,11 @@ export enum TicketViewType {
   MY = 'my',
   ASSIGNED = 'assigned',
   OVERDUE = 'overdue',
-  BREACHED_SLA = 'breached-sla',
-  APPROACHING_SLA = 'approaching-sla',
 }
 
 export class TicketFiltersDto {
   @ApiProperty({
-    description: 'View type: all, my (created by or assigned to me), assigned, overdue, breached-sla, or approaching-sla',
+    description: 'View type: all, my (created by or assigned to me), assigned, or overdue',
     enum: TicketViewType,
     example: TicketViewType.ALL,
     required: false,

@@ -10,7 +10,6 @@ import { useState } from 'react';
 import { ManagerAndAdmin } from '../../../components/guards/RouteGuard';
 import {
   Container,
-  Title,
   Button,
   Group,
   Text,
@@ -34,7 +33,6 @@ import {
 } from '@tabler/icons-react';
 import {
   useTicketsWithPagination,
-  useTotalTicketsCount,
 } from '../../../hooks/useTickets';
 import { useRouter } from 'next/navigation';
 import { SearchBar } from '../../../components/search/SearchBar';
@@ -73,9 +71,6 @@ function SLABreachedTicketsPageContent() {
 
   const { data: ticketsData, isFetching } =
     useTicketsWithPagination(ticketsQuery);
-
-  // Get total count of all tickets (no filters)
-  const { data: totalTicketsCount } = useTotalTicketsCount();
 
   // Apply client-side SLA breach filtering
   let allBreachedTickets = ticketsData?.tickets || [];
@@ -120,19 +115,6 @@ function SLABreachedTicketsPageContent() {
 
   return (
     <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={2}>SLA Breached Tickets</Title>
-          <Text c='dimmed' size='sm'>
-            Tickets that have severely breached their SLA deadlines
-          </Text>
-          {hasActiveFilters() && (
-            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
-              Showing {tickets.length} of {totalTicketsCount || 0} tickets
-            </Text>
-          )}
-        </div>
-      </Group>
 
       <Grid mb='md'>
         <Grid.Col span={{ base: 12, md: 6 }}>
@@ -185,14 +167,6 @@ function SLABreachedTicketsPageContent() {
         {tickets.map((ticket: Ticket) => (
           <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
             <Group justify='space-between' mb='sm'>
-              <Group gap='sm'>
-                <Badge variant='light' color={theme.colors[theme.primaryColor][9]}>
-                  SLA Breached
-                </Badge>
-                <Text size='sm' c='dimmed'>
-                  {ticket.ticketNumber}
-                </Text>
-              </Group>
               <Menu shadow='md' width={200}>
                 <Menu.Target>
                   <ActionIcon variant='subtle'>
@@ -310,7 +284,6 @@ function SLABreachedTicketsPageContent() {
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
           urgency: (searchFilters.urgency as string[]) || [],
-          slaLevel: (searchFilters.slaLevel as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom: searchFilters.dateFrom || undefined,

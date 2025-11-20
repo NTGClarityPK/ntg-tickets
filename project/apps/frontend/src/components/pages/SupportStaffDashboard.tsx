@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import {
   Container,
-  Grid,
   Paper,
   Title,
   Text,
@@ -13,7 +12,6 @@ import {
   Badge,
   Card,
   Avatar,
-  Progress,
   Loader,
   Timeline,
 } from '@mantine/core';
@@ -25,7 +23,6 @@ import {
   IconTicket,
 } from '@tabler/icons-react';
 import { useTickets } from '../../hooks/useTickets';
-import { useTicketReport } from '../../hooks/useReports';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { Ticket } from '../../types/unified';
 import { useTranslations } from 'next-intl';
@@ -35,11 +32,10 @@ import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 export function SupportStaffDashboard() {
   const t = useTranslations('dashboard');
   const router = useRouter();
-  const { primaryLight, primaryDark, primaryLighter, primaryDarker } = useDynamicTheme();
+  const { primaryLight, primaryDarker } = useDynamicTheme();
 
   const { user } = useAuthStore();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
-  const { data: reportData } = useTicketReport({ userId: user?.id });
 
   const assignedTickets = useMemo(
     () =>
@@ -60,10 +56,6 @@ export function SupportStaffDashboard() {
       new Date(ticket.dueDate) < new Date() &&
       !['RESOLVED', 'CLOSED'].includes(ticket.status)
     );
-  });
-  const slaBreachedTickets = assignedTickets.filter((ticket: Ticket) => {
-    if (!ticket.dueDate || !ticket.closedAt) return false;
-    return new Date(ticket.closedAt) > new Date(ticket.dueDate);
   });
 
   const stats = [
@@ -88,12 +80,6 @@ export function SupportStaffDashboard() {
     {
       title: 'Overdue',
       value: overdueTickets.length,
-      icon: IconAlertCircle,
-      color: primaryLight,
-    },
-    {
-      title: 'SLA Breached',
-      value: slaBreachedTickets.length,
       icon: IconAlertCircle,
       color: primaryLight,
     },
@@ -160,69 +146,6 @@ export function SupportStaffDashboard() {
             </Card>
           ))}
         </div>
-
-        {/* SLA Compliance */}
-        <Paper withBorder p='md'>
-          <Title order={3} mb='md'>
-            SLA Compliance
-          </Title>
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Response Time (Last 30 days)
-                </Text>
-                <Progress
-                  value={reportData?.slaMetrics?.responseTime || 0}
-                  size='lg'
-                      style={{ '--progress-color': primaryLight }}
-                />
-                <Text size='sm' mt={4}>
-                  {reportData?.slaMetrics?.responseTime !== undefined
-                    ? `${reportData.slaMetrics.responseTime}%`
-                    : 'Loading...'}{' '}
-                  within SLA
-                </Text>
-              </div>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Resolution Time (Last 30 days)
-                </Text>
-                <Progress
-                  value={reportData?.slaMetrics?.resolutionTime || 0}
-                  size='lg'
-                      style={{ '--progress-color': primaryDark }}
-                />
-                <Text size='sm' mt={4}>
-                  {reportData?.slaMetrics?.resolutionTime !== undefined
-                    ? `${reportData.slaMetrics.resolutionTime}%`
-                    : 'Loading...'}{' '}
-                  within SLA
-                </Text>
-              </div>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Customer Satisfaction
-                </Text>
-                <Progress
-                  value={reportData?.slaMetrics?.customerSatisfaction || 92}
-                  size='lg'
-                      style={{ '--progress-color': primaryLighter }}
-                />
-                <Text size='sm' mt={4}>
-                  {(
-                    (reportData?.slaMetrics?.customerSatisfaction || 92) / 20
-                  ).toFixed(1)}
-                  /5.0 average
-                </Text>
-              </div>
-            </Grid.Col>
-          </Grid>
-        </Paper>
 
 
         {/* Recent Activity */}

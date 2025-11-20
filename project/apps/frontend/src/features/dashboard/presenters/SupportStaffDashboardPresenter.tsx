@@ -2,7 +2,6 @@
 
 import {
   Container,
-  Grid,
   Paper,
   Title,
   Text,
@@ -12,7 +11,6 @@ import {
   Badge,
   Card,
   Avatar,
-  Progress,
   Timeline,
 } from '@mantine/core';
 import { IconSearch, IconTicket } from '@tabler/icons-react';
@@ -86,69 +84,6 @@ export function SupportStaffDashboardPresenter({
             </Card>
           ))}
         </div>
-
-        {/* SLA Compliance */}
-        <Paper withBorder p='md'>
-          <Title order={3} mb='md'>
-            SLA Compliance
-          </Title>
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Response Time (Last 30 days)
-                </Text>
-                <Progress
-                  value={metrics.slaMetrics?.responseTime || 0}
-                  size='lg'
-                  style={{ '--progress-color': themeColors.primaryLight }}
-                />
-                <Text size='sm' mt={4}>
-                  {metrics.slaMetrics?.responseTime !== undefined
-                    ? `${metrics.slaMetrics.responseTime}%`
-                    : 'Loading...'}{' '}
-                  within SLA
-                </Text>
-              </div>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Resolution Time (Last 30 days)
-                </Text>
-                <Progress
-                  value={metrics.slaMetrics?.resolutionTime || 0}
-                  size='lg'
-                  style={{ '--progress-color': themeColors.primaryDark }}
-                />
-                <Text size='sm' mt={4}>
-                  {metrics.slaMetrics?.resolutionTime !== undefined
-                    ? `${metrics.slaMetrics.resolutionTime}%`
-                    : 'Loading...'}{' '}
-                  within SLA
-                </Text>
-              </div>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <div>
-                <Text size='sm' c='dimmed' mb={4}>
-                  Customer Satisfaction
-                </Text>
-                <Progress
-                  value={metrics.slaMetrics?.customerSatisfaction || 92}
-                  size='lg'
-                  style={{ '--progress-color': themeColors.primaryLighter }}
-                />
-                <Text size='sm' mt={4}>
-                  {(
-                    (metrics.slaMetrics?.customerSatisfaction || 92) / 20
-                  ).toFixed(1)}
-                  /5.0 average
-                </Text>
-              </div>
-            </Grid.Col>
-          </Grid>
-        </Paper>
 
         {/* Recent Activity */}
         <Paper withBorder p='md'>

@@ -31,7 +31,7 @@ This tracker mirrors the items in `audit_findings.md` and records what has been 
 - ✅ Improve state management (selectors, shared stores)
 
 ## Cross-cutting
-- ✅ Establish shared utilities (formatting, permissions, SLA helpers)
+- ✅ Establish shared utilities (formatting, permissions,  helpers)
 - ✅ Document schema and refactor plan for Supabase migration
 
 ---

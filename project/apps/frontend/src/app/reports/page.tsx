@@ -20,7 +20,6 @@ import {
   Badge,
   Paper,
   Tooltip,
-  Progress,
 } from '@mantine/core';
 import {
   IconRefresh,
@@ -38,7 +37,7 @@ import {
   IconInfoCircle,
   IconKey,
 } from '@tabler/icons-react';
-import { useSlaReport, useExportReport } from '../../hooks/useReports';
+import { useExportReport } from '../../hooks/useReports';
 import { useMediaQuery } from '@mantine/hooks';
 import { useUsers } from '../../hooks/useUsers';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -115,12 +114,6 @@ export default function ReportsPage() {
 
   // For Support Manager and Admin, use the same approach as Manager Dashboard
   const { data: allTicketsForStats } = useAllTicketsForCounting();
-  const { data: slaReport } = useSlaReport({
-    ...filters,
-    assignedTo:
-      user?.activeRole === 'SUPPORT_STAFF' ? user.id : filters.assignedTo,
-  });
-
   // Load active categories for filtering
   const { data: categories = [] } = useActiveCategories();
   
@@ -265,10 +258,6 @@ export default function ReportsPage() {
       new Date(ticket.dueDate) < new Date() &&
       !['RESOLVED', 'CLOSED'].includes(ticket.status)
     );
-  });
-  const slaBreachedTickets = filteredTickets.filter((ticket: Ticket) => {
-    if (!ticket.dueDate || !ticket.closedAt) return false;
-    return new Date(ticket.closedAt) > new Date(ticket.dueDate);
   });
   const closedTickets = filteredTickets.filter(
     (ticket: Ticket) => ticket.status === 'CLOSED'
@@ -968,14 +957,6 @@ export default function ReportsPage() {
               tooltip:
                 'Tickets that have passed their due date and are not yet resolved',
             },
-            {
-              title: 'SLA Breached',
-              value: slaBreachedTickets.length,
-              icon: IconAlertCircle,
-              color: primaryLight,
-              tooltip:
-                'Tickets that exceeded their due date before being resolved',
-            },
             // Additional breakdown boxes
             {
               title: 'Critical Priority',
@@ -1174,73 +1155,6 @@ export default function ReportsPage() {
               ))}
             </Grid>
           </div>
-
-          {/* SLA Performance Section - Support Staff and Manager */}
-          {['SUPPORT_STAFF', 'SUPPORT_MANAGER'].includes(
-            user?.activeRole || ''
-          ) && (
-            <Paper withBorder p='md' data-section="sla-performance">
-              <Title order={3} mb='md'>
-                SLA Performance
-              </Title>
-              <Grid>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Response Time (Last 30 days)
-                    </Text>
-                    <Progress
-                      value={slaReport?.slaMetrics?.responseTime || 0}
-                      style={{ '--progress-color': primaryLight }}
-                      size='lg'
-                    />
-                    <Text size='sm' mt={4}>
-                      {slaReport?.slaMetrics?.responseTime !== undefined
-                        ? `${slaReport.slaMetrics.responseTime}%`
-                        : 'Loading...'}{' '}
-                      within SLA
-                    </Text>
-                  </div>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Resolution Time (Last 30 days)
-                    </Text>
-                    <Progress
-                      value={slaReport?.slaMetrics?.resolutionTime || 0}
-                      style={{ '--progress-color': primaryLight }}
-                      size='lg'
-                    />
-                    <Text size='sm' mt={4}>
-                      {slaReport?.slaMetrics?.resolutionTime !== undefined
-                        ? `${slaReport.slaMetrics.resolutionTime}%`
-                        : 'Loading...'}{' '}
-                      within SLA
-                    </Text>
-                  </div>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <div>
-                    <Text size='sm' c='dimmed' mb={4}>
-                      Customer Satisfaction
-                    </Text>
-                    <Progress
-                      value={slaReport?.slaMetrics?.customerSatisfaction || 92}
-                      style={{ '--progress-color': primaryLight }}
-                      size='lg'
-                    />
-                    <Text size='sm' mt={4}>
-                      {(
-                        (slaReport?.slaMetrics?.customerSatisfaction || 92) / 20
-                      ).toFixed(1)}
-                      /5.0 average
-                    </Text>
-                  </div>
-                </Grid.Col>
-              </Grid>
-            </Paper>
-          )}
 
           {/* Breakdown Tables - Support Staff and Manager */}
           {['SUPPORT_STAFF', 'SUPPORT_MANAGER'].includes(
@@ -1492,22 +1406,6 @@ export default function ReportsPage() {
                           Overdue
                           <Tooltip
                             label='Open tickets that have passed their due date'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          SLA Breached
-                          <Tooltip
-                            label='Resolved tickets that exceeded their due date'
                             position='top'
                             withArrow
                           >

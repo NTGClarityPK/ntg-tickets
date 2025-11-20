@@ -6,13 +6,11 @@ import {
   IconClock,
   IconCheck,
   IconAlertCircle,
-  IconAlertTriangle,
   IconTicket,
 } from '@tabler/icons-react';
 import {
   useTotalTicketsCount,
   useAllTicketsForCounting,
-  useBreachedSLATickets,
 } from '../../../hooks/useTickets';
 import { useTicketReport } from '../../../hooks/useReports';
 import { Ticket } from '../../../types/unified';
@@ -20,7 +18,6 @@ import { useTranslations } from 'next-intl';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { ManagerDashboardPresenter } from '../presenters/ManagerDashboardPresenter';
 import { ManagerDashboardMetrics } from '../types/dashboard.types';
-import { filterOverdueTickets } from '../../../lib/utils';
 
 export function ManagerDashboardContainer() {
   const t = useTranslations('dashboard');
@@ -31,7 +28,6 @@ export function ManagerDashboardContainer() {
   const { data: allTicketsForStats, isLoading: ticketsLoading } =
     useAllTicketsForCounting();
   const { data: reportData } = useTicketReport();
-  const { data: slaBreachedTickets } = useBreachedSLATickets();
 
   const metrics = useMemo((): ManagerDashboardMetrics => {
     const openTickets =
@@ -43,7 +39,12 @@ export function ManagerDashboardContainer() {
         (ticket: Ticket) => ticket.status === 'RESOLVED'
       ) || [];
 
-    const overdueTickets = filterOverdueTickets(allTicketsForStats || []);
+    const overdueTickets = (allTicketsForStats || []).filter((ticket: Ticket) => {
+      if (!ticket.dueDate || ['RESOLVED', 'CLOSED'].includes(ticket.status)) {
+        return false;
+      }
+      return new Date(ticket.dueDate) < new Date();
+    });
 
     const stats = [
       {
@@ -70,12 +71,6 @@ export function ManagerDashboardContainer() {
         icon: IconAlertCircle,
         color: primaryLight,
       },
-      {
-        title: 'SLA Breached',
-        value: slaBreachedTickets?.length || 0,
-        icon: IconAlertTriangle,
-        color: primaryLight,
-      },
     ];
 
     const recentTickets = (allTicketsForStats?.slice(0, 5) || []).map(
@@ -91,13 +86,11 @@ export function ManagerDashboardContainer() {
     return {
       stats,
       ticketTrendData: reportData?.ticketTrendData || [],
-      slaMetrics: reportData?.slaMetrics,
       recentTickets,
     };
   }, [
     allTicketsForStats,
     totalTicketsCount,
-    slaBreachedTickets,
     reportData,
     primaryLight,
     t,

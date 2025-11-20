@@ -13,11 +13,6 @@ export interface EndUserDashboardMetrics {
 export interface ManagerDashboardMetrics {
   stats: StatCard[];
   ticketTrendData: Array<{ month: string; tickets: number; resolved: number }>;
-  slaMetrics?: {
-    responseTime?: number;
-    resolutionTime?: number;
-    customerSatisfaction?: number;
-  };
   recentTickets: Array<{
     id: string;
     title: string;
@@ -29,11 +24,6 @@ export interface ManagerDashboardMetrics {
 
 export interface SupportStaffDashboardMetrics {
   stats: StatCard[];
-  slaMetrics?: {
-    responseTime?: number;
-    resolutionTime?: number;
-    customerSatisfaction?: number;
-  };
   recentTickets: Array<{
     id: string;
     title: string;

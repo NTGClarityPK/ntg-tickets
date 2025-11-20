@@ -48,11 +48,6 @@ export enum TicketUrgency {
   IMMEDIATE = 'IMMEDIATE',
 }
 
-export enum SlaLevel {
-  STANDARD = 'STANDARD',
-  PREMIUM = 'PREMIUM',
-  CRITICAL_SUPPORT = 'CRITICAL_SUPPORT',
-}
 
 export enum CustomFieldType {
   TEXT = 'TEXT',
@@ -131,7 +126,6 @@ export interface Ticket {
   status: TicketStatus;
   impact: TicketImpact;
   urgency: TicketUrgency;
-  slaLevel: SlaLevel;
   requester: User;
   assignedTo?: User;
   dueDate?: string;
@@ -141,7 +135,6 @@ export interface Ticket {
   createdAt: string;
   updatedAt: string;
   closedAt?: string;
-  slaCompliance?: number;
   responseTime?: number;
   resolutionTime?: number;
   customFields?: Record<string, string>;
@@ -178,7 +171,6 @@ export interface CreateTicketInput {
   priority?: TicketPriority;
   impact?: TicketImpact;
   urgency?: TicketUrgency;
-  slaLevel?: SlaLevel;
   assignedToId?: string;
   relatedTickets?: string[];
   customFields?: Record<string, string | number | boolean>;
@@ -189,12 +181,12 @@ export interface UpdateTicketInput extends Partial<CreateTicketInput> {
   resolution?: string;
 }
 
-export type TicketViewType = 'all' | 'my' | 'assigned' | 'overdue' | 'breached-sla' | 'approaching-sla';
+export type TicketViewType = 'all' | 'my' | 'assigned' | 'overdue';
 
 export interface TicketFilters {
   page?: number;
   limit?: number;
-  viewType?: TicketViewType; // 'all' (default), 'my', 'assigned', 'overdue', 'breached-sla', or 'approaching-sla'
+  viewType?: TicketViewType; // 'all' (default), 'my', 'assigned', or 'overdue'
   search?: string;
   status?: TicketStatus[];
   priority?: TicketPriority[];
@@ -306,8 +298,6 @@ export interface SystemSettings {
   enableAuditLog: boolean;
   enableBackup: boolean;
   backupFrequency: string;
-  slaEnabled: boolean;
-  defaultSlaLevel: SlaLevel;
   maxFileSize: number;
   allowedFileTypes: string[];
   passwordPolicy: {
@@ -339,7 +329,6 @@ export enum EmailTemplateType {
   TICKET_ASSIGNED = 'TICKET_ASSIGNED',
   STATUS_CHANGED = 'STATUS_CHANGED',
   COMMENT_ADDED = 'COMMENT_ADDED',
-  SLA_WARNING = 'SLA_WARNING',
   AUTO_CLOSE_WARNING = 'AUTO_CLOSE_WARNING',
 }
 
@@ -397,7 +386,6 @@ export interface TicketReport {
   resolvedTickets: number;
   closedTickets: number;
   averageResolutionTime: number;
-  slaCompliance: number;
   ticketsByCategory: Record<string, number>;
   ticketsByPriority: Record<string, number>;
   ticketsByStatus: Record<string, number>;
@@ -420,7 +408,6 @@ export interface DashboardStats {
   myTickets: number;
   assignedTickets: number;
   overdueTickets: number;
-  slaBreachRisk: number;
   recentActivity: Activity[];
 }
 
@@ -482,7 +469,6 @@ export interface TicketFormData {
   priority: TicketPriority;
   impact: TicketImpact;
   urgency: TicketUrgency;
-  slaLevel: SlaLevel;
   relatedTickets: string[];
   customFields: Record<string, string | number | boolean | string[]>;
 }
@@ -495,7 +481,6 @@ export interface DynamicTicketFormValues {
   priority: TicketPriority;
   impact: TicketImpact;
   urgency: TicketUrgency;
-  slaLevel: SlaLevel;
   attachments: FileWithPath[];
   customFields?: Record<string, string | number | boolean | string[]>;
   [key: string]: unknown; // For dynamic fields
@@ -590,7 +575,6 @@ export interface SearchCriteria {
   category: string[];
   impact: string[];
   urgency: string[];
-  slaLevel: string[];
   assignedTo: string[];
   requester: string[];
   dateFrom: Date | null;
@@ -600,8 +584,6 @@ export interface SearchCriteria {
   // Additional numeric filters (hours)
   minResolutionHours?: number;
   maxResolutionHours?: number;
-  minSlaBreachHours?: number;
-  maxSlaBreachHours?: number;
 }
 
 // ===== BULK OPERATIONS TYPES =====
@@ -644,12 +626,6 @@ export interface TicketStats {
   new: number;
 }
 
-export interface SlaMetrics {
-  responseTime: number;
-  resolutionTime: number;
-  compliance: number;
-  customerSatisfaction?: number;
-}
 
 export interface CategoryStats {
   name: string;
@@ -671,7 +647,6 @@ export interface StatusStats {
 
 export interface ReportData {
   ticketStats: TicketStats;
-  slaMetrics: SlaMetrics;
   categoryStats: CategoryStats[];
   priorityStats: PriorityStats[];
   statusStats: StatusStats[];
@@ -704,7 +679,6 @@ export interface TeamPerformanceData {
   assignedTickets: number;
   resolvedTickets: number;
   avgResolutionTime: number;
-  slaCompliance: number;
   satisfactionRating: number;
 }
 
