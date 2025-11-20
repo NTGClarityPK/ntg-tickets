@@ -80,7 +80,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       label: tDashboard('overview'),
       icon: IconDashboard,
       href: '/dashboard',
-      show: hasAnyRole(['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN']), // Hide for End Users
+      show: hasRole('ADMIN'), // Only show for Admin
     },
     {
       label: t('reports'),
