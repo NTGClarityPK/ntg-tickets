@@ -13,13 +13,15 @@ import {
   PasswordInput,
   Alert,
   useMantineTheme,
+  Text,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showErrorNotification } from '@/lib/notifications';
 import { usePasswordValidation } from '../../hooks/usePasswordValidation';
 import { VALIDATION_RULES } from '../../lib/constants';
+import { useAuthUser } from '../../stores/useAuthStore';
 
-import { UserFormData, User } from '../../types/unified';
+import { UserFormData, User, UserRole } from '../../types/unified';
 
 // Re-export for backward compatibility
 export type { UserFormData, User };
@@ -32,10 +34,10 @@ interface UserFormProps {
 }
 
 const roles = [
-  { value: 'END_USER', label: 'End User' },
-  { value: 'SUPPORT_STAFF', label: 'Support Staff' },
-  { value: 'SUPPORT_MANAGER', label: 'Support Manager' },
-  { value: 'ADMIN', label: 'Administrator' },
+  { value: UserRole.END_USER, label: 'End User' },
+  { value: UserRole.SUPPORT_STAFF, label: 'Support Staff' },
+  { value: UserRole.SUPPORT_MANAGER, label: 'Support Manager' },
+  { value: UserRole.ADMIN, label: 'Administrator' },
 ];
 
 export function UserForm({
@@ -47,12 +49,24 @@ export function UserForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { validatePassword } = usePasswordValidation();
   const theme = useMantineTheme();
+  const currentUser = useAuthUser();
+
+  // Check if current user is editing themselves
+  const isEditingSelf = isEditing && currentUser && initialData?.id === currentUser.id;
+  
+  // Check if user currently has ADMIN role
+  const hasAdminRole = initialData?.roles?.includes(UserRole.ADMIN) || false;
+
+  // Determine if ADMIN role should be disabled
+  // Frontend: Prevent admin from removing their own admin role
+  // Backend will handle checking if removing admin would leave system with no admins
+  const isAdminRoleDisabled = isEditingSelf && hasAdminRole;
 
   const form = useForm<UserFormData>({
     initialValues: {
       name: initialData?.name || '',
       email: initialData?.email || '',
-      roles: initialData?.roles || ['END_USER'],
+      roles: initialData?.roles || [UserRole.END_USER],
       isActive: initialData?.isActive ?? true,
       password: '',
       confirmPassword: '',
@@ -83,6 +97,25 @@ export function UserForm({
       const formData = { ...values };
       // Always remove confirmPassword as it's only for frontend validation
       delete formData.confirmPassword;
+      
+      // Validate admin role removal
+      if (isEditing && initialData) {
+        const hadAdminRole = initialData.roles?.includes(UserRole.ADMIN) || false;
+        const willHaveAdminRole = formData.roles?.includes(UserRole.ADMIN) || false;
+        
+        // Prevent admin from removing their own admin role
+        if (isEditingSelf && hadAdminRole && !willHaveAdminRole) {
+          showErrorNotification(
+            'Error',
+            'You cannot remove your own admin role. Please ask another admin to perform this action.'
+          );
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Note: Backend will validate if removing admin would leave system with no admins
+        // We only check frontend validation for self-admin removal here
+      }
       
       // When editing, only include password if it's provided (not empty)
       if (isEditing && !formData.password) {
@@ -126,9 +159,17 @@ export function UserForm({
               label='Roles'
               placeholder='Select roles'
               required
-              data={roles}
+              data={roles.map(role => ({
+                ...role,
+                disabled: !!(role.value === UserRole.ADMIN && isAdminRoleDisabled),
+              }))}
               {...form.getInputProps('roles')}
             />
+            {isAdminRoleDisabled && (
+              <Text size='xs' c='dimmed' mt={4}>
+                You cannot remove your own admin role. Please ask another admin to perform this action.
+              </Text>
+            )}
           </Grid.Col>
           <Grid.Col span={6}>
             <Switch

@@ -195,7 +195,8 @@ export class AuthService {
 
   async updateUserRoles(
     userId: string,
-    roles: UserRole[]
+    roles: UserRole[],
+    currentUserId?: string
   ): Promise<{
     id: string;
     email: string;
@@ -204,6 +205,43 @@ export class AuthService {
     isActive: boolean;
   }> {
     try {
+      // Get the current user's roles before update
+      const currentUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { roles: true, email: true },
+      });
+
+      if (!currentUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      const hadAdminRole = currentUser.roles.includes(UserRole.ADMIN);
+      const willHaveAdminRole = roles.includes(UserRole.ADMIN);
+
+      // Check if admin is trying to remove their own admin role
+      if (currentUserId && userId === currentUserId && hadAdminRole && !willHaveAdminRole) {
+        throw new BadRequestException(
+          'You cannot remove your own admin role. Please ask another admin to perform this action.'
+        );
+      }
+
+      // Check if removing admin role would leave system with no admins
+      if (hadAdminRole && !willHaveAdminRole) {
+        const adminCount = await this.prisma.user.count({
+          where: {
+            roles: { has: UserRole.ADMIN },
+            isActive: true,
+          },
+        });
+
+        // If this user was the only admin, prevent removal
+        if (adminCount === 1) {
+          throw new BadRequestException(
+            'Cannot remove admin role. This would leave the system with no administrators. Please assign admin role to another user first.'
+          );
+        }
+      }
+
       const user = await this.prisma.user.update({
         where: { id: userId },
         data: { roles, updatedAt: new Date() },
@@ -222,6 +260,9 @@ export class AuthService {
       );
       return user;
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       this.logger.error('Error updating user roles:', error);
       throw error;
     }

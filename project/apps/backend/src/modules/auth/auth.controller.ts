@@ -289,9 +289,12 @@ export class AuthController {
       throw new Error('Forbidden - Admin access required');
     }
 
-    const user = await this.authService.updateUserRoles(req.params.userId, [
-      updateUserRoleDto.role,
-    ]);
+    // Pass current user ID to prevent self-admin removal
+    const user = await this.authService.updateUserRoles(
+      req.params.userId,
+      [updateUserRoleDto.role],
+      req.user.id
+    );
 
     return {
       data: user,

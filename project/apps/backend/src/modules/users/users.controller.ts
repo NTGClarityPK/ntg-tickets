@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -113,8 +114,10 @@ export class UsersController {
   async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
   ) {
-    const user = await this.usersService.update(id, updateUserDto);
+    // Pass current user ID to prevent self-admin removal
+    const user = await this.usersService.update(id, updateUserDto, req.user?.id);
     return {
       data: user,
       message: 'User updated successfully',

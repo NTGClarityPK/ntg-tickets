@@ -188,7 +188,8 @@ export class UsersService {
 
   async update(
     id: string,
-    updateUserDto: UpdateUserDto
+    updateUserDto: UpdateUserDto,
+    currentUserId?: string
   ): Promise<{
     id: string;
     email: string;
@@ -197,6 +198,51 @@ export class UsersService {
     isActive: boolean;
   }> {
     try {
+      // If roles are being updated, validate admin role protection
+      if (updateUserDto.roles !== undefined) {
+        // Get the current user's roles before update
+        const currentUser = await this.prisma.user.findUnique({
+          where: { id },
+          select: { roles: true, email: true },
+        });
+
+        if (!currentUser) {
+          throw new NotFoundException(`User with ID ${id} not found`);
+        }
+
+        const hadAdminRole = currentUser.roles.includes(UserRole.ADMIN);
+        const willHaveAdminRole = updateUserDto.roles.some(role => String(role) === 'ADMIN');
+
+        // Check if admin is trying to remove their own admin role
+        if (
+          currentUserId &&
+          id === currentUserId &&
+          hadAdminRole &&
+          !willHaveAdminRole
+        ) {
+          throw new BadRequestException(
+            'You cannot remove your own admin role. Please ask another admin to perform this action.'
+          );
+        }
+
+        // Check if removing admin role would leave system with no admins
+        if (hadAdminRole && !willHaveAdminRole) {
+          const adminCount = await this.prisma.user.count({
+            where: {
+              roles: { has: UserRole.ADMIN },
+              isActive: true,
+            },
+          });
+
+          // If this user was the only admin, prevent removal
+          if (adminCount === 1) {
+            throw new BadRequestException(
+              'Cannot remove admin role. This would leave the system with no administrators. Please assign admin role to another user first.'
+            );
+          }
+        }
+      }
+
       const updateData: any = {
         ...updateUserDto,
         updatedAt: new Date(),
@@ -228,6 +274,12 @@ export class UsersService {
       this.logger.log(`User updated: ${user.email}`);
       return this.sanitizeUserSimple(user);
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
       this.handleServiceError(error, 'Failed to update user');
     }
   }
