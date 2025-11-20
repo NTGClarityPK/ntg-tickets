@@ -14,6 +14,7 @@ import {
   Card,
   NumberInput,
   Text,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -27,6 +28,7 @@ import { IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function CreateCustomFieldPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -167,7 +169,7 @@ export default function CreateCustomFieldPage() {
                         />
                         <Button
                           variant='light'
-                          color='red'
+                          color={theme.colors[theme.primaryColor][9]}
                           size='sm'
                           onClick={() => handleRemoveOption(index)}
                         >
@@ -220,7 +222,7 @@ export default function CreateCustomFieldPage() {
                     <Text size='sm' fw={500} mb={4}>
                       {form.values.name}
                       {form.values.isRequired && (
-                        <Text component='span' c='red'>
+                        <Text component='span' c={theme.colors[theme.primaryColor][9]}>
                           {' '}
                           *
                         </Text>

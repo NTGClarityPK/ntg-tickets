@@ -17,6 +17,7 @@ import {
   Tabs,
   ActionIcon,
   Menu,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconEdit,
@@ -37,6 +38,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function UserDetailPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark, primaryDarkest } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
@@ -109,7 +111,7 @@ export default function UserDetailPage() {
   if (userError || !user) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load user: {userError?.message || 'User not found'}
         </Alert>
         <Group mt='md'>
@@ -154,7 +156,7 @@ export default function UserDetailPage() {
             <Menu.Dropdown>
               <Menu.Item
                 leftSection={<IconTrash size={14} />}
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 onClick={handleDelete}
               >
                 Delete User

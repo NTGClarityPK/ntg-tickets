@@ -18,6 +18,7 @@ import {
   ActionIcon,
   Modal,
   Code,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconRefresh,
@@ -39,6 +40,7 @@ import {
 import { useRouter } from 'next/navigation';
 
 export default function SystemMonitoringPage() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const [selectedMetric, setSelectedMetric] = useState<{
     name: string;
@@ -129,7 +131,7 @@ export default function SystemMonitoringPage() {
 
               {systemHealth?.status === 'unhealthy' && (
                 <Alert
-                  color='red'
+                  color={theme.colors[theme.primaryColor][9]}
                   title='Critical System Issues'
                   icon={<IconAlertTriangle size={16} />}
                 >
@@ -140,7 +142,7 @@ export default function SystemMonitoringPage() {
 
               {systemHealth?.status === 'degraded' && (
                 <Alert
-                  color='yellow'
+                  color={theme.colors[theme.primaryColor][4]}
                   title='System Warnings'
                   icon={<IconAlertTriangle size={16} />}
                 >
@@ -151,7 +153,7 @@ export default function SystemMonitoringPage() {
 
               {systemHealth?.status === 'healthy' && (
                 <Alert
-                  color='green'
+                  color={theme.primaryColor}
                   title='System Healthy'
                   icon={<IconCheck size={16} />}
                 >
@@ -174,7 +176,7 @@ export default function SystemMonitoringPage() {
               </Group>
               <Progress
                 value={0} // CPU usage not available in current SystemStats interface
-                color='green'
+                color={theme.primaryColor}
                 size='lg'
               />
               <Text size='sm' c='dimmed'>
@@ -193,7 +195,7 @@ export default function SystemMonitoringPage() {
               </Group>
               <Progress
                 value={0} // Memory usage not available in current SystemStats interface
-                color='green'
+                color={theme.primaryColor}
                 size='lg'
               />
               <Text size='sm' c='dimmed'>
@@ -233,7 +235,7 @@ export default function SystemMonitoringPage() {
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         Healthy
                       </Badge>
                     </Table.Td>
@@ -267,7 +269,7 @@ export default function SystemMonitoringPage() {
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         Healthy
                       </Badge>
                     </Table.Td>
@@ -299,7 +301,7 @@ export default function SystemMonitoringPage() {
                       <Text size='sm'>{systemStats?.activeUsers || 'N/A'}</Text>
                     </Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         Healthy
                       </Badge>
                     </Table.Td>
@@ -333,7 +335,7 @@ export default function SystemMonitoringPage() {
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         Healthy
                       </Badge>
                     </Table.Td>

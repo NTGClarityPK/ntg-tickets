@@ -66,16 +66,16 @@ export function UserActivityLogs({
   );
 
   const actionColors: Record<string, string> = {
-    CREATE: 'green',
+    CREATE: theme.primaryColor,
     UPDATE: theme.primaryColor,
-    DELETE: 'red',
+    DELETE: theme.colors[theme.primaryColor][9],
     LOGIN: 'cyan',
     LOGOUT: 'gray',
     ASSIGN: 'orange',
     ESCALATE: 'purple',
     COMMENT: 'teal',
     ATTACH: 'indigo',
-    STATUS_CHANGE: 'yellow',
+    STATUS_CHANGE: theme.colors[theme.primaryColor][4],
     PRIORITY_CHANGE: 'pink',
     CATEGORY_CHANGE: 'violet',
   };
@@ -98,7 +98,7 @@ export function UserActivityLogs({
         title='User Activity Logs'
         size='xl'
       >
-        <Alert icon={<IconAlertCircle size={16} />} color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
           {error.message || 'Failed to load user activity logs'}
         </Alert>
       </Modal>

@@ -270,7 +270,7 @@ export function FileUpload({
                     <ActionIcon
                       size='sm'
                       variant='subtle'
-                      color='red'
+                      color={theme.colors[theme.primaryColor][9]}
                       onClick={() => removeFile(fileUpload.id)}
                     >
                       <IconTrash size={14} />
@@ -283,14 +283,14 @@ export function FileUpload({
                     value={fileUpload.progress}
                     size='sm'
                     mt='xs'
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                   />
                 )}
 
                 {fileUpload.status === 'error' && fileUpload.error && (
                   <Alert
                     icon={<IconAlertCircle size={16} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     mt='xs'
                   >
                     {fileUpload.error}
@@ -303,7 +303,7 @@ export function FileUpload({
       )}
 
       {files.length >= maxFiles && (
-        <Alert icon={<IconAlertCircle size={16} />} color='yellow'>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][4]}>
           Maximum number of files ({maxFiles}) reached. Remove some files to add
           more.
         </Alert>

@@ -292,7 +292,7 @@ export function WorkflowList({
                               
                               {!workflow.isSystemDefault && (
                                 <Menu.Item
-                                  color="red"
+                                  color={theme.colors[theme.primaryColor][9]}
                                   leftSection={<IconTrash size={16} />}
                                   onClick={() => setDeleteModalOpen(workflow.id)}
                                 >
@@ -351,7 +351,7 @@ export function WorkflowList({
             <Text>
               Are you sure you want to delete this workflow? This action cannot be undone.
             </Text>
-            <Alert color="red" variant="light">
+            <Alert color={theme.colors[theme.primaryColor][9]} variant="light">
               <Text size="sm">
                 Note: If this workflow is being used by any tickets, it cannot be deleted.
               </Text>
@@ -361,7 +361,7 @@ export function WorkflowList({
                 Cancel
               </Button>
               <Button
-                color="red"
+                color={theme.colors[theme.primaryColor][9]}
                 onClick={() => {
                   if (deleteModalOpen) {
                     handleDeleteWorkflow(deleteModalOpen);

@@ -246,7 +246,7 @@ function OverdueTicketsPageContent() {
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
                   >
                     Delete

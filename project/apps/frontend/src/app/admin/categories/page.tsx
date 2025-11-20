@@ -20,6 +20,7 @@ import {
   Textarea,
   Switch,
   Select,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -42,6 +43,7 @@ import { Category, TicketCategory } from '../../../types/unified';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CategoriesPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark } = useDynamicTheme();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
@@ -172,7 +174,7 @@ export default function CategoriesPage() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load categories: {String(error)}
         </Alert>
       </Container>
@@ -274,7 +276,7 @@ export default function CategoriesPage() {
                       <Menu.Divider />
                       <Menu.Item
                         leftSection={<IconTrash size={14} />}
-                        color='red'
+                        color={theme.colors[theme.primaryColor][9]}
                         onClick={() => {
                           setSelectedCategory(category);
                           setDeleteModalOpen(true);
@@ -414,7 +416,7 @@ export default function CategoriesPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={() =>
                 selectedCategory?.id &&
                 handleDeleteCategory(selectedCategory.id)

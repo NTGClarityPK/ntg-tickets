@@ -20,6 +20,7 @@ import {
   Pagination,
   Stack,
   Card,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -47,6 +48,7 @@ import {
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CustomFieldsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryLighter, primaryDark, primaryDarker } = useDynamicTheme();
   const [search, setSearch] = useState('');
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
@@ -409,7 +411,7 @@ export default function CustomFieldsPage() {
                       <Menu.Divider />
                       <Menu.Item
                         leftSection={<IconTrash size={14} />}
-                        color='red'
+                        color={theme.colors[theme.primaryColor][9]}
                         onClick={() => {
                           setSelectedField(field);
                           setDeleteModalOpen(true);
@@ -522,7 +524,7 @@ export default function CustomFieldsPage() {
                         />
                         <ActionIcon
                           variant='light'
-                          color='red'
+                          color={theme.colors[theme.primaryColor][9]}
                           onClick={() => handleRemoveOptionCreate(index)}
                         >
                           <IconTrash size={16} />
@@ -660,7 +662,7 @@ export default function CustomFieldsPage() {
                         />
                         <ActionIcon
                           variant='light'
-                          color='red'
+                          color={theme.colors[theme.primaryColor][9]}
                           onClick={() => handleRemoveOptionEdit(index)}
                         >
                           <IconTrash size={16} />
@@ -717,7 +719,7 @@ export default function CustomFieldsPage() {
         title='Remove Field from Ticket Form'
       >
         <Stack>
-          <Alert color='red' title='Warning'>
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning'>
             Are you sure you want to remove this field from the ticket creation form? 
             This action cannot be undone and the field will no longer appear when users create tickets.
           </Alert>
@@ -729,7 +731,7 @@ export default function CustomFieldsPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteField}
               loading={deleteCustomField.isPending}
             >

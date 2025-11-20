@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Container, Group, Loader } from '@mantine/core';
+import { Container, Group, Loader, useMantineTheme } from '@mantine/core';
 import {
   IconClock,
   IconCheck,
@@ -19,6 +19,7 @@ import { EndUserDashboardPresenter } from '../presenters/EndUserDashboardPresent
 import { EndUserDashboardMetrics } from '../types/dashboard.types';
 
 export function EndUserDashboardContainer() {
+  const theme = useMantineTheme();
   const t = useTranslations('dashboard');
   const user = useAuthUser();
   const router = useRouter();
@@ -44,7 +45,7 @@ export function EndUserDashboardContainer() {
         title: t('totalTickets'),
         value: myTickets.length,
         icon: IconTicket,
-        color: 'red',
+        color: theme.colors[theme.primaryColor][9],
       },
       {
         title: t('openTickets'),
@@ -70,7 +71,7 @@ export function EndUserDashboardContainer() {
       stats,
       canCreateTicket,
     };
-  }, [tickets, user?.id, primary, canCreateTicket, t]);
+  }, [tickets, user?.id, primary, canCreateTicket, t, theme]);
 
   if (ticketsLoading) {
     return (

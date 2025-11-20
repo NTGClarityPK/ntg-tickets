@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Menu, Badge, Group, Text, ActionIcon } from '@mantine/core';
+import { Button, Menu, Badge, Group, Text, ActionIcon, useMantineTheme } from '@mantine/core';
 import { IconChevronDown, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ export function RoleSwitcher({
   activeRole,
   isMobile = false,
 }: RoleSwitcherProps) {
+  const theme = useMantineTheme();
   const { primaryDarkest, primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('auth');
   const { updateUser } = useAuthStore();
@@ -162,7 +163,7 @@ export function RoleSwitcher({
     return (
       <Menu shadow='md' width={200}>
         <Menu.Target>
-          <ActionIcon variant='subtle' color='red' size='sm' loading={loading}>
+          <ActionIcon variant='subtle' color={theme.colors[theme.primaryColor][9]} size='sm' loading={loading}>
             <IconRefresh size={14} />
           </ActionIcon>
         </Menu.Target>
@@ -200,7 +201,7 @@ export function RoleSwitcher({
       <Menu.Target>
         <Button
           variant='subtle'
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
           size='xs'
           rightSection={<IconChevronDown size={12} />}
           loading={loading}

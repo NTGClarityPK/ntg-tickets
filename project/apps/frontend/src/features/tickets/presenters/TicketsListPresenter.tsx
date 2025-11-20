@@ -193,7 +193,7 @@ export function TicketsListPresenter({
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => {
                       onSetSelectedTicket(ticket);
                     }}
@@ -283,7 +283,7 @@ export function TicketsListPresenter({
             Cancel
           </Button>
           <Button
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             onClick={() =>
               state.selectedTicket?.id && handlers.onDeleteTicket(state.selectedTicket.id)
             }

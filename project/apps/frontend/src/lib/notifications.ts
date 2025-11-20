@@ -64,7 +64,7 @@ export const showSuccessNotification = (
   return showNotification({
     title,
     message,
-    color: 'green',
+    color: 'dynamic',
     icon,
   });
 };
@@ -77,7 +77,7 @@ export const showErrorNotification = (
   return showNotification({
     title,
     message,
-    color: 'red',
+    color: 'dynamic',
     icon,
   });
 };
@@ -117,7 +117,7 @@ export const showCriticalNotification = (
   return showNotification({
     title,
     message,
-    color: 'red',
+    color: 'dynamic',
     autoClose: false,
     icon,
   });

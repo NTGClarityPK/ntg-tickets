@@ -68,16 +68,16 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
   };
 
   const actionColors: Record<string, string> = {
-    CREATE: 'green',
+    CREATE: theme.primaryColor,
     UPDATE: theme.primaryColor,
-    DELETE: 'red',
+    DELETE: theme.colors[theme.primaryColor][9],
     LOGIN: 'cyan',
     LOGOUT: 'gray',
     ASSIGN: 'orange',
     ESCALATE: 'purple',
     COMMENT: 'teal',
     ATTACH: 'indigo',
-    STATUS_CHANGE: 'yellow',
+    STATUS_CHANGE: theme.colors[theme.primaryColor][4],
     PRIORITY_CHANGE: 'pink',
     CATEGORY_CHANGE: 'violet',
   };
@@ -90,7 +90,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
         title='Audit Log Statistics'
         size='xl'
       >
-        <Alert icon={<IconAlertCircle size={16} />} color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
           {statsError?.message ||
             systemLogsError?.message ||
             'Failed to load audit log data'}
@@ -232,7 +232,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                         .map(([resource, count]) => (
                           <Group key={resource} justify='space-between'>
                             <Text size='sm'>{resource}</Text>
-                            <Badge color='red'>{count}</Badge>
+                            <Badge color={theme.colors[theme.primaryColor][9]}>{count}</Badge>
                           </Group>
                         ))}
                     </Stack>
@@ -316,7 +316,7 @@ export function AuditLogStats({ opened, onClose }: AuditLogStatsProps) {
                             </Text>
                           </Table.Td>
                           <Table.Td>
-                            <Badge color='red'>{user.count}</Badge>
+                            <Badge color={theme.colors[theme.primaryColor][9]}>{user.count}</Badge>
                           </Table.Td>
                           <Table.Td>
                             <Text size='sm'>{percentage.toFixed(1)}%</Text>

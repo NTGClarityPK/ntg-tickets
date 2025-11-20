@@ -22,6 +22,7 @@ import {
   Textarea,
   Alert,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconX,
@@ -67,6 +68,7 @@ export function BulkActionsBar({
   isProcessing = false,
   selectedTicketsData = [],
 }: BulkActionsBarProps) {
+  const theme = useMantineTheme();
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [priorityModalOpen, setPriorityModalOpen] = useState(false);
@@ -129,7 +131,7 @@ export function BulkActionsBar({
       notifications.show({
         title: 'Invalid Status Transitions',
         message: errorMessage,
-        color: 'red',
+        color: theme.colors[theme.primaryColor][9],
       });
       return;
     }
@@ -173,15 +175,15 @@ export function BulkActionsBar({
         withBorder
         p='md'
         mb='md'
-        style={{ backgroundColor: 'var(--mantine-color-red-0)' }}
+        style={{ backgroundColor: theme.colors[theme.primaryColor][0] }}
       >
         <Group justify='space-between'>
           <Group>
-            <Badge size='lg' variant='filled' color='red'>
+            <Badge size='lg' variant='filled' color={theme.colors[theme.primaryColor][9]}>
               {t('selectedCount', { count: selectedCount })}
             </Badge>
             {isAllSelected && (
-              <Badge size='sm' variant='light' color='green'>
+              <Badge size='sm' variant='light' color={theme.primaryColor}>
                 All tickets
               </Badge>
             )}
@@ -252,7 +254,7 @@ export function BulkActionsBar({
 
             <Menu shadow='md' width={200}>
               <Menu.Target>
-                <ActionIcon variant='light' color='red' disabled={isProcessing}>
+                <ActionIcon variant='light' color={theme.colors[theme.primaryColor][9]} disabled={isProcessing}>
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -266,7 +268,7 @@ export function BulkActionsBar({
                 <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
-                  color='red'
+                  color={theme.colors[theme.primaryColor][9]}
                   onClick={() => setDeleteModalOpen(true)}
                 >
                   Delete Tickets
@@ -294,7 +296,7 @@ export function BulkActionsBar({
         centered
       >
         <Stack gap='md'>
-          <Alert icon={<IconAlertCircle size={16} />} color='red'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
             This will update the status of {selectedCount} selected tickets to "
             {newStatus.replace('_', ' ')}".
           </Alert>
@@ -336,7 +338,7 @@ export function BulkActionsBar({
         centered
       >
         <Stack gap='md'>
-          <Alert icon={<IconAlertCircle size={16} />} color='red'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
             The number in brackets next to each name shows their current active tickets (open, in progress, reopened).
           </Alert>
           <Select
@@ -385,7 +387,7 @@ export function BulkActionsBar({
         centered
       >
         <Stack gap='md'>
-          <Alert icon={<IconAlertCircle size={16} />} color='red'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
             This will update the priority of {selectedCount} selected tickets to
             "{newPriority}".
           </Alert>
@@ -418,7 +420,7 @@ export function BulkActionsBar({
         centered
       >
         <Stack gap='md'>
-          <Alert icon={<IconAlertCircle size={16} />} color='red'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
             <Text fw={500}>Warning: This action cannot be undone!</Text>
             <Text size='sm'>
               You are about to permanently delete {selectedCount} tickets. This
@@ -438,7 +440,7 @@ export function BulkActionsBar({
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleBulkDelete}
               disabled={!bulkNote.trim() || isProcessing}
               loading={isProcessing}
@@ -457,7 +459,7 @@ export function BulkActionsBar({
         centered
       >
         <Stack gap='md'>
-          <Alert icon={<IconAlertCircle size={16} />} color='red'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
             This will send a notification to the requesters of {selectedCount}{' '}
             selected tickets.
           </Alert>

@@ -14,6 +14,7 @@ import {
   Pagination,
   Select,
   Checkbox,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconBell,
@@ -53,6 +54,7 @@ export function NotificationList({
   onDelete,
   onViewTicket,
 }: NotificationListProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>(
     []
@@ -78,9 +80,13 @@ export function NotificationList({
   };
 
   const getNotificationColor = (type: string) => {
-    return (
-      NOTIFICATION_COLORS[type as keyof typeof NOTIFICATION_COLORS] || 'red'
-    );
+    const color = NOTIFICATION_COLORS[type as keyof typeof NOTIFICATION_COLORS];
+    // Map hardcoded colors to theme colors
+    if (color === 'red' || !color) return theme.colors[theme.primaryColor][9];
+    if (color === 'green') return theme.primaryColor;
+    if (color === 'yellow') return theme.colors[theme.primaryColor][4];
+    if (color === 'orange') return theme.colors[theme.primaryColor][4];
+    return theme.primaryColor; // Default fallback
   };
 
   const filteredNotifications = notifications.filter(notification => {
@@ -134,7 +140,7 @@ export function NotificationList({
             <Text fw={600} size='lg'>
               {t('notifications')}
             </Text>
-            <Badge color='red' variant='light'>
+            <Badge color={theme.colors[theme.primaryColor][9]} variant='light'>
               {notifications.filter(n => !n.isRead).length} {t('unread')}
             </Badge>
             <Text size='xs' c='dimmed'>
@@ -184,7 +190,7 @@ export function NotificationList({
             <Button
               size='xs'
               variant='light'
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               leftSection={<IconTrash size={12} />}
               onClick={handleDeleteSelected}
             >
@@ -211,10 +217,10 @@ export function NotificationList({
                   style={{
                     backgroundColor: notification.isRead
                       ? 'transparent'
-                      : 'var(--mantine-color-red-0)',
+                      : theme.colors[theme.primaryColor][0],
                     borderLeft: notification.isRead
                       ? 'none'
-                      : '3px solid var(--mantine-color-red-6)',
+                      : `3px solid ${theme.colors[theme.primaryColor][6]}`,
                   }}
                 >
                   <Group justify='space-between' align='flex-start'>
@@ -266,7 +272,7 @@ export function NotificationList({
                             </Group>
                           </div>
                           {!notification.isRead && (
-                            <Badge color='red' size='xs' variant='filled'>
+                            <Badge color={theme.colors[theme.primaryColor][9]} size='xs' variant='filled'>
                               {t('new')}
                             </Badge>
                           )}
@@ -298,7 +304,7 @@ export function NotificationList({
                       <ActionIcon
                         size='sm'
                         variant='light'
-                        color='red'
+                        color={theme.colors[theme.primaryColor][9]}
                         onClick={() => onDelete?.(notification.id)}
                       >
                         <IconTrash size={14} />

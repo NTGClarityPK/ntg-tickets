@@ -18,7 +18,7 @@ export function ThemeToggle() {
     return (
       <ActionIcon
         variant='subtle'
-        color='red'
+        color={mantineTheme.colors[mantineTheme.primaryColor][9]}
         size='lg'
         aria-label='Toggle theme'
       >
@@ -45,7 +45,7 @@ export function ThemeToggle() {
       <Menu.Target>
         <ActionIcon
           variant='subtle'
-          color='red'
+          color={mantineTheme.colors[mantineTheme.primaryColor][9]}
           size='lg'
           aria-label='Toggle theme'
         >

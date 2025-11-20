@@ -57,40 +57,43 @@ interface StatusNodeData {
   isInitial?: boolean;
 }
 
-const StatusNode = ({ data, selected }: { data: StatusNodeData; selected: boolean }) => (
-  <div
-    style={{
-      background: selected ? '#e3f2fd' : '#fff',
-      border: `2px solid ${data.color || '#1976d2'}`,
-      borderRadius: '8px',
-      padding: '16px 24px',
-      minWidth: '160px',
-      textAlign: 'center',
-      boxShadow: selected ? '0 4px 8px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.1)',
-      position: 'relative',
-      margin: '8px',
-    }}
-  >
-    <Handle
-      type="target"
-      position={Position.Top}
-      style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
-    />
-    <Text size="sm" fw={500} style={{ lineHeight: 1.4 }}>
-      {data.label}
-    </Text>
-    {data.isInitial && (
-      <Badge size="xs" color="green" style={{ marginTop: '6px' }}>
-        Start
-      </Badge>
-    )}
-    <Handle
-      type="source"
-      position={Position.Bottom}
-      style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
-    />
-  </div>
-);
+const StatusNode = ({ data, selected }: { data: StatusNodeData; selected: boolean }) => {
+  const theme = useMantineTheme();
+  return (
+    <div
+      style={{
+        background: selected ? '#e3f2fd' : '#fff',
+        border: `2px solid ${data.color || '#1976d2'}`,
+        borderRadius: '8px',
+        padding: '16px 24px',
+        minWidth: '160px',
+        textAlign: 'center',
+        boxShadow: selected ? '0 4px 8px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.1)',
+        position: 'relative',
+        margin: '8px',
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
+      />
+      <Text size="sm" fw={500} style={{ lineHeight: 1.4 }}>
+        {data.label}
+      </Text>
+      {data.isInitial && (
+        <Badge size="xs" color={theme.primaryColor} style={{ marginTop: '6px' }}>
+          Start
+        </Badge>
+      )}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
+      />
+    </div>
+  );
+};
 
 const nodeTypes: NodeTypes = {
   statusNode: StatusNode,
@@ -615,7 +618,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         notifications.show({
           title: 'Cannot Delete',
           message: 'The "Create Ticket" state cannot be deleted as it is required for the workflow.',
-          color: 'red',
+          color: theme.colors[theme.primaryColor][9],
         });
         return;
       }
@@ -624,7 +627,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         notifications.show({
           title: 'Cannot Delete',
           message: 'The "New" status cannot be deleted as it is required for the workflow.',
-          color: 'red',
+          color: theme.colors[theme.primaryColor][9],
         });
         return;
       }
@@ -632,7 +635,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
       setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
     },
-    [setNodes, setEdges]
+    [setNodes, setEdges, theme]
   );
 
 
@@ -644,13 +647,13 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         notifications.show({
           title: 'Cannot Delete',
           message: 'The "Create Ticket" transition cannot be deleted as it is required for the workflow.',
-          color: 'red',
+          color: theme.colors[theme.primaryColor][9],
         });
         return;
       }
       setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
     },
-    [setEdges, edges]
+    [setEdges, edges, theme]
   );
 
   const handleSave = useCallback(() => {
@@ -658,7 +661,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
       notifications.show({
         title: 'Error',
         message: 'Please enter a workflow name',
-        color: 'red',
+        color: theme.colors[theme.primaryColor][9],
       });
       return;
     }
@@ -687,7 +690,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
     };
 
     onSave?.(workflowData);
-  }, [workflowName, workflowDescription, isActive, nodes, edges, onSave]);
+  }, [workflowName, workflowDescription, isActive, nodes, edges, onSave, theme]);
 
   const availableRoles = [
     { value: 'END_USER', label: 'End User' },
@@ -906,7 +909,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                             {actions.length > 0 ? (
                               <Group gap={4}>
                                 {actions.map((action: string) => (
-                                  <Badge key={action} size="sm" variant="light" color="green">
+                                  <Badge key={action} size="sm" variant="light" color={theme.primaryColor}>
                                     {action.replace(/_/g, ' ')}
                                   </Badge>
                                 ))}
@@ -997,7 +1000,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 {selectedNode.id !== 'create' && selectedNode.id !== 'new' && (
                   <Button
                     variant="outline"
-                    color="red"
+                    color={theme.colors[theme.primaryColor][9]}
                     leftSection={<IconTrash size={16} />}
                     onClick={() => {
                       deleteNode(selectedNode.id);
@@ -1105,7 +1108,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 {!selectedEdge.data?.isCreateTransition && (
                   <Button
                     variant="outline"
-                    color="red"
+                    color={theme.colors[theme.primaryColor][9]}
                     leftSection={<IconTrash size={16} />}
                     onClick={() => {
                       deleteEdge(selectedEdge.id);

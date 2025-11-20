@@ -194,8 +194,8 @@ export function AdvancedSearch() {
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       open: theme.primaryColor,
-      in_progress: 'yellow',
-      resolved: 'green',
+      in_progress: theme.colors[theme.primaryColor][4],
+      resolved: theme.primaryColor,
       closed: 'gray',
     };
     return colors[status] || 'gray';
@@ -203,10 +203,10 @@ export function AdvancedSearch() {
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
-      low: 'green',
-      medium: 'yellow',
+      low: theme.primaryColor,
+      medium: theme.colors[theme.primaryColor][4],
       high: 'orange',
-      critical: 'red',
+      critical: theme.colors[theme.primaryColor][9],
     };
     return colors[priority] || 'gray';
   };
@@ -229,7 +229,7 @@ export function AdvancedSearch() {
             <Loader size='sm' />
           ) : (
             <Badge
-              color={health?.status === 'green' ? 'green' : 'red'}
+              color={health?.status === 'green' ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
               variant='light'
               leftSection={<IconTrendingUp size={12} />}
             >

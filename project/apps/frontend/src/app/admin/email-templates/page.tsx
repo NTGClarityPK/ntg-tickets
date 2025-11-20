@@ -21,6 +21,7 @@ import {
   Tabs,
   Code,
   Divider,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -63,6 +64,7 @@ const TEMPLATE_TYPES = EMAIL_TEMPLATE_TYPES;
 const AVAILABLE_VARIABLES = EMAIL_TEMPLATE_VARIABLES;
 
 export default function EmailTemplatesPage() {
+  const theme = useMantineTheme();
   const { primaryDark, primaryLight, primaryLighter, textMuted } = useDynamicTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<{
@@ -410,7 +412,7 @@ export default function EmailTemplatesPage() {
                           <ActionIcon
                             variant='light'
                             size='sm'
-                            color='red'
+                            color={theme.colors[theme.primaryColor][9]}
                             onClick={() =>
                               handlePreviewTemplate({
                                 id: template.id,
@@ -445,7 +447,7 @@ export default function EmailTemplatesPage() {
                           <ActionIcon
                             variant='light'
                             size='sm'
-                            color='red'
+                            color={theme.colors[theme.primaryColor][9]}
                             onClick={() =>
                               openDeleteModal({
                                 id: template.id,
@@ -784,7 +786,7 @@ export default function EmailTemplatesPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteTemplate}
               loading={deleteTemplate.isPending}
             >

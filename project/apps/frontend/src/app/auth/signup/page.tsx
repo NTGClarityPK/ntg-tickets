@@ -196,7 +196,7 @@ export default function SignUpPage() {
             {error && (
               <Alert
                 icon={<IconAlertCircle size={16} />}
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 variant='light'
                 radius='md'
               >
@@ -323,7 +323,7 @@ export default function SignUpPage() {
             {error && (
               <Alert
                 icon={<IconAlertCircle size={16} />}
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 variant='light'
                 radius='md'
               >
@@ -447,7 +447,7 @@ export default function SignUpPage() {
             {error && (
               <Alert
                 icon={<IconAlertCircle size={16} />}
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 variant='light'
                 radius='md'
               >
@@ -516,7 +516,7 @@ export default function SignUpPage() {
                 <ThemeIcon size='sm' variant='light' color={theme.primaryColor}>
                   <IconShield size={14} />
                 </ThemeIcon>
-                <Text size='xs' c='blue.7' fw={500}>
+                <Text size='xs' c={theme.primaryColor} fw={500}>
                   {tAuth('secureLogin')}
                 </Text>
               </Group>

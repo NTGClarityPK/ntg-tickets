@@ -10,6 +10,7 @@ import {
   Card,
   Alert,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { RTLArrowLeft } from '../../../../components/ui/RTLIcon';
@@ -20,6 +21,7 @@ import { UserFormData, UserRole } from '../../../../types/unified';
 import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function EditUserPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
@@ -70,7 +72,7 @@ export default function EditUserPage() {
   if (error || !user) {
     return (
       <Container size='md' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load user: {error?.message || 'User not found'}
         </Alert>
         <Group mt='md'>
@@ -115,7 +117,7 @@ export default function EditUserPage() {
         <Alert
           icon={<IconAlertCircle size={16} />}
           title='Error'
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
           mt='md'
         >
           Failed to update user. Please check the form and try again.

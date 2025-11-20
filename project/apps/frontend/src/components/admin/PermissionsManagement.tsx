@@ -16,6 +16,7 @@ import {
   ThemeIcon,
   Accordion,
   TextInput,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconShield,
@@ -48,6 +49,7 @@ export function PermissionsManagement({
   opened,
   onClose,
 }: PermissionsManagementProps) {
+  const theme = useMantineTheme();
   const { primaryLighter, primaryDark, primaryDarker, primaryDarkest } = useDynamicTheme();
   
   const roleColors: Record<string, string> = {
@@ -112,7 +114,7 @@ export function PermissionsManagement({
         title='Permissions Management'
         size='xl'
       >
-        <Alert icon={<IconAlertCircle size={16} />} color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
           {error}
         </Alert>
       </Modal>
@@ -208,7 +210,7 @@ export function PermissionsManagement({
                                   </div>
                                 </Table.Td>
                                 <Table.Td>
-                                  <Badge variant='light' color='red'>
+                                  <Badge variant='light' color={theme.colors[theme.primaryColor][9]}>
                                     {permission.resource}
                                   </Badge>
                                 </Table.Td>
@@ -220,7 +222,7 @@ export function PermissionsManagement({
                                           key={action}
                                           size='xs'
                                           variant='light'
-                                          color='green'
+                                          color={theme.primaryColor}
                                         >
                                           {action}
                                         </Badge>
@@ -254,7 +256,7 @@ export function PermissionsManagement({
                                     <Button
                                       variant='light'
                                       size='xs'
-                                      color='red'
+                                      color={theme.colors[theme.primaryColor][9]}
                                       leftSection={<IconTrash size={12} />}
                                       onClick={() => handleDeletePermission()}
                                     >

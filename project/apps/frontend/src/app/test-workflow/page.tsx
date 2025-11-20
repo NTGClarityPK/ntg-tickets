@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Container, Title, Text, Card, Stack, Code, Button, Alert } from '@mantine/core';
+import { Container, Title, Text, Card, Stack, Code, Button, Alert, useMantineTheme } from '@mantine/core';
 import { workflowsApi } from '../../lib/apiClient';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useCanCreateTicket } from '../../hooks/useCanCreateTicket';
@@ -21,6 +21,7 @@ interface WorkflowData {
 }
 
 export default function TestWorkflowPage() {
+  const theme = useMantineTheme();
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +50,7 @@ export default function TestWorkflowPage() {
   }
 
   if (error) {
-    return <Container><Alert color="red">{error}</Alert></Container>;
+    return <Container><Alert color={theme.colors[theme.primaryColor][9]}>{error}</Alert></Container>;
   }
 
   const createEdge = workflow?.definition?.edges?.find((edge: { data?: { isCreateTransition?: boolean }; source: string }) => 
@@ -77,7 +78,7 @@ export default function TestWorkflowPage() {
         <Card shadow="sm" padding="lg" withBorder>
           <Stack gap="sm">
             <Text fw={700}>Can Create Ticket:</Text>
-            <Text size="xl" c={canCreate ? 'green' : 'red'}>
+            <Text size="xl" c={canCreate ? theme.primaryColor : theme.colors[theme.primaryColor][9]}>
               {canCreateLoading ? 'Checking...' : canCreate ? 'YES ✓' : 'NO ✗'}
             </Text>
           </Stack>
@@ -102,7 +103,7 @@ export default function TestWorkflowPage() {
             {createEdge ? (
               <Code block>{JSON.stringify(createEdge, null, 2)}</Code>
             ) : (
-              <Alert color="yellow">No create edge found!</Alert>
+              <Alert color={theme.colors[theme.primaryColor][4]}>No create edge found!</Alert>
             )}
           </Stack>
         </Card>

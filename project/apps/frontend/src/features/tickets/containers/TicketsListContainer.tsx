@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Container, Group, Loader, Text, Alert } from '@mantine/core';
+import { Container, Group, Loader, Text, Alert, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import {
   useTicketsWithPagination,
@@ -30,6 +30,7 @@ import {
 } from '../types/tickets.types';
 
 export function TicketsListContainer() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const {
     primaryLight,
@@ -307,7 +308,7 @@ export function TicketsListContainer() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load tickets: {error.message}
         </Alert>
       </Container>

@@ -10,6 +10,7 @@ import {
   ActionIcon,
   Divider,
   ScrollArea,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconHistory, IconX, IconClock, IconTrash } from '@tabler/icons-react';
 
@@ -28,6 +29,7 @@ export function SearchHistory({
   onRemoveSearch,
   maxItems = 5,
 }: SearchHistoryProps) {
+  const theme = useMantineTheme();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   if (recentSearches.length === 0) {
@@ -53,7 +55,7 @@ export function SearchHistory({
           <Button
             variant='subtle'
             size='xs'
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             leftSection={<IconTrash size={12} />}
             onClick={onClearHistory}
           >
@@ -93,7 +95,7 @@ export function SearchHistory({
                   <ActionIcon
                     variant='subtle'
                     size='xs'
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={e => {
                       e.stopPropagation();
                       onRemoveSearch(search);

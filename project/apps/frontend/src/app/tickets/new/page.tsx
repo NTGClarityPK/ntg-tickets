@@ -262,7 +262,7 @@ export default function NewTicketsPage() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load new tickets: {error.message}
         </Alert>
       </Container>
@@ -419,7 +419,7 @@ export default function NewTicketsPage() {
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => {
                       setSelectedTicket(ticket);
                       setDeleteModalOpen(true);
@@ -513,7 +513,7 @@ export default function NewTicketsPage() {
             Cancel
           </Button>
           <Button
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             onClick={() =>
               selectedTicket?.id && handleDeleteTicket(selectedTicket.id)
             }

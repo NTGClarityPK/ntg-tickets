@@ -584,10 +584,10 @@ export function AppHeader({
               <Menu.Item
                 leftSection={<IconLogout size={14} />}
                 onClick={handleLogout}
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 style={{
                   '&:hover': {
-                    backgroundColor: 'var(--mantine-color-red-1)',
+                    backgroundColor: theme.colors[theme.primaryColor][1],
                   },
                 }}
               >

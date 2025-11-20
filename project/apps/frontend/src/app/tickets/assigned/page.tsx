@@ -165,7 +165,7 @@ function AssignedTicketsPageContent() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load tickets: {String(error)}
         </Alert>
       </Container>
@@ -274,7 +274,7 @@ function AssignedTicketsPageContent() {
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => handleEditTicket(ticket.id)}
                   >
                     Delete

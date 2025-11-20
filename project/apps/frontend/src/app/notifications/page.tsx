@@ -15,6 +15,7 @@ import {
   Loader,
   Alert,
   Tabs,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconBell,
@@ -55,6 +56,7 @@ const notificationIcons: Record<
 };
 
 export default function NotificationsPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   
   const notificationColors: Record<string, string> = {
@@ -195,7 +197,7 @@ export default function NotificationsPage() {
           </Group>
           <Group gap='xs'>
             {!notification.isRead && (
-              <Badge size='xs' color='red' variant='dot'>
+              <Badge size='xs' color={theme.colors[theme.primaryColor][9]} variant='dot'>
                 New
               </Badge>
             )}
@@ -216,7 +218,7 @@ export default function NotificationsPage() {
                 )}
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
-                  color='red'
+                  color={theme.colors[theme.primaryColor][9]}
                   onClick={() => handleDeleteNotification(notification.id)}
                 >
                   Delete
@@ -257,7 +259,7 @@ export default function NotificationsPage() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load notifications: {error.message}
         </Alert>
       </Container>
@@ -288,7 +290,7 @@ export default function NotificationsPage() {
           )}
           {selectedNotifications.length > 0 && (
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               leftSection={<IconTrash size={16} />}
               onClick={handleBulkDelete}
               loading={deleteNotificationMutation.isPending}

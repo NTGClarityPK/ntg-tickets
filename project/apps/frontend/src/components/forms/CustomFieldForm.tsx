@@ -105,7 +105,7 @@ export function CustomFieldForm({
       notifications.show({
         title: 'Error',
         message: 'Failed to save custom field',
-        color: 'red',
+        color: theme.colors[theme.primaryColor][9],
       });
     } finally {
       setIsSubmitting(false);

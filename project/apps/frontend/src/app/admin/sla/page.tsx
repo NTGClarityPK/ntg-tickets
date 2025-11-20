@@ -21,6 +21,7 @@ import {
   Modal,
   ActionIcon,
   Menu,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -37,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SLAManagementPage() {
+  const theme = useMantineTheme();
   const { primaryDarkest, primaryLight, primaryLighter, textMuted, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const [selectedSLA, setSelectedSLA] = useState<{
@@ -326,7 +328,7 @@ export default function SLAManagementPage() {
                             <Menu.Divider />
                             <Menu.Item
                               leftSection={<IconTrash size={14} />}
-                              color='red'
+                              color={theme.colors[theme.primaryColor][9]}
                               onClick={() => {
                                 setSelectedSLA(sla);
                                 setDeleteModalOpen(true);
@@ -356,13 +358,13 @@ export default function SLAManagementPage() {
                 </Group>
                 <Group justify='space-between'>
                   <Text size='sm'>Active Policies</Text>
-                  <Text fw={500} c='green'>
+                  <Text fw={500} c={theme.primaryColor}>
                     {slaPolicies.filter(p => p.isActive).length}
                   </Text>
                 </Group>
                 <Group justify='space-between'>
                   <Text size='sm'>Inactive Policies</Text>
-                  <Text fw={500} c='red'>
+                  <Text fw={500} c={theme.colors[theme.primaryColor][9]}>
                     {slaPolicies.filter(p => !p.isActive).length}
                   </Text>
                 </Group>
@@ -543,7 +545,7 @@ export default function SLAManagementPage() {
         title='Delete SLA Policy'
       >
         <Stack>
-          <Alert color='red' title='Warning'>
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning'>
             Are you sure you want to delete this SLA policy? This action cannot
             be undone.
           </Alert>
@@ -554,7 +556,7 @@ export default function SLAManagementPage() {
             <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button color='red' onClick={handleDeleteSLA}>
+            <Button color={theme.colors[theme.primaryColor][9]} onClick={handleDeleteSLA}>
               Delete Policy
             </Button>
           </Group>

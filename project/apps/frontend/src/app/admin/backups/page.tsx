@@ -203,7 +203,7 @@ export default function BackupsPage() {
                     </Table.Td>
                     <Table.Td>
                       <Badge
-                        color='green'
+                        color={theme.primaryColor}
                         variant='light'
                         leftSection={<IconCheck size={12} />}
                       >
@@ -252,7 +252,7 @@ export default function BackupsPage() {
                           <Menu.Divider />
                           <Menu.Item
                             leftSection={<IconTrash size={14} />}
-                            color='red'
+                            color={theme.colors[theme.primaryColor][9]}
                             onClick={() => {
                               setSelectedBackup(backup);
                               setDeleteModalOpen(true);
@@ -291,7 +291,7 @@ export default function BackupsPage() {
                 </Group>
                 <Group justify='space-between'>
                   <Text size='sm'>Completed</Text>
-                  <Text fw={500} c='green'>
+                  <Text fw={500} c={theme.primaryColor}>
                     {backups?.length || 0}
                   </Text>
                 </Group>
@@ -303,7 +303,7 @@ export default function BackupsPage() {
                 </Group>
                 <Group justify='space-between'>
                   <Text size='sm'>Failed</Text>
-                  <Text fw={500} c='red'>
+                  <Text fw={500} c={theme.colors[theme.primaryColor][9]}>
                     0
                   </Text>
                 </Group>
@@ -343,7 +343,7 @@ export default function BackupsPage() {
         title='Create New Backup'
       >
         <Stack>
-          <Alert color='red' title='Backup Information'>
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Backup Information'>
             This will create a complete backup of the system including all data,
             settings, and configurations.
           </Alert>
@@ -373,7 +373,7 @@ export default function BackupsPage() {
       >
         <Stack>
           <Alert
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             title='Warning'
             icon={<IconAlertTriangle size={16} />}
           >
@@ -394,7 +394,7 @@ export default function BackupsPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleRestoreBackup}
               loading={restoreBackup.isPending}
             >
@@ -411,7 +411,7 @@ export default function BackupsPage() {
         title='Delete Backup'
       >
         <Stack>
-          <Alert color='red' title='Warning'>
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning'>
             Are you sure you want to delete this backup? This action cannot be
             undone.
           </Alert>
@@ -422,7 +422,7 @@ export default function BackupsPage() {
             <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button color='red'>Delete Backup</Button>
+            <Button color={theme.colors[theme.primaryColor][9]}>Delete Backup</Button>
           </Group>
         </Stack>
       </Modal>

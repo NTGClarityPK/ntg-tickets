@@ -924,7 +924,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
         <Text size='sm' fw={500}>
           {label}
           {required && withAsterisk && (
-            <Text component='span' c='red'>
+            <Text component='span' c={theme.colors[theme.primaryColor][9]}>
               {' '}
               *
             </Text>
@@ -969,7 +969,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
       </Box>
 
       {error && (
-        <Text size='xs' c='red'>
+        <Text size='xs' c={theme.colors[theme.primaryColor][9]}>
           {error}
         </Text>
       )}

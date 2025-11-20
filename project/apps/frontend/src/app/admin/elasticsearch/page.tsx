@@ -128,11 +128,11 @@ export default function ElasticsearchPage() {
   const getHealthColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'green':
-        return 'green';
+        return theme.primaryColor;
       case 'yellow':
-        return 'yellow';
+        return theme.colors[theme.primaryColor][4];
       case 'red':
-        return 'red';
+        return theme.colors[theme.primaryColor][9];
       default:
         return 'gray';
     }
@@ -189,7 +189,7 @@ export default function ElasticsearchPage() {
 
               {health?.status === 'red' && (
                 <Alert
-                  color='red'
+                  color={theme.colors[theme.primaryColor][9]}
                   title='Critical Cluster Issues'
                   icon={<IconAlertTriangle size={16} />}
                 >
@@ -200,7 +200,7 @@ export default function ElasticsearchPage() {
 
               {health?.status === 'yellow' && (
                 <Alert
-                  color='yellow'
+                  color={theme.colors[theme.primaryColor][4]}
                   title='Cluster Warnings'
                   icon={<IconAlertTriangle size={16} />}
                 >
@@ -211,7 +211,7 @@ export default function ElasticsearchPage() {
 
               {health?.status === 'green' && (
                 <Alert
-                  color='green'
+                  color={theme.primaryColor}
                   title='Cluster Healthy'
                   icon={<IconCheck size={16} />}
                 >
@@ -249,7 +249,7 @@ export default function ElasticsearchPage() {
                 <Title order={4}>Relocating Shards</Title>
                 <IconActivity size={24} />
               </Group>
-              <Text size='xl' fw={700} c='yellow'>
+              <Text size='xl' fw={700} c={theme.colors[theme.primaryColor][4]}>
                 N/A
               </Text>
               <Text size='sm' c='dimmed'>
@@ -266,7 +266,7 @@ export default function ElasticsearchPage() {
                 <Title order={4}>Unassigned Shards</Title>
                 <IconAlertTriangle size={24} />
               </Group>
-              <Text size='xl' fw={700} c='red'>
+              <Text size='xl' fw={700} c={theme.colors[theme.primaryColor][9]}>
                 N/A
               </Text>
               <Text size='sm' c='dimmed'>
@@ -313,7 +313,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Cluster Name</Table.Td>
                     <Table.Td>{health?.cluster_name || 'N/A'}</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -322,7 +322,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Number of Nodes</Table.Td>
                     <Table.Td>N/A</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -331,7 +331,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Data Nodes</Table.Td>
                     <Table.Td>N/A</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -340,7 +340,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Active Shards</Table.Td>
                     <Table.Td>N/A</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -349,7 +349,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Relocating Shards</Table.Td>
                     <Table.Td>N/A</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -358,7 +358,7 @@ export default function ElasticsearchPage() {
                     <Table.Td>Unassigned Shards</Table.Td>
                     <Table.Td>N/A</Table.Td>
                     <Table.Td>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         OK
                       </Badge>
                     </Table.Td>
@@ -439,12 +439,12 @@ export default function ElasticsearchPage() {
           <Card mt='md'>
             <Stack>
               <Title order={4}>Cluster Management</Title>
-              <Alert color='yellow' title='Reindex Warning'>
+              <Alert color={theme.colors[theme.primaryColor][4]} title='Reindex Warning'>
                 Reindexing will rebuild the search index. This process may take
                 several minutes and will temporarily affect search performance.
               </Alert>
               <Button
-                color='red'
+                color={theme.colors[theme.primaryColor][9]}
                 leftSection={<IconRecycle size={16} />}
                 onClick={handleReindex}
                 loading={reindex.isPending}

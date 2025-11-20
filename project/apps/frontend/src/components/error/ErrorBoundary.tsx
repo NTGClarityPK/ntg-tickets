@@ -12,6 +12,7 @@ import {
   Code,
   Paper,
   ActionIcon,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -31,6 +32,59 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+}
+
+// Functional component for error details that can use hooks
+function ErrorDetails({ error, errorInfo, onCopyError }: { error: Error; errorInfo: ErrorInfo | null; onCopyError: () => void }) {
+  const theme = useMantineTheme();
+  
+  return (
+    <Alert
+      icon={<IconBug size={16} />}
+      title='Development Error Details'
+      color={theme.colors[theme.primaryColor][9]}
+      variant='light'
+      style={{ width: '100%' }}
+    >
+      <Stack gap='sm'>
+        <Text size='sm' fw={500}>
+          {error.message}
+        </Text>
+        <Group>
+          <ActionIcon
+            variant='subtle'
+            size='sm'
+            onClick={onCopyError}
+            title='Copy error details'
+          >
+            <IconCopy size={14} />
+          </ActionIcon>
+        </Group>
+        <Code
+          block
+          style={{
+            fontSize: '12px',
+            maxHeight: '200px',
+            overflow: 'auto',
+          }}
+        >
+          {error.stack}
+        </Code>
+        {errorInfo?.componentStack && (
+          <Code
+            block
+            style={{
+              fontSize: '12px',
+              maxHeight: '200px',
+              overflow: 'auto',
+            }}
+          >
+            {errorInfo.componentStack}
+          </Code>
+        )}
+      </Stack>
+    </Alert>
+  );
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -126,51 +180,7 @@ Component Stack: ${this.state.errorInfo?.componentStack}
               </Group>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <Alert
-                  icon={<IconBug size={16} />}
-                  title='Development Error Details'
-                  color='red'
-                  variant='light'
-                  style={{ width: '100%' }}
-                >
-                  <Stack gap='sm'>
-                    <Text size='sm' fw={500}>
-                      {this.state.error.message}
-                    </Text>
-                    <Group>
-                      <ActionIcon
-                        variant='subtle'
-                        size='sm'
-                        onClick={this.handleCopyError}
-                        title='Copy error details'
-                      >
-                        <IconCopy size={14} />
-                      </ActionIcon>
-                    </Group>
-                    <Code
-                      block
-                      style={{
-                        fontSize: '12px',
-                        maxHeight: '200px',
-                        overflow: 'auto',
-                      }}
-                    >
-                      {this.state.error.stack}
-                    </Code>
-                    {this.state.errorInfo?.componentStack && (
-                      <Code
-                        block
-                        style={{
-                          fontSize: '12px',
-                          maxHeight: '200px',
-                          overflow: 'auto',
-                        }}
-                      >
-                        {this.state.errorInfo.componentStack}
-                      </Code>
-                    )}
-                  </Stack>
-                </Alert>
+                <ErrorDetails error={this.state.error} errorInfo={this.state.errorInfo} onCopyError={this.handleCopyError} />
               )}
             </Stack>
           </Paper>

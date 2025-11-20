@@ -13,6 +13,7 @@ import {
   Alert,
   Divider,
   Title,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showErrorNotification } from '@/lib/notifications';
@@ -71,6 +72,7 @@ export function SystemSettingsForm({
   onSubmit,
   onCancel,
 }: SystemSettingsFormProps) {
+  const theme = useMantineTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<SystemSettings>({
@@ -397,7 +399,7 @@ export function SystemSettingsForm({
           </Grid.Col>
         </Grid>
 
-        <Alert color='yellow' title='Important'>
+        <Alert color={theme.colors[theme.primaryColor][4]} title='Important'>
           <Text size='sm'>
             Some settings may require a system restart to take effect. Please
             test changes in a staging environment before applying to production.

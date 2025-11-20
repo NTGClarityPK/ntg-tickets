@@ -131,12 +131,12 @@ export default function AuditLogsPage() {
 
   const getActionColor = (action: string) => {
     const colors: Record<string, string> = {
-      CREATE: 'green',
+      CREATE: theme.primaryColor,
       UPDATE: theme.primaryColor,
-      DELETE: 'red',
-      LOGIN: 'green',
+      DELETE: theme.colors[theme.primaryColor][9],
+      LOGIN: theme.primaryColor,
       LOGOUT: 'gray',
-      ASSIGN: 'yellow',
+      ASSIGN: theme.colors[theme.primaryColor][4],
       STATUS_CHANGE: 'purple',
       COMMENT: theme.primaryColor,
       ATTACHMENT: 'orange',
@@ -353,7 +353,7 @@ export default function AuditLogsPage() {
                                 <Group gap='xs'>
                                   {log.oldValue && (
                                     <Badge
-                                      color='red'
+                                      color={theme.colors[theme.primaryColor][9]}
                                       variant='light'
                                       size='xs'
                                     >
@@ -362,7 +362,7 @@ export default function AuditLogsPage() {
                                   )}
                                   {log.newValue && (
                                     <Badge
-                                      color='green'
+                                      color={theme.primaryColor}
                                       variant='light'
                                       size='xs'
                                     >
@@ -407,7 +407,7 @@ export default function AuditLogsPage() {
           <Card mt='md'>
             <Stack>
               <Title order={4}>Ticket Changes</Title>
-              <Alert color='red' title='Ticket Activity'>
+              <Alert color={theme.colors[theme.primaryColor][9]} title='Ticket Activity'>
                 All changes made to tickets including status updates,
                 assignments, and content modifications.
               </Alert>
@@ -456,7 +456,7 @@ export default function AuditLogsPage() {
                                 {log.oldValue !== undefined &&
                                   log.oldValue !== null && (
                                     <Badge
-                                      color='red'
+                                      color={theme.colors[theme.primaryColor][9]}
                                       variant='light'
                                       size='xs'
                                     >
@@ -466,7 +466,7 @@ export default function AuditLogsPage() {
                                 {log.newValue !== undefined &&
                                   log.newValue !== null && (
                                     <Badge
-                                      color='green'
+                                      color={theme.primaryColor}
                                       variant='light'
                                       size='xs'
                                     >
@@ -494,7 +494,7 @@ export default function AuditLogsPage() {
           <Card mt='md'>
             <Stack>
               <Title order={4}>User Activities</Title>
-              <Alert color='green' title='User Activity'>
+              <Alert color={theme.primaryColor} title='User Activity'>
                 Login, logout, profile changes, and other user-related
                 activities.
               </Alert>

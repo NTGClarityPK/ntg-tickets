@@ -16,6 +16,7 @@ import {
   NumberInput,
   LoadingOverlay,
   Text,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -40,6 +41,7 @@ interface EditCustomFieldPageProps {
 export default function EditCustomFieldPage({
   params,
 }: EditCustomFieldPageProps) {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,7 +138,7 @@ export default function EditCustomFieldPage({
   if (!customField) {
     return (
       <Container size='lg' py='md'>
-        <Alert color='red' title='Error'>
+        <Alert color={theme.colors[theme.primaryColor][9]} title='Error'>
           Custom field not found
         </Alert>
       </Container>
@@ -215,7 +217,7 @@ export default function EditCustomFieldPage({
                         />
                         <Button
                           variant='light'
-                          color='red'
+                          color={theme.colors[theme.primaryColor][9]}
                           size='sm'
                           onClick={() => handleRemoveOption(index)}
                         >
@@ -268,7 +270,7 @@ export default function EditCustomFieldPage({
                     <Text size='sm' fw={500} mb={4}>
                       {form.values.name}
                       {form.values.isRequired && (
-                        <Text component='span' c='red'>
+                        <Text component='span' c={theme.colors[theme.primaryColor][9]}>
                           {' '}
                           *
                         </Text>

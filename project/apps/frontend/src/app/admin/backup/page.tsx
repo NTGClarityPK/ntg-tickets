@@ -146,10 +146,10 @@ export default function BackupPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      completed: 'green',
+      completed: theme.primaryColor,
       in_progress: theme.primaryColor,
-      failed: 'red',
-      pending: 'yellow',
+      failed: theme.colors[theme.primaryColor][9],
+      pending: theme.colors[theme.primaryColor][4],
     };
     return colors[status] || 'gray';
   };
@@ -280,7 +280,7 @@ export default function BackupPage() {
                             </Stack>
                           </Table.Td>
                           <Table.Td>
-                            <Badge color='red' variant='light' size='sm'>
+                            <Badge color={theme.colors[theme.primaryColor][9]} variant='light' size='sm'>
                               Full
                             </Badge>
                           </Table.Td>
@@ -289,7 +289,7 @@ export default function BackupPage() {
                               <ActionIcon
                                 variant='light'
                                 size='sm'
-                                color='red'
+                                color={theme.colors[theme.primaryColor][9]}
                                 onClick={() =>
                                   handleDownloadBackup({
                                     id: backup.id,
@@ -307,7 +307,7 @@ export default function BackupPage() {
                               <ActionIcon
                                 variant='light'
                                 size='sm'
-                                color='green'
+                                color={theme.primaryColor}
                                 onClick={() => {
                                   setSelectedBackup({
                                     id: backup.id,
@@ -326,7 +326,7 @@ export default function BackupPage() {
                               <ActionIcon
                                 variant='light'
                                 size='sm'
-                                color='red'
+                                color={theme.colors[theme.primaryColor][9]}
                                 onClick={() => {
                                   setSelectedBackup({
                                     id: backup.id,
@@ -359,7 +359,7 @@ export default function BackupPage() {
               <Card>
                 <Stack>
                   <Title order={4}>Backup Settings</Title>
-                  <Alert color='red' title='Automatic Backups'>
+                  <Alert color={theme.colors[theme.primaryColor][9]} title='Automatic Backups'>
                     Configure automatic backup schedules and retention policies.
                   </Alert>
                   <Stack>
@@ -402,7 +402,7 @@ export default function BackupPage() {
                   <Grid>
                     <Grid.Col span={6}>
                       <Stack align='center'>
-                        <IconDatabase size={32} color='red' />
+                        <IconDatabase size={32} color={theme.colors[theme.primaryColor][9]} />
                         <Text size='xl' fw={700}>
                           {backups?.length || 0}
                         </Text>
@@ -413,7 +413,7 @@ export default function BackupPage() {
                     </Grid.Col>
                     <Grid.Col span={6}>
                       <Stack align='center'>
-                        <IconCloud size={32} color='green' />
+                        <IconCloud size={32} color={theme.primaryColor} />
                         <Text size='xl' fw={700}>
                           {formatFileSize(
                             backups?.reduce(
@@ -458,16 +458,16 @@ export default function BackupPage() {
           <Card mt='md'>
             <Stack>
               <Title order={4}>Backup Monitoring</Title>
-              <Alert color='green' title='System Health'>
+              <Alert color={theme.primaryColor} title='System Health'>
                 All backup systems are operational and monitoring is active.
               </Alert>
               <Grid>
                 <Grid.Col span={4}>
                   <Card padding='md'>
                     <Stack align='center'>
-                      <IconCheck size={32} color='green' />
+                      <IconCheck size={32} color={theme.primaryColor} />
                       <Text fw={500}>Backup Service</Text>
-                      <Badge color='green' variant='light'>
+                      <Badge color={theme.primaryColor} variant='light'>
                         Online
                       </Badge>
                     </Stack>
@@ -476,9 +476,9 @@ export default function BackupPage() {
                 <Grid.Col span={4}>
                   <Card padding='md'>
                     <Stack align='center'>
-                      <IconCloud size={32} color='red' />
+                      <IconCloud size={32} color={theme.colors[theme.primaryColor][9]} />
                       <Text fw={500}>Cloud Storage</Text>
-                      <Badge color='red' variant='light'>
+                      <Badge color={theme.colors[theme.primaryColor][9]} variant='light'>
                         Connected
                       </Badge>
                     </Stack>
@@ -547,7 +547,7 @@ export default function BackupPage() {
         title='Create New Backup'
       >
         <Stack>
-          <Alert color='yellow' title='Important'>
+          <Alert color={theme.colors[theme.primaryColor][4]} title='Important'>
             Creating a backup will temporarily impact system performance. This
             process may take several minutes depending on database size.
           </Alert>
@@ -577,7 +577,7 @@ export default function BackupPage() {
         title='Restore from Backup'
       >
         <Stack>
-          <Alert color='red' title='Warning'>
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning'>
             Restoring from a backup will overwrite all current data. This action
             cannot be undone. Make sure you have a current backup before
             proceeding.
@@ -603,7 +603,7 @@ export default function BackupPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleRestoreBackup}
               loading={restoreBackup.isPending}
               leftSection={<IconRefresh size={16} />}
@@ -621,7 +621,7 @@ export default function BackupPage() {
         title='Delete Backup'
       >
         <Stack>
-          <Alert color='orange' title='Confirm Deletion'>
+          <Alert color={theme.colors[theme.primaryColor][4]} title='Confirm Deletion'>
             Are you sure you want to delete this backup? This action cannot be
             undone.
           </Alert>
@@ -638,7 +638,7 @@ export default function BackupPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteBackup}
               loading={deleteBackup.isPending}
               leftSection={<IconTrash size={16} />}

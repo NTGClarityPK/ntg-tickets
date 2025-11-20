@@ -18,6 +18,7 @@ import {
   Loader,
   Center,
   Divider,
+  useMantineTheme,
 } from '@mantine/core';
 import { RichTextEditorComponent } from '../ui/RichTextEditor';
 import { useForm } from '@mantine/form';
@@ -53,6 +54,7 @@ export function DynamicTicketForm({
   loading = false,
   initialValues,
 }: DynamicTicketFormProps) {
+  const theme = useMantineTheme();
   const [selectedCategory, setSelectedCategory] = useState<string>(
     initialValues?.category || ''
   );
@@ -204,7 +206,7 @@ export function DynamicTicketForm({
         </Title>
 
         {error && (
-          <Alert icon={<IconAlertCircle size={16} />} color='red' mb='md'>
+          <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]} mb='md'>
             {error instanceof Error
               ? error.message
               : 'Failed to load form fields'}

@@ -186,7 +186,7 @@ function SLABreachedTicketsPageContent() {
           <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
             <Group justify='space-between' mb='sm'>
               <Group gap='sm'>
-                <Badge variant='light' color='red'>
+                <Badge variant='light' color={theme.colors[theme.primaryColor][9]}>
                   SLA Breached
                 </Badge>
                 <Text size='sm' c='dimmed'>
@@ -215,7 +215,7 @@ function SLABreachedTicketsPageContent() {
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
                   >
                     Delete
@@ -269,7 +269,7 @@ function SLABreachedTicketsPageContent() {
                   </Group>
                 )}
               </Group>
-              <Badge variant='light' color='red'>
+              <Badge variant='light' color={theme.colors[theme.primaryColor][9]}>
                 Breached
               </Badge>
             </Group>

@@ -10,6 +10,7 @@ import {
   Button,
   Card,
   Alert,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { RTLArrowLeft } from '../../../components/ui/RTLIcon';
@@ -20,6 +21,7 @@ import { UserFormData, UserRole } from '../../../types/unified';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function CreateUserPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const t = useTranslations('users');
   const router = useRouter();
@@ -81,7 +83,7 @@ export default function CreateUserPage() {
         <Alert
           icon={<IconAlertCircle size={16} />}
           title='Error'
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
           mt='md'
         >
           Failed to create user. Please check the form and try again.

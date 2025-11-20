@@ -15,6 +15,7 @@ import {
   ActionIcon,
   Grid,
   NumberInput,
+  useMantineTheme,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
@@ -84,6 +85,7 @@ export function AdvancedSearchModal({
   onSearch,
   initialCriteria = {},
 }: AdvancedSearchModalProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const tTickets = useTranslations('tickets');
   // activeFilters is now computed using useMemo
@@ -381,11 +383,11 @@ export function AdvancedSearchModal({
                   <Badge
                     key={`filter-${filter.id}`}
                     variant='light'
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     rightSection={
                       <ActionIcon
                         size='xs'
-                        color='red'
+                        color={theme.colors[theme.primaryColor][9]}
                         variant='transparent'
                         onClick={() => removeFilter(filter.id)}
                       >

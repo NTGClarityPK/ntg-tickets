@@ -110,7 +110,7 @@ export default function SettingsPage() {
         <Alert
           icon={<IconAlertCircle size={16} />}
           title={t('error')}
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
         >
           Failed to load system settings. Please try again later.
         </Alert>
@@ -130,7 +130,7 @@ export default function SettingsPage() {
           <Button
             leftSection={<IconDeviceFloppy size={16} />}
             onClick={handleSave}
-            color={saved ? 'green' : theme.primaryColor}
+            color={saved ? theme.primaryColor : theme.primaryColor}
             loading={updateSettingsMutation.isPending}
           >
             {saved ? t('saved') : tSettings('saveChanges')}
@@ -142,7 +142,7 @@ export default function SettingsPage() {
         <Alert
           icon={<IconCheck size={16} />}
           title={tSettings('settingsUpdated')}
-          color='green'
+          color={theme.primaryColor}
           mb='md'
         >
           {tSettings('settingsUpdated')}
@@ -446,7 +446,7 @@ export default function SettingsPage() {
             <Alert
               icon={<IconAlertCircle size={16} />}
               title='SMTP Configuration'
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               mb='md'
             >
               Configure your SMTP settings to enable email notifications and

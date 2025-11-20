@@ -12,6 +12,7 @@ import {
   MultiSelect,
   Text,
   Alert,
+  useMantineTheme,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Dropzone } from '@mantine/dropzone';
@@ -74,6 +75,7 @@ export function TicketForm({
   initialData,
   isEditing = false,
 }: TicketFormProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const tTickets = useTranslations('tickets');
   const [files, setFiles] = useState<File[]>([]);
@@ -270,7 +272,7 @@ export function TicketForm({
         />
 
         {/* Auto-assign Information */}
-        <Alert icon={<IconInfoCircle size={16} />} color='red' variant='light'>
+        <Alert icon={<IconInfoCircle size={16} />} color={theme.colors[theme.primaryColor][9]} variant='light'>
           <Text size='sm' fw={500} mb='xs'>
             System Settings
           </Text>
@@ -341,7 +343,7 @@ export function TicketForm({
                   <Text size='sm'>{file.name}</Text>
                   <Button
                     size='xs'
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     variant='subtle'
                     onClick={() => handleFileRemove(index)}
                   >
@@ -357,7 +359,7 @@ export function TicketForm({
           <Alert
             icon={<IconAlertCircle size={16} />}
             title='Critical Priority'
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
           >
             This ticket has been marked as critical priority. It will be
             escalated to senior support staff immediately.

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthUser, useAuthIsLoading } from '../../stores/useAuthStore';
-import { Container, Text, Button, Group, Stack } from '@mantine/core';
+import { Container, Text, Button, Group, Stack, useMantineTheme } from '@mantine/core';
 import { IconShield, IconHome } from '@tabler/icons-react';
 
 interface RouteGuardProps {
@@ -19,6 +19,7 @@ export function RouteGuard({
   redirectTo = '/reports',
   fallbackComponent,
 }: RouteGuardProps) {
+  const theme = useMantineTheme();
   const user = useAuthUser();
   const isLoading = useAuthIsLoading();
   const router = useRouter();
@@ -52,7 +53,7 @@ export function RouteGuard({
     return (
       <Container size='sm' py='xl'>
         <Stack align='center' gap='md'>
-          <IconShield size={64} color='red' />
+          <IconShield size={64} color={theme.colors[theme.primaryColor][9]} />
           <Text size='xl' fw={600} ta='center'>
             Access Denied
           </Text>

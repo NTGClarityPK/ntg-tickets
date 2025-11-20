@@ -15,6 +15,7 @@ import {
   Grid,
   Select,
   TextInput,
+  useMantineTheme,
 } from '@mantine/core';
 import { RichTextEditorComponent } from '../../../../components/ui/RichTextEditor';
 import { IconAlertCircle, IconDeviceFloppy } from '@tabler/icons-react';
@@ -34,6 +35,7 @@ import {
 import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
 export default function EditTicketPage() {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
@@ -117,7 +119,7 @@ export default function EditTicketPage() {
   if (error || !ticket) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load ticket: {error?.message || 'Ticket not found'}
         </Alert>
         <Group mt='md'>
@@ -139,7 +141,7 @@ export default function EditTicketPage() {
         <Alert
           icon={<IconAlertCircle size={16} />}
           title='Access Denied'
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
         >
           You don't have permission to edit this ticket.
         </Alert>
@@ -403,7 +405,7 @@ export default function EditTicketPage() {
         <Alert
           icon={<IconAlertCircle size={16} />}
           title='Error'
-          color='red'
+          color={theme.colors[theme.primaryColor][9]}
           mt='md'
         >
           Failed to update ticket. Please check the form and try again.

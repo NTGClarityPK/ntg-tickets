@@ -340,7 +340,7 @@ export default function SavedSearchesPage() {
                         </Table.Td>
                         <Table.Td>
                           <Badge
-                            color={search.isPublic ? 'green' : 'gray'}
+                            color={search.isPublic ? theme.primaryColor : 'gray'}
                             variant='light'
                             size='sm'
                           >
@@ -392,7 +392,7 @@ export default function SavedSearchesPage() {
                             <ActionIcon
                               variant='light'
                               size='sm'
-                              color='red'
+                              color={theme.colors[theme.primaryColor][9]}
                               onClick={() =>
                                 openDeleteModal({
                                   id: search.id,
@@ -745,7 +745,7 @@ export default function SavedSearchesPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteSearch}
               loading={deleteSearch.isPending}
             >

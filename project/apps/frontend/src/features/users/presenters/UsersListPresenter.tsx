@@ -18,6 +18,7 @@ import {
   Menu,
   Modal,
   Avatar,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -46,6 +47,7 @@ export function UsersListPresenter({
   onSetSelectedUser,
   getRoleColor,
 }: ExtendedUsersListPresenterProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const tUsers = useTranslations('users');
 
@@ -188,7 +190,7 @@ export function UsersListPresenter({
                           <Menu.Divider />
                           <Menu.Item
                             leftSection={<IconTrash size={14} />}
-                            color='red'
+                            color={theme.colors[theme.primaryColor][9]}
                             onClick={() => {
                               onSetSelectedUser(user);
                               handlers.onDeleteModalClose();
@@ -239,7 +241,7 @@ export function UsersListPresenter({
             Cancel
           </Button>
           <Button
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             onClick={() =>
               state.selectedUser?.id && handlers.onDeleteUser(state.selectedUser.id)
             }

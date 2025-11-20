@@ -37,7 +37,7 @@ interface HelpSystemProps {
   onClose: () => void;
 }
 
-const getHelpSections = (t: (key: string) => string, primaryLight: string, primaryDark: string) => [
+const getHelpSections = (t: (key: string) => string, primaryLight: string, primaryDark: string, primaryColorDarkest: string) => [
   {
     id: 'getting-started',
     title: t('gettingStarted'),
@@ -99,7 +99,7 @@ const getHelpSections = (t: (key: string) => string, primaryLight: string, prima
         {
           status: 'REOPENED',
           description: t('reopenedStatus'),
-          color: 'red',
+          color: primaryColorDarkest,
         },
       ],
     },
@@ -285,7 +285,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
     'getting-started'
   );
 
-  const helpSections = getHelpSections(t, primaryLight, primaryDark);
+  const helpSections = getHelpSections(t, primaryLight, primaryDark, theme.colors[theme.primaryColor][9]);
   const quickActions = getQuickActions(tTickets, t);
 
   const handleQuickAction = (action: string, target: string) => {
@@ -299,7 +299,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
-        return 'red';
+        return theme.colors[theme.primaryColor][9];
       case 'medium':
         return 'orange';
       case 'low':
@@ -328,7 +328,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
       onClose={onClose}
       title={
         <Group gap='sm'>
-          <ThemeIcon size='sm' variant='light' color='red'>
+          <ThemeIcon size='sm' variant='light' color={theme.colors[theme.primaryColor][9]}>
             <IconHelp size={16} />
           </ThemeIcon>
           <Text size='lg' fw={600}>
@@ -393,7 +393,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
             <Alert
               icon={<IconMail size={16} />}
               title={t('needMoreHelp')}
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               variant='light'
             >
               <Text size='xs' mb='sm'>
@@ -421,7 +421,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                 activeSection === section.id && (
                   <div key={section.id}>
                     <Group mb='md'>
-                      <ThemeIcon size='lg' variant='light' color='red'>
+                      <ThemeIcon size='lg' variant='light' color={theme.colors[theme.primaryColor][9]}>
                         <section.icon size={20} />
                       </ThemeIcon>
                       <div>
@@ -449,7 +449,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                                   <ThemeIcon
                                     size='sm'
                                     variant='light'
-                                    color='red'
+                                    color={theme.colors[theme.primaryColor][9]}
                                   >
                                     <Text size='xs' fw={600}>
                                       {index + 1}
@@ -475,7 +475,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                                   <ThemeIcon
                                     size='sm'
                                     variant='light'
-                                    color='green'
+                                    color={theme.primaryColor}
                                   >
                                     <IconCheck size={12} />
                                   </ThemeIcon>
@@ -541,7 +541,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                                   key={`permission-${permission}`}
                                   size='xs'
                                   variant='light'
-                                  color='red'
+                                  color={theme.colors[theme.primaryColor][9]}
                                 >
                                   {permission}
                                 </Badge>
@@ -608,7 +608,7 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                                     <ThemeIcon
                                       size='sm'
                                       variant='light'
-                                      color='green'
+                                      color={theme.primaryColor}
                                     >
                                       <IconCheck size={12} />
                                     </ThemeIcon>

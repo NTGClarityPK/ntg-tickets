@@ -14,6 +14,7 @@ import {
   Box,
   Alert,
   ActionIcon,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconUser,
@@ -45,6 +46,7 @@ export function RoleSelectionModal({
   // loading, // Removed unused parameter
   error,
 }: RoleSelectionModalProps) {
+  const theme = useMantineTheme();
   const { primaryLight, primaryDark, primaryDarkest } = useDynamicTheme();
   const t = useTranslations('auth');
 
@@ -126,7 +128,7 @@ export function RoleSelectionModal({
           {error && (
             <Alert
               icon={<IconInfoCircle size={16} />}
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               variant='light'
               radius='md'
               mb='md'

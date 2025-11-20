@@ -11,6 +11,7 @@ import {
   Checkbox,
   Box,
   ThemeIcon,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconShield,
@@ -37,6 +38,7 @@ export function DataProtectionBanner({
   onAccept,
   onReject,
 }: DataProtectionBannerProps) {
+  const theme = useMantineTheme();
   const t = useTranslations('common');
   const tCompliance = useTranslations('compliance');
   const [showBanner, setShowBanner] = useState(false);
@@ -114,7 +116,7 @@ export function DataProtectionBanner({
       >
         <Group justify='space-between' align='flex-start'>
           <Group align='flex-start' gap='md' style={{ flex: 1 }}>
-            <ThemeIcon size='lg' variant='light' color='red'>
+            <ThemeIcon size='lg' variant='light' color={theme.colors[theme.primaryColor][9]}>
               <IconShield size={20} />
             </ThemeIcon>
             <Stack gap='xs' style={{ flex: 1 }}>
@@ -137,7 +139,7 @@ export function DataProtectionBanner({
             <Button
               variant='outline'
               size='xs'
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleRejectAll}
             >
               {tCompliance('rejectAll')}
@@ -168,7 +170,7 @@ export function DataProtectionBanner({
           <Stack gap='sm'>
             <Group justify='space-between'>
               <Group gap='sm'>
-                <IconLock size={16} color='green' />
+                <IconLock size={16} color={theme.colors[theme.primaryColor][6]} />
                 <div>
                   <Text size='sm' fw={500}>
                     {tCompliance('necessaryCookies')}
@@ -183,7 +185,7 @@ export function DataProtectionBanner({
 
             <Group justify='space-between'>
               <Group gap='sm'>
-                <IconDatabase size={16} color='red' />
+                <IconDatabase size={16} color={theme.colors[theme.primaryColor][9]} />
                 <div>
                   <Text size='sm' fw={500}>
                     {tCompliance('analyticsCookies')}

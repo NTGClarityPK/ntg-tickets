@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Container, Group, Loader, Text, Alert } from '@mantine/core';
+import { Container, Group, Loader, Text, Alert, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useUsers, useDeleteUser } from '../../../hooks/useUsers';
@@ -19,6 +19,7 @@ import {
 } from '../types/users.types';
 
 export function UsersListContainer() {
+  const theme = useMantineTheme();
   const router = useRouter();
   const { primaryLight, primaryLighter, primaryDark, primaryDarkest } =
     useDynamicTheme();
@@ -146,7 +147,7 @@ export function UsersListContainer() {
   if (error) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load users: {String(error)}
         </Alert>
       </Container>

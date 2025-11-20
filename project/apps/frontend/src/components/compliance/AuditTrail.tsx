@@ -74,16 +74,16 @@ export function AuditTrail({
   });
 
   const actionColors: Record<string, string> = {
-    CREATE: 'green',
+    CREATE: theme.primaryColor,
     UPDATE: theme.primaryColor,
-    DELETE: 'red',
+    DELETE: theme.colors[theme.primaryColor][9],
     LOGIN: 'cyan',
     LOGOUT: 'gray',
     ASSIGN: 'orange',
     ESCALATE: 'purple',
     COMMENT: 'teal',
     ATTACH: 'indigo',
-    STATUS_CHANGE: 'yellow',
+    STATUS_CHANGE: theme.colors[theme.primaryColor][4],
     PRIORITY_CHANGE: 'pink',
     CATEGORY_CHANGE: 'violet',
   };
@@ -126,7 +126,7 @@ export function AuditTrail({
         size='xl'
       >
         <Center h={200}>
-          <Text c='red'>{t('error')}</Text>
+          <Text c={theme.colors[theme.primaryColor][9]}>{t('error')}</Text>
         </Center>
       </Modal>
     );

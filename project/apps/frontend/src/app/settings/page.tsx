@@ -144,7 +144,7 @@ export default function SettingsPage() {
           {isLoading && <Loader size='sm' />}
           <Button
             leftSection={<IconDeviceFloppy size={16} />}
-            color={saved ? 'green' : mantineTheme.primaryColor}
+            color={saved ? mantineTheme.primaryColor : mantineTheme.primaryColor}
             loading={isLoading}
             onClick={() => form.onSubmit(handleSave)()}
           >
@@ -157,7 +157,7 @@ export default function SettingsPage() {
         <Alert
           icon={<IconCheck size={16} />}
           title='Settings Saved'
-          color='green'
+          color={mantineTheme.primaryColor}
           mb='md'
         >
           Your settings have been saved successfully.
@@ -363,7 +363,7 @@ export default function SettingsPage() {
                   {...form.getInputProps('profileVisibility')}
                 />
 
-                <Alert icon={<IconAlertCircle size={16} />} color='red'>
+                <Alert icon={<IconAlertCircle size={16} />} color={mantineTheme.colors[mantineTheme.primaryColor][9]}>
                   <Text size='sm'>
                     These settings control how your information is displayed to
                     other users. Changes may take a few minutes to take effect.

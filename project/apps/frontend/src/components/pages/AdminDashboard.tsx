@@ -13,6 +13,7 @@ import {
   Loader,
   Alert,
   Button,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconUsers,
@@ -32,6 +33,7 @@ import { useSystemStats } from '../../hooks/useSystemMonitoring';
 import { useAuditLogStats, useSystemAuditLogs } from '../../hooks/useAuditLogs';
 
 export function AdminDashboard() {
+  const theme = useMantineTheme();
   const [refreshing, setRefreshing] = useState(false);
   const { primaryLight } = useDynamicTheme();
 
@@ -263,7 +265,7 @@ export function AdminDashboard() {
           <Alert
             icon={<IconAlertTriangle size={16} />}
             title='Security Alert'
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             variant='light'
           >
             High number of failed login attempts detected. Consider reviewing

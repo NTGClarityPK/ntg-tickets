@@ -12,6 +12,7 @@ import {
   Card,
   Avatar,
   Loader,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -28,6 +29,7 @@ import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 import { useCanCreateTicket } from '../../hooks/useCanCreateTicket';
 
 export function EndUserDashboard() {
+  const theme = useMantineTheme();
   const t = useTranslations('dashboard');
   const { user } = useAuthStore();
   const router = useRouter();
@@ -52,7 +54,7 @@ export function EndUserDashboard() {
       title: t('totalTickets'),
       value: myTickets.length,
       icon: IconTicket,
-      color: 'red',
+      color: theme.colors[theme.primaryColor][9],
     },
     {
       title: t('openTickets'),

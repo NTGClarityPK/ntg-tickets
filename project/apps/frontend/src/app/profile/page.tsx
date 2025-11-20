@@ -21,6 +21,7 @@ import {
   Select,
   Switch,
   PasswordInput,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconUser,
@@ -40,6 +41,7 @@ import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 export default function ProfilePage() {
   const { primaryLight, primaryDark, primaryDarkest } = useDynamicTheme();
+  const theme = useMantineTheme();
   const t = useTranslations('profile');
   const { user } = useAuthStore();
   const updateUserMutation = useUpdateUser();
@@ -153,7 +155,7 @@ export default function ProfilePage() {
           {updateUserMutation.isPending && <Loader size='sm' />}
           <Button
             leftSection={<IconDeviceFloppy size={16} />}
-            color={saved ? 'green' : 'red'}
+            color={saved ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
             loading={updateUserMutation.isPending}
             onClick={() => profileForm.onSubmit(handleProfileUpdate)()}
           >
@@ -166,7 +168,7 @@ export default function ProfilePage() {
         <Alert
           icon={<IconCheck size={16} />}
           title={t('profileUpdated')}
-          color='green'
+          color={theme.primaryColor}
           mb='md'
         >
           {t('profileUpdated')}

@@ -86,7 +86,7 @@ export function EmailTemplateForm({
       notifications.show({
         title: 'Error',
         message: 'Failed to save email template',
-        color: 'red',
+        color: theme.colors[theme.primaryColor][9],
       });
     } finally {
       setIsSubmitting(false);

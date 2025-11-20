@@ -402,7 +402,7 @@ export function AdminPanel() {
               </Group>
 
               {usersError && (
-                <Alert icon={<IconAlertCircle size={16} />} color='red'>
+                <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
                   Failed to load users: {usersError.message}
                 </Alert>
               )}
@@ -438,7 +438,7 @@ export function AdminPanel() {
                             <Button
                               size='xs'
                               variant='light'
-                              color='red'
+                              color={theme.colors[theme.primaryColor][9]}
                               onClick={() => handleDeleteUser(user.id)}
                             >
                               Delete
@@ -463,7 +463,7 @@ export function AdminPanel() {
               </Group>
 
               {customFieldsError && (
-                <Alert icon={<IconAlertCircle size={16} />} color='red'>
+                <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
                   Failed to load custom fields: {customFieldsError.message}
                 </Alert>
               )}
@@ -504,7 +504,7 @@ export function AdminPanel() {
                             <Button
                               size='xs'
                               variant='light'
-                              color='red'
+                              color={theme.colors[theme.primaryColor][9]}
                               onClick={() => handleDeleteCustomField(field.id)}
                             >
                               Delete
@@ -529,7 +529,7 @@ export function AdminPanel() {
               </Group>
 
               {emailTemplatesError && (
-                <Alert icon={<IconAlertCircle size={16} />} color='red'>
+                <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
                   Failed to load email templates: {emailTemplatesError.message}
                 </Alert>
               )}
@@ -567,7 +567,7 @@ export function AdminPanel() {
                             <Button
                               size='xs'
                               variant='light'
-                              color='red'
+                              color={theme.colors[theme.primaryColor][9]}
                               onClick={() =>
                                 handleDeleteEmailTemplate(template.id || '')
                               }
@@ -594,7 +594,7 @@ export function AdminPanel() {
               </Group>
 
               {systemSettingsError && (
-                <Alert icon={<IconAlertCircle size={16} />} color='red'>
+                <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
                   Failed to load system settings: {systemSettingsError.message}
                 </Alert>
               )}

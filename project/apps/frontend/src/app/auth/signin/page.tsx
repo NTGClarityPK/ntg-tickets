@@ -16,6 +16,7 @@ import {
   Box,
   ThemeIcon,
   Checkbox,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconAlertCircle,
@@ -31,6 +32,7 @@ import { UserRole } from '../../../types/unified';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SignInPage() {
+  const theme = useMantineTheme();
   const t = useTranslations('auth');
   const { primary, primaryDark } = useDynamicTheme();
   const [email, setEmail] = useState('');
@@ -202,7 +204,7 @@ export default function SignInPage() {
               {error && (
                 <Alert
                   icon={<IconAlertCircle size={16} />}
-                  color='red'
+                  color={theme.colors[theme.primaryColor][9]}
                   variant='light'
                   radius='md'
                 >
@@ -213,7 +215,7 @@ export default function SignInPage() {
               {isLocked && (
                 <Alert
                   icon={<IconClock size={16} />}
-                  color='orange'
+                  color={theme.colors[theme.primaryColor][4]}
                   variant='light'
                   radius='md'
                 >
@@ -224,7 +226,7 @@ export default function SignInPage() {
               {attempts > 0 && !isLocked && (
                 <Alert
                   icon={<IconAlertCircle size={16} />}
-                  color='yellow'
+                  color={theme.colors[theme.primaryColor][4]}
                   variant='light'
                   radius='md'
                 >

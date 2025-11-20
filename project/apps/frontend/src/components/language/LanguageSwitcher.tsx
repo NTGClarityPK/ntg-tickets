@@ -40,7 +40,7 @@ export function LanguageSwitcher() {
     return (
       <Button
         variant='outline'
-        color='red'
+        color={theme.colors[theme.primaryColor][9]}
         leftSection={<IconWorld size={16} />}
         rightSection={<RTLChevronDown size={16} />}
         style={{ minWidth: 120 }}
@@ -64,7 +64,7 @@ export function LanguageSwitcher() {
         <Menu.Target>
           <Button
             variant='outline'
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             leftSection={<IconWorld size={16} />}
             rightSection={<RTLChevronDown size={16} />}
             style={{

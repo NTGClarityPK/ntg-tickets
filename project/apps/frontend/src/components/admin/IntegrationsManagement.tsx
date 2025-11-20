@@ -20,6 +20,7 @@ import {
   Center,
   Tooltip,
   ThemeIcon,
+  useMantineTheme,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -47,26 +48,27 @@ interface IntegrationsManagementProps {
   onClose: () => void;
 }
 
-const integrationTypes = [
-  { value: 'webhook', label: 'Webhook', icon: IconWebhook, color: 'red' },
-  { value: 'api', label: 'API', icon: IconApi, color: 'green' },
-  { value: 'sso', label: 'SSO', icon: IconShield, color: 'purple' },
-  { value: 'email', label: 'Email', icon: IconMail, color: 'orange' },
-  { value: 'slack', label: 'Slack', icon: IconBrandSlack, color: 'cyan' },
-  { value: 'teams', label: 'Teams', icon: IconBrandTeams, color: 'red' },
-  { value: 'jira', label: 'Jira', icon: IconBrandX, color: 'red' },
-  {
-    value: 'serviceNow',
-    label: 'ServiceNow',
-    icon: IconDatabase,
-    color: 'gray',
-  },
-];
-
 export function IntegrationsManagement({
   opened,
   onClose,
 }: IntegrationsManagementProps) {
+  const theme = useMantineTheme();
+  
+  const integrationTypes = [
+    { value: 'webhook', label: 'Webhook', icon: IconWebhook, color: theme.colors[theme.primaryColor][9] },
+    { value: 'api', label: 'API', icon: IconApi, color: theme.primaryColor },
+    { value: 'sso', label: 'SSO', icon: IconShield, color: 'purple' },
+    { value: 'email', label: 'Email', icon: IconMail, color: 'orange' },
+    { value: 'slack', label: 'Slack', icon: IconBrandSlack, color: 'cyan' },
+    { value: 'teams', label: 'Teams', icon: IconBrandTeams, color: theme.colors[theme.primaryColor][9] },
+    { value: 'jira', label: 'Jira', icon: IconBrandX, color: theme.colors[theme.primaryColor][9] },
+    {
+      value: 'serviceNow',
+      label: 'ServiceNow',
+      icon: IconDatabase,
+      color: 'gray',
+    },
+  ];
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
@@ -181,7 +183,7 @@ export function IntegrationsManagement({
         title='Integrations Management'
         size='xl'
       >
-        <Alert icon={<IconAlertCircle size={16} />} color='red' title='Error'>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]} title='Error'>
           {error}
           <Text size='sm' mt='xs'>
             Please check your connection and try again.
@@ -276,7 +278,7 @@ export function IntegrationsManagement({
                         </Table.Td>
                         <Table.Td>
                           <Badge
-                            color={integration.enabled ? 'green' : 'red'}
+                            color={integration.enabled ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
                             variant='light'
                           >
                             {integration.enabled ? 'Enabled' : 'Disabled'}
@@ -313,7 +315,7 @@ export function IntegrationsManagement({
                               <ActionIcon
                                 variant='light'
                                 size='sm'
-                                color='red'
+                                color={theme.colors[theme.primaryColor][9]}
                                 onClick={() => handleDelete(integration.id)}
                               >
                                 <IconTrash size={14} />
@@ -600,7 +602,7 @@ export function IntegrationsManagement({
                   <IconX size={16} />
                 )
               }
-              color={testResult.success ? 'green' : 'red'}
+              color={testResult.success ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
               title={testResult.success ? 'Test Successful' : 'Test Failed'}
             >
               {testResult.message}

@@ -11,6 +11,7 @@ import {
   Avatar,
   Alert,
   Button,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconRefresh, IconAlertTriangle } from '@tabler/icons-react';
 import { AdminMetrics } from '../types/admin.types';
@@ -26,6 +27,7 @@ export function AdminDashboardPresenter({
   refreshing,
   onRefresh,
 }: AdminDashboardPresenterProps) {
+  const theme = useMantineTheme();
   return (
     <Container size='xl' py='md'>
       <Stack gap='md'>
@@ -81,7 +83,7 @@ export function AdminDashboardPresenter({
           <Alert
             icon={<IconAlertTriangle size={16} />}
             title='Security Alert'
-            color='red'
+            color={theme.colors[theme.primaryColor][9]}
             variant='light'
           >
             High number of failed login attempts detected. Consider reviewing

@@ -396,7 +396,7 @@ export default function TicketDetailPage() {
   if (error || !ticket) {
     return (
       <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color='red'>
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load ticket: {error?.message || 'Ticket not found'}
         </Alert>
         <Group mt='md'>
@@ -454,7 +454,7 @@ export default function TicketDetailPage() {
                   <Menu.Divider />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
-                    color='red'
+                    color={theme.colors[theme.primaryColor][9]}
                     onClick={() => setDeleteModalOpen(true)}
                   >
                     Delete
@@ -553,7 +553,7 @@ export default function TicketDetailPage() {
                                   </Menu.Item>
                                   <Menu.Item
                                     leftSection={<IconTrash size={14} />}
-                                    color='red'
+                                    color={theme.colors[theme.primaryColor][9]}
                                     onClick={() => setDeleteCommentId(comment.id)}
                                   >
                                     Delete
@@ -652,7 +652,7 @@ export default function TicketDetailPage() {
                                   </Menu.Item>
                                   <Menu.Item
                                     leftSection={<IconTrash size={14} />}
-                                    color='red'
+                                    color={theme.colors[theme.primaryColor][9]}
                                     onClick={() => setDeleteCommentId(comment.id)}
                                   >
                                     Delete
@@ -1244,7 +1244,7 @@ export default function TicketDetailPage() {
               Cancel
             </Button>
             <Button
-              color='red'
+              color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteComment}
               loading={deleteCommentMutation.isPending}
             >
@@ -1270,7 +1270,7 @@ export default function TicketDetailPage() {
             <Button variant='outline' onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button color='red'>Delete</Button>
+            <Button color={theme.colors[theme.primaryColor][9]}>Delete</Button>
           </Group>
         </Stack>
       </Modal>
