@@ -34,7 +34,6 @@ import {
 } from '@tabler/icons-react';
 import {
   useTicketsWithPagination,
-  useTotalTicketsCount,
 } from '../../../hooks/useTickets';
 import { useRouter } from 'next/navigation';
 import { SearchBar } from '../../../components/search/SearchBar';
@@ -75,7 +74,6 @@ function OverdueTicketsPageContent() {
     useTicketsWithPagination(ticketsQuery);
 
   // Get total count of all tickets (no filters)
-  const { data: totalTicketsCount } = useTotalTicketsCount();
 
   // Apply client-side overdue filtering
   let allOverdueTickets = ticketsData?.tickets || [];
@@ -153,7 +151,7 @@ function OverdueTicketsPageContent() {
           </Text>
           {hasActiveFilters() && (
             <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
-              Showing {tickets.length} of {totalTicketsCount || 0} tickets
+              Showing {tickets.length} of {totalOverdueTickets} tickets
             </Text>
           )}
         </div>

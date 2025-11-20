@@ -38,7 +38,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   useTicketsWithPagination,
-  useTotalTicketsCount,
 } from '../../../hooks/useTickets';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { Ticket, TicketStatus, TicketPriority } from '../../../types/unified';
@@ -104,8 +103,6 @@ function AssignedTicketsPageContent() {
     isFetching,
   } = useTicketsWithPagination(ticketsQuery);
 
-  // Get total count of all tickets (no filters)
-  const { data: totalTicketsCount } = useTotalTicketsCount();
 
   let assignedTickets = ticketsData?.tickets || [];
   const pagination = ticketsData?.pagination;
@@ -163,7 +160,7 @@ function AssignedTicketsPageContent() {
           <Text c='dimmed'>Tickets assigned to you</Text>
           {hasActiveFilters() && (
             <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
-              Showing {assignedTickets.length} of {totalTicketsCount || 0}{' '}
+              Showing {assignedTickets.length} of {pagination?.total || 0}{' '}
               tickets
             </Text>
           )}

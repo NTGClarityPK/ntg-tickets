@@ -5,7 +5,6 @@ import { Container, Group, Loader, Text, Alert, useMantineTheme } from '@mantine
 import { IconAlertCircle } from '@tabler/icons-react';
 import {
   useTicketsWithPagination,
-  useTotalTicketsCount,
   useDeleteTicket,
 } from '../../../hooks/useTickets';
 import { useSearch } from '../../../hooks/useSearch';
@@ -103,7 +102,6 @@ export function TicketsListContainer() {
     isFetching,
   } = useTicketsWithPagination(ticketsQuery);
 
-  const { data: totalTicketsCount } = useTotalTicketsCount();
   const deleteTicketMutation = useDeleteTicket();
 
   // Extract tickets and pagination from the response
@@ -186,7 +184,7 @@ export function TicketsListContainer() {
 
   const metrics: TicketsListMetrics = {
     tickets: filteredTickets,
-    totalCount: totalTicketsCount || 0,
+    totalCount: clientSidePagination?.total || pagination?.total || 0,
     filteredCount: filteredTickets.length,
     hasActiveFilters: !!hasActiveFilters(),
     needsClientSideFiltering,

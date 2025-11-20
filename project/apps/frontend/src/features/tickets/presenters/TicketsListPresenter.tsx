@@ -65,9 +65,7 @@ export function TicketsListPresenter({
           {metrics.hasActiveFilters && (
             <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
               Showing {metrics.filteredCount} of{' '}
-              {metrics.needsClientSideFiltering
-                ? metrics.filteredCount
-                : metrics.totalCount}{' '}
+              {pagination?.total || 0}{' '}
               tickets
             </Text>
           )}
