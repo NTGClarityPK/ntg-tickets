@@ -1096,13 +1096,13 @@ export class TicketsService {
     );
 
     // Validate user role can assign tickets
-    if (!['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN'].includes(userRole)) {
+    if (userRole !== 'SUPPORT_MANAGER') {
       this.logger.error(
         `User ${userId} with role ${userRole} cannot assign tickets`,
         'TicketsService'
       );
       throw new BadRequestException(
-        'Only support staff, managers and admins can assign tickets'
+        'Only support managers can assign tickets'
       );
     }
 

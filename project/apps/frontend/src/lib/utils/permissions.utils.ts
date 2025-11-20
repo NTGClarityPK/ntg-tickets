@@ -92,7 +92,7 @@ export function canViewAllTickets(
 export function canAssignTickets(
   userRole: UserRole | string | null | undefined
 ): boolean {
-  return isSupportStaff(userRole);
+  return hasRole(userRole, UserRole.SUPPORT_MANAGER);
 }
 
 /**

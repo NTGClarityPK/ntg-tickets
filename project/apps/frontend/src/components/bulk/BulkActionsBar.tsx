@@ -46,6 +46,7 @@ import {
   // statusTransitionRules, // Removed unused import
 } from '../../lib/statusValidation';
 import { notifications } from '@mantine/notifications';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 interface BulkActionsBarProps {
   selectedTickets: string[];
@@ -83,6 +84,8 @@ export function BulkActionsBar({
 
   // Fetch support staff for assignment
   const { data: supportStaff, isLoading: usersLoading } = useSupportStaff();
+  const { user } = useAuthStore();
+  const canAssign = user?.activeRole === 'SUPPORT_MANAGER';
 
   const selectedCount = selectedTickets.length;
   const isAllSelected = selectedCount === totalTickets;
@@ -243,14 +246,16 @@ export function BulkActionsBar({
               </Menu.Dropdown>
             </Menu>
 
-            <Button
-              variant='light'
-              leftSection={<IconUser size={16} />}
-              onClick={() => setAssignModalOpen(true)}
-              disabled={isProcessing}
-            >
-              Assign
-            </Button>
+            {canAssign && (
+              <Button
+                variant='light'
+                leftSection={<IconUser size={16} />}
+                onClick={() => setAssignModalOpen(true)}
+                disabled={isProcessing}
+              >
+                Assign
+              </Button>
+            )}
 
             <Menu shadow='md' width={200}>
               <Menu.Target>
