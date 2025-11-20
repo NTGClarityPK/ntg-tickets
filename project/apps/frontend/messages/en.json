@@ -84,6 +84,7 @@
     "roleSwitchFailedMessage": "Failed to switch role. Please try again."
   },
   "dashboard": {
+    "title": "Dashboard",
     "welcome": "Welcome back",
     "overview": "Overview",
     "myTickets": "My Tickets",

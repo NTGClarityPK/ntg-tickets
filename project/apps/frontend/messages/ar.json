@@ -68,6 +68,7 @@
     "resetPassword": "إعادة تعيين كلمة المرور"
   },
   "dashboard": {
+    "title": "لوحة التحكم",
     "welcome": "مرحباً بعودتك",
     "overview": "نظرة عامة",
     "myTickets": "تذاكري",
