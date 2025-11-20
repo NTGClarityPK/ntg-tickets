@@ -50,7 +50,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
   const { primary } = useDynamicTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const { user, hasRole, hasAnyRole } = useAuthStore();
+  const { user, hasRole } = useAuthStore();
   const { tickets } = useTicketsStore();
   const { unreadCount } = useNotificationsStore();
   const { canCreate: canCreateTicket } = useCanCreateTicket();
