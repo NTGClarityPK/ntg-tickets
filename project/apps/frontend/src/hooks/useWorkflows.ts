@@ -2,15 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 import { workflowsApi, Workflow, WorkflowData } from '../lib/apiClient';
 import { useDynamicTheme } from './useDynamicTheme';
+import { useAuthStore } from '../stores/useAuthStore';
 
 
 export function useWorkflows() {
   const { primaryLight, primaryDark } = useDynamicTheme();
+  const { user } = useAuthStore();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Only ADMIN and SUPPORT_MANAGER can fetch workflows list
+  const canFetchWorkflows = user?.activeRole === 'ADMIN' || user?.activeRole === 'SUPPORT_MANAGER';
+
   const fetchWorkflows = async () => {
+    // Skip if user doesn't have permission
+    if (!canFetchWorkflows) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -19,11 +30,14 @@ export function useWorkflows() {
       setWorkflows(response.data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to fetch workflows',
-        color: primaryDark,
-      });
+      // Only show notification for users who should have access
+      if (canFetchWorkflows) {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to fetch workflows',
+          color: primaryDark,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -255,9 +269,13 @@ export function useWorkflows() {
   }, []);
 
   useEffect(() => {
-    fetchWorkflows();
+    if (canFetchWorkflows) {
+      fetchWorkflows();
+    } else {
+      setLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canFetchWorkflows]);
 
   return {
     workflows,
