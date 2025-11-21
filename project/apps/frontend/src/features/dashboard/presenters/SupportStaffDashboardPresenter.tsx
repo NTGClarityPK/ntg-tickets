@@ -11,9 +11,11 @@ import {
   Badge,
   Card,
   Avatar,
-  Timeline,
+  Table,
+  Grid,
+  ScrollArea,
 } from '@mantine/core';
-import { IconSearch, IconTicket } from '@tabler/icons-react';
+import { IconSearch } from '@tabler/icons-react';
 import { SupportStaffDashboardMetrics } from '../types/dashboard.types';
 
 interface SupportStaffDashboardPresenterProps {
@@ -25,14 +27,11 @@ interface SupportStaffDashboardPresenterProps {
     primaryDarker: string;
   };
   onViewTickets: () => void;
-  recentActivityLabel: string;
 }
 
 export function SupportStaffDashboardPresenter({
   metrics,
-  themeColors,
   onViewTickets,
-  recentActivityLabel,
 }: SupportStaffDashboardPresenterProps) {
   return (
     <Container size='xl' py='md'>
@@ -85,36 +84,134 @@ export function SupportStaffDashboardPresenter({
           ))}
         </div>
 
-        {/* Recent Activity */}
-        <Paper withBorder p='md'>
-          <Title order={3} mb='md'>
-            {recentActivityLabel}
-          </Title>
-          <Timeline active={-1} bulletSize={24} lineWidth={2}>
-            {metrics.recentTickets.map(ticket => (
-              <Timeline.Item
-                key={ticket.id}
-                bullet={<IconTicket size={12} />}
-                title={ticket.title}
-              >
-                <Text c='dimmed' size='sm'>
-                  {ticket.status} •{' '}
-                  {new Date(ticket.updatedAt).toLocaleDateString()}
-                </Text>
-                <Badge
-                  size='sm'
-                  mt={4}
-                  style={{
-                    backgroundColor: themeColors.primaryDarker,
-                    color: 'white',
-                  }}
-                >
-                  {ticket.ticketNumber}
-                </Badge>
-              </Timeline.Item>
-            ))}
-          </Timeline>
-        </Paper>
+        {/* Tables */}
+        <Grid>
+          <Grid.Col span={6}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Category</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Category</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByCategory.map((item) => (
+                      <Table.Tr key={`category-${item.category}`}>
+                        <Table.Td>{item.category}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={6}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Status</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Status</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByStatus.map((item) => (
+                      <Table.Tr key={`status-${item.status}`}>
+                        <Table.Td>
+                          <Badge size='sm'>{item.status}</Badge>
+                        </Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Impact</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Impact</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByImpact.map((item) => (
+                      <Table.Tr key={`impact-${item.impact}`}>
+                        <Table.Td>{item.impact}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Urgency</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Urgency</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByUrgency.map((item) => (
+                      <Table.Tr key={`urgency-${item.urgency}`}>
+                        <Table.Td>{item.urgency}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Priority</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Priority</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByPriority.map((item) => (
+                      <Table.Tr key={`priority-${item.priority}`}>
+                        <Table.Td>
+                          <Badge size='sm' color={item.priority === 'CRITICAL' ? 'red' : item.priority === 'HIGH' ? 'orange' : 'blue'}>
+                            {item.priority}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+        </Grid>
       </Stack>
     </Container>
   );

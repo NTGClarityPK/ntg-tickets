@@ -42,7 +42,18 @@ CREATE INDEX IF NOT EXISTS "audit_logs_resource_idx" ON "audit_logs"("resource")
 CREATE INDEX IF NOT EXISTS "audit_logs_created_at_idx" ON "audit_logs"("createdAt");
 
 -- Indexes for workflows
-CREATE INDEX IF NOT EXISTS "workflows_status_active_idx" ON "workflows"("status", "isActive");
+-- Check if isActive column exists before creating composite index
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'workflows' AND column_name = 'isActive'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS "workflows_status_active_idx" ON "workflows"("status", "isActive");
+    ELSE
+        CREATE INDEX IF NOT EXISTS "workflows_status_idx" ON "workflows"("status");
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS "workflows_created_by_idx" ON "workflows"("createdBy");
 CREATE INDEX IF NOT EXISTS "workflows_created_at_idx" ON "workflows"("createdAt");
 

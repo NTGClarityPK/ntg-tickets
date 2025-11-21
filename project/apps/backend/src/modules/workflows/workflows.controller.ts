@@ -14,6 +14,7 @@ import { WorkflowsService } from './workflows.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { CreateWorkflowTransitionDto } from './dto/create-workflow-transition.dto';
+import { ActivateWorkflowDto } from './dto/activate-workflow.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -64,6 +65,30 @@ export class WorkflowsController {
     };
   }
 
+  @Get('all-statuses')
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
+  async getAllWorkflowStatuses() {
+    const statuses = await this.workflowsService.getAllWorkflowStatuses();
+    return {
+      data: statuses,
+      message: 'All workflow statuses retrieved successfully',
+    };
+  }
+
+  @Get('dashboard-stats')
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF, UserRole.END_USER)
+  async getDashboardStats(@Request() req) {
+    const userId = req.user?.sub || req.user?.id;
+    const userRole = req.user?.activeRole || req.user?.role || req.user?.roles?.[0];
+    console.log('🔍 Dashboard Stats Request:', { userId, userRole, user: req.user });
+    const stats = await this.workflowsService.getDashboardStats(userId, userRole);
+    console.log('🔍 Dashboard Stats Response:', stats);
+    return {
+      data: stats,
+      message: 'Dashboard stats retrieved successfully',
+    };
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
   async findOne(@Param('id') id: string) {
@@ -71,6 +96,26 @@ export class WorkflowsController {
     return {
       data: workflow,
       message: 'Workflow retrieved successfully',
+    };
+  }
+
+  @Get(':id/statuses')
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
+  async getWorkflowStatuses(@Param('id') id: string) {
+    const statuses = await this.workflowsService.getWorkflowStatuses(id);
+    return {
+      data: statuses,
+      message: 'Workflow statuses retrieved successfully',
+    };
+  }
+
+  @Get(':id/status-categorization')
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF)
+  async getStatusCategorization(@Param('id') id: string) {
+    const categorization = await this.workflowsService.getStatusCategorization(id);
+    return {
+      data: categorization,
+      message: 'Status categorization retrieved successfully',
     };
   }
 
@@ -101,8 +146,15 @@ export class WorkflowsController {
 
   @Patch(':id/activate')
   @Roles(UserRole.ADMIN)
-  async activate(@Param('id') id: string) {
-    const workflow = await this.workflowsService.activate(id);
+  async activate(
+    @Param('id') id: string,
+    @Body() activateDto?: ActivateWorkflowDto,
+  ) {
+    const workflow = await this.workflowsService.activate(
+      id,
+      activateDto?.workingStatuses,
+      activateDto?.doneStatuses,
+    );
     return {
       data: workflow,
       message: 'Workflow activated successfully',

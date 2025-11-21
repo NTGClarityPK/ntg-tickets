@@ -36,7 +36,8 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { WorkflowEditor } from './WorkflowEditor';
-import { Workflow, WorkflowData } from '../../lib/apiClient';
+import { StatusCategorizationModal } from './StatusCategorizationModal';
+import { Workflow, WorkflowData, workflowsApi } from '../../lib/apiClient';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 interface WorkflowListProps {
@@ -45,7 +46,7 @@ interface WorkflowListProps {
   onCreateWorkflow: (workflow: WorkflowData) => void;
   onUpdateWorkflow: (id: string, workflow: WorkflowData) => void;
   onDeleteWorkflow: (id: string) => void;
-  onActivate: (id: string) => void;
+  onActivate: (id: string, workingStatuses?: string[], doneStatuses?: string[]) => void;
   onDeactivate: (id: string) => void;
 }
 
@@ -67,6 +68,15 @@ export function WorkflowList({
   const [deleteModalOpen, setDeleteModalOpen] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [activatingWorkflow, setActivatingWorkflow] = useState<Workflow | null>(null);
+  const [availableStatuses, setAvailableStatuses] = useState<Array<{
+    id: string;
+    workflowId: string;
+    workflowName: string;
+    status: string;
+    displayName: string;
+  }>>([]);
 
   const filteredWorkflows = (workflows || []).filter((workflow) => {
     const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,6 +113,68 @@ export function WorkflowList({
   const handleDeleteWorkflow = (workflowId: string) => {
     onDeleteWorkflow(workflowId);
     setDeleteModalOpen(null);
+  };
+
+  const handleActivateClick = async (workflow: Workflow) => {
+    // If it's the default/system default workflow, activate directly
+    if (workflow.isSystemDefault || workflow.isDefault) {
+      onActivate(workflow.id);
+      return;
+    }
+
+    // For non-default workflows, fetch ALL workflow statuses from all workflows
+    try {
+      const response = await workflowsApi.getAllWorkflowStatuses();
+      
+      // Handle axios response structure: response.data contains { data: T, message: string }
+      const statuses = response?.data?.data || response?.data || [];
+      
+      if (Array.isArray(statuses) && statuses.length > 0) {
+        setAvailableStatuses(statuses);
+        setActivatingWorkflow(workflow);
+        setShowStatusModal(true);
+      } else if (Array.isArray(statuses)) {
+        // Empty array is valid, just show the modal
+        setAvailableStatuses([]);
+        setActivatingWorkflow(workflow);
+        setShowStatusModal(true);
+        notifications.show({
+          title: 'Warning',
+          message: 'No statuses found. Workflows may not have transitions defined yet.',
+          color: 'yellow',
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('Invalid response format - not an array:', statuses);
+        throw new Error('Invalid response format: expected array');
+      }
+    } catch (err: unknown) {
+      // eslint-disable-next-line no-console
+      console.error('Error fetching workflow statuses:', err);
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : err && typeof err === 'object' && 'response' in err && typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
+          ? (err as { response: { data: { message: string } } }).response.data.message
+          : 'Failed to fetch workflow statuses';
+      // eslint-disable-next-line no-console
+      console.error('Error details:', {
+        message: errorMessage,
+        error: err,
+      });
+      notifications.show({
+        title: 'Error',
+        message: errorMessage,
+        color: primaryDark,
+      });
+    }
+  };
+
+  const handleStatusConfirm = (workingStatuses: string[], doneStatuses: string[]) => {
+    if (activatingWorkflow) {
+      onActivate(activatingWorkflow.id, workingStatuses, doneStatuses);
+      setShowStatusModal(false);
+      setActivatingWorkflow(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -259,7 +331,7 @@ export function WorkflowList({
                               {workflow.status === 'INACTIVE' && (
                                 <Menu.Item
                                   leftSection={<IconCheck size={16} />}
-                                  onClick={() => onActivate(workflow.id)}
+                                  onClick={() => handleActivateClick(workflow)}
                                 >
                                   Activate
                                 </Menu.Item>
@@ -395,6 +467,18 @@ export function WorkflowList({
             />
           )}
         </Modal>
+
+        {/* Status Categorization Modal */}
+        <StatusCategorizationModal
+          opened={showStatusModal}
+          onClose={() => {
+            setShowStatusModal(false);
+            setActivatingWorkflow(null);
+          }}
+          onConfirm={handleStatusConfirm}
+          workflow={activatingWorkflow}
+          availableStatuses={availableStatuses}
+        />
       </Stack>
     </Container>
   );

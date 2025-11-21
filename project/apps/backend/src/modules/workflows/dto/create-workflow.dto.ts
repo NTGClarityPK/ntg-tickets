@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, IsObject, IsArray } from 'class-validator';
 import { WorkflowStatus } from '@prisma/client';
 
 export class CreateWorkflowDto {
@@ -24,4 +24,14 @@ export class CreateWorkflowDto {
   @IsOptional()
   @IsObject()
   definition?: any; // The workflow definition JSON
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  workingStatuses?: string[]; // Statuses that count as "Working" for dashboard stats
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  doneStatuses?: string[]; // Statuses that count as "Done" for dashboard stats
 }

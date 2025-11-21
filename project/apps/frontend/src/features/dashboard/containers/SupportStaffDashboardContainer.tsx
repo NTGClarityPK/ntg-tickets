@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Container, Group, Loader } from '@mantine/core';
 import {
   IconClock,
   IconCheck,
-  IconAlertCircle,
+  IconPlayerPause,
   IconTicket,
 } from '@tabler/icons-react';
 import { useTickets } from '../../../hooks/useTickets';
@@ -14,6 +14,7 @@ import { Ticket } from '../../../types/unified';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useWorkflows } from '../../../hooks/useWorkflows';
 import { SupportStaffDashboardPresenter } from '../presenters/SupportStaffDashboardPresenter';
 import { SupportStaffDashboardMetrics } from '../types/dashboard.types';
 
@@ -25,67 +26,125 @@ export function SupportStaffDashboardContainer() {
 
   const user = useAuthUser();
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
+  const { getDashboardStats } = useWorkflows();
+  const [dashboardStats, setDashboardStats] = useState<{ all: number; working: number; done: number; hold: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // Fetch dashboard stats from backend on mount
+  useEffect(() => {
+    setStatsLoading(true);
+    getDashboardStats()
+      .then((stats) => {
+        setDashboardStats(stats);
+        setStatsLoading(false);
+      })
+      .catch(() => {
+        setStatsLoading(false);
+      });
+  }, [getDashboardStats]);
 
   const metrics = useMemo((): SupportStaffDashboardMetrics => {
     const assignedTickets =
       tickets?.filter((ticket: Ticket) => ticket.assignedTo?.id === user?.id) ||
       [];
 
-    const openTickets = assignedTickets.filter((ticket: Ticket) =>
-      ['NEW', 'OPEN', 'IN_PROGRESS'].includes(ticket.status)
-    );
-    const resolvedTickets = assignedTickets.filter(
-      (ticket: Ticket) => ticket.status === 'RESOLVED'
-    );
-    const overdueTickets = assignedTickets.filter((ticket: Ticket) => {
-      if (!ticket.dueDate || ['RESOLVED', 'CLOSED'].includes(ticket.status)) {
-        return false;
-      }
-      return new Date(ticket.dueDate) < new Date();
-    });
+    // Use backend stats for cards (calculated on backend with proper workflow filtering)
+    const stats = dashboardStats || { all: 0, working: 0, done: 0, hold: 0 };
 
-    const stats = [
+    // Use backend stats for cards
+    const statsCards = [
       {
-        title: 'Total',
-        value: assignedTickets.length,
+        title: t('allTickets') || 'All',
+        value: stats.all,
         icon: IconTicket,
         color: primaryLight,
       },
       {
-        title: 'Open',
-        value: openTickets.length,
+        title: t('workingTickets') || 'Working',
+        value: stats.working,
         icon: IconClock,
         color: primaryLight,
       },
       {
-        title: 'Resolved',
-        value: resolvedTickets.length,
+        title: t('doneTickets') || 'Done',
+        value: stats.done,
         icon: IconCheck,
         color: primaryLight,
       },
       {
-        title: 'Overdue',
-        value: overdueTickets.length,
-        icon: IconAlertCircle,
+        title: t('holdTickets') || 'Hold',
+        value: stats.hold,
+        icon: IconPlayerPause,
         color: primaryLight,
       },
     ];
 
-    const recentTickets = assignedTickets.slice(0, 5).map((ticket: Ticket) => ({
-      id: ticket.id,
-      title: ticket.title,
-      status: ticket.status,
-      updatedAt: ticket.updatedAt,
-      ticketNumber: ticket.ticketNumber,
+    // Calculate tickets by category
+    const categoryMap = new Map<string, number>();
+    assignedTickets.forEach((ticket: Ticket) => {
+      const category = ticket.category?.customName || ticket.category?.name || 'Unknown';
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+    });
+    const ticketsByCategory = Array.from(categoryMap.entries()).map(([category, count]) => ({
+      category,
+      count,
+    }));
+
+    // Calculate tickets by status
+    const statusMap = new Map<string, number>();
+    assignedTickets.forEach((ticket: Ticket) => {
+      const status = String(ticket.status);
+      statusMap.set(status, (statusMap.get(status) || 0) + 1);
+    });
+    const ticketsByStatus = Array.from(statusMap.entries()).map(([status, count]) => ({
+      status,
+      count,
+    }));
+
+    // Calculate tickets by impact
+    const impactMap = new Map<string, number>();
+    assignedTickets.forEach((ticket: Ticket) => {
+      const impact = String(ticket.impact);
+      impactMap.set(impact, (impactMap.get(impact) || 0) + 1);
+    });
+    const ticketsByImpact = Array.from(impactMap.entries()).map(([impact, count]) => ({
+      impact,
+      count,
+    }));
+
+    // Calculate tickets by urgency
+    const urgencyMap = new Map<string, number>();
+    assignedTickets.forEach((ticket: Ticket) => {
+      const urgency = String(ticket.urgency);
+      urgencyMap.set(urgency, (urgencyMap.get(urgency) || 0) + 1);
+    });
+    const ticketsByUrgency = Array.from(urgencyMap.entries()).map(([urgency, count]) => ({
+      urgency,
+      count,
+    }));
+
+    // Calculate tickets by priority
+    const priorityMap = new Map<string, number>();
+    assignedTickets.forEach((ticket: Ticket) => {
+      const priority = String(ticket.priority);
+      priorityMap.set(priority, (priorityMap.get(priority) || 0) + 1);
+    });
+    const ticketsByPriority = Array.from(priorityMap.entries()).map(([priority, count]) => ({
+      priority,
+      count,
     }));
 
     return {
-      stats,
-      recentTickets,
+      stats: statsCards,
+      ticketsByCategory,
+      ticketsByStatus,
+      ticketsByImpact,
+      ticketsByUrgency,
+      ticketsByPriority,
     };
-  }, [tickets, user?.id, primaryLight]);
+  }, [tickets, user?.id, primaryLight, dashboardStats, t]);
 
-  if (ticketsLoading) {
+  if (ticketsLoading || statsLoading) {
     return (
       <Container size='xl' py='md'>
         <Group justify='center' py='xl'>
@@ -105,7 +164,6 @@ export function SupportStaffDashboardContainer() {
         primaryDarker,
       }}
       onViewTickets={() => router.push('/tickets')}
-      recentActivityLabel={t('recentActivity')}
     />
   );
 }

@@ -17,7 +17,7 @@ export function DashboardContent() {
   // Redirect End Users to Reports page since they don't have access to Overview
   useEffect(() => {
     if (user?.activeRole === 'END_USER') {
-      router.replace('/reports');
+      router.replace('/dashboard');
     }
   }, [user, router]);
 

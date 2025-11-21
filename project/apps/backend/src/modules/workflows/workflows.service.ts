@@ -13,7 +13,7 @@ export class WorkflowsService {
     try {
       console.log('🔧 WorkflowService.create called with:', { createWorkflowDto, userId });
       
-      const { definition, ...workflowData } = createWorkflowDto;
+      const { definition, workingStatuses, doneStatuses, ...workflowData } = createWorkflowDto;
 
       // If this is set as default, unset other default workflows
       if (workflowData.isDefault) {
@@ -33,10 +33,23 @@ export class WorkflowsService {
         });
       }
 
+      // Set default status categorization for default workflow
+      const statusCategorization: any = {};
+      if (workflowData.isDefault) {
+        // Default workflow: working = new, open, in-progress, reopened; done = closed, resolved
+        statusCategorization.workingStatuses = ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'];
+        statusCategorization.doneStatuses = ['CLOSED', 'RESOLVED'];
+      } else {
+        // Use provided values or empty arrays
+        statusCategorization.workingStatuses = workingStatuses || [];
+        statusCategorization.doneStatuses = doneStatuses || [];
+      }
+
       console.log('💾 Creating workflow in database...');
       const workflow = await this.prisma.workflow.create({
         data: {
           ...workflowData,
+          ...statusCategorization,
           definition: definition || {},
           createdBy: userId,
         },
@@ -259,7 +272,11 @@ export class WorkflowsService {
     return deletedWorkflow;
   }
 
-  async activate(id: string) {
+  async activate(
+    id: string,
+    workingStatuses?: string[],
+    doneStatuses?: string[],
+  ) {
     const workflow = await this.findOne(id);
     
     // Deactivate all other workflows (including system default) to ensure only one is active
@@ -272,10 +289,21 @@ export class WorkflowsService {
       data: { status: WorkflowStatus.INACTIVE },
     });
     
-    console.log(`✅ Activating workflow: ${id}`);
+    // Prepare update data
+    const updateData: any = { status: WorkflowStatus.ACTIVE };
+    
+    // If status categorization is provided, save it
+    if (workingStatuses !== undefined) {
+      updateData.workingStatuses = workingStatuses;
+    }
+    if (doneStatuses !== undefined) {
+      updateData.doneStatuses = doneStatuses;
+    }
+    
+    console.log(`✅ Activating workflow: ${id}`, { workingStatuses, doneStatuses });
     return this.prisma.workflow.update({
       where: { id },
-      data: { status: WorkflowStatus.ACTIVE },
+      data: updateData,
     });
   }
 
@@ -513,5 +541,357 @@ export class WorkflowsService {
     // This would be implemented based on the action types
 
     return execution;
+  }
+
+  /**
+   * Get all unique statuses from a workflow's transitions
+   */
+  async getWorkflowStatuses(workflowId: string): Promise<string[]> {
+    const workflow = await this.findOne(workflowId);
+    const statuses = new Set<string>();
+    
+    if (workflow.transitions) {
+      workflow.transitions.forEach(transition => {
+        if (transition.fromState) statuses.add(transition.fromState);
+        if (transition.toState) statuses.add(transition.toState);
+      });
+    }
+    
+    return Array.from(statuses);
+  }
+
+  /**
+   * Get status categorization for a workflow
+   */
+  async getStatusCategorization(workflowId: string) {
+    const workflow = await this.prisma.workflow.findUnique({
+      where: { id: workflowId },
+    });
+
+    if (!workflow) {
+      throw new NotFoundException('Workflow not found');
+    }
+
+    // Type assertion needed until Prisma client types are fully updated
+    const workflowWithStatuses = workflow as any;
+
+    return {
+      workingStatuses: (workflowWithStatuses.workingStatuses as string[]) || [],
+      doneStatuses: (workflowWithStatuses.doneStatuses as string[]) || [],
+    };
+  }
+
+  /**
+   * Get all unique statuses from all workflows (including deleted ones for historical reference)
+   * Returns statuses with workflow identifier in format: workflow-{workflowId}-{statusName}
+   * Also includes default system statuses for workflows that don't have transitions yet
+   */
+  async getAllWorkflowStatuses() {
+    try {
+      // Default system statuses that should always be available
+      const defaultSystemStatuses = [
+        'NEW',
+        'OPEN',
+        'IN_PROGRESS',
+        'ON_HOLD',
+        'RESOLVED',
+        'CLOSED',
+        'REOPENED',
+      ];
+
+      // Get all workflows including soft-deleted ones to capture all historical statuses
+      const allWorkflows = await this.prisma.workflow.findMany({
+        where: {},
+        select: {
+          id: true,
+          name: true,
+          definition: true,
+          transitions: {
+            select: {
+              fromState: true,
+              toState: true,
+            },
+          },
+        },
+      });
+
+      const statusMap = new Map<string, Array<{ workflowId: string; workflowName: string; status: string }>>();
+
+      allWorkflows.forEach(workflow => {
+        const statuses = new Set<string>();
+        
+        // Common action names/patterns that should not be treated as states
+        const actionPatterns = [
+          'CREATE_TICKET',
+          'Create Ticket',
+          'create ticket',
+          'CREATE',
+          'Create',
+          'START',
+          'END',
+        ];
+        
+        // Helper function to check if a string is an action (case-insensitive)
+        const isAction = (state: string): boolean => {
+          if (!state) return false;
+          const upperState = state.toUpperCase().trim();
+          return actionPatterns.some(pattern => 
+            upperState === pattern.toUpperCase() || 
+            (upperState.includes('CREATE') && upperState.includes('TICKET'))
+          );
+        };
+        
+        // First, try to extract states from workflow definition (diagram nodes)
+        if (workflow.definition && typeof workflow.definition === 'object') {
+          const definition = workflow.definition as any;
+          // Extract states from nodes if they exist in the definition
+          if (definition.nodes && Array.isArray(definition.nodes)) {
+            definition.nodes.forEach((node: any) => {
+              let stateLabel = null;
+              if (node.data?.label) {
+                stateLabel = node.data.label;
+              } else if (node.id) {
+                stateLabel = node.id;
+              }
+              // Only add if it's not an action
+              if (stateLabel && !isAction(stateLabel)) {
+                statuses.add(stateLabel);
+              }
+            });
+          }
+        }
+        
+        // Collect all unique statuses from transitions (this takes precedence)
+        // Filter out action names like "Create Ticket"
+        if (workflow.transitions && workflow.transitions.length > 0) {
+          workflow.transitions.forEach(transition => {
+            // Add toState (destination) - these are actual ticket statuses
+            if (transition.toState && !isAction(transition.toState)) {
+              statuses.add(transition.toState);
+            }
+            // Add fromState, but exclude if it's an action
+            if (transition.fromState && !isAction(transition.fromState)) {
+              statuses.add(transition.fromState);
+            }
+          });
+        }
+
+        // Only if workflow has NO states at all (no definition nodes and no transitions), 
+        // include default system statuses for that workflow
+        if (statuses.size === 0) {
+          defaultSystemStatuses.forEach(status => {
+            statuses.add(status);
+          });
+        }
+
+        // Store each status with workflow info (even if same status name, different workflow = different entry)
+        statuses.forEach(status => {
+          const key = `${workflow.id}-${status}`;
+          if (!statusMap.has(key)) {
+            statusMap.set(key, []);
+          }
+          statusMap.get(key)!.push({
+            workflowId: workflow.id,
+            workflowName: workflow.name,
+            status: status,
+          });
+        });
+      });
+
+      // Convert to array format: workflow-{workflowId}-{statusName}
+      const result = Array.from(statusMap.entries()).map(([key, infos]) => {
+        const info = infos[0]; // All entries for same key have same workflow info
+        return {
+          id: `workflow-${info.workflowId}-${info.status}`,
+          workflowId: info.workflowId,
+          workflowName: info.workflowName,
+          status: info.status,
+          displayName: `${info.workflowName} - ${info.status}`,
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error in getAllWorkflowStatuses:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get dashboard stats based on active workflow's status categorization
+   * Returns counts for all, working, done, and hold tickets
+   */
+  async getDashboardStats(userId?: string, userRole?: UserRole) {
+    try {
+      console.log('🔍 getDashboardStats called with:', { userId, userRole, userRoleType: typeof userRole });
+      // Get active workflow
+      const activeWorkflow = await this.prisma.workflow.findFirst({
+        where: { status: WorkflowStatus.ACTIVE },
+        select: {
+          id: true,
+          workingStatuses: true,
+          doneStatuses: true,
+        },
+      });
+
+      if (!activeWorkflow) {
+        // No active workflow, return zeros
+        return {
+          all: 0,
+          working: 0,
+          done: 0,
+          hold: 0,
+        };
+      }
+
+      // Get status categorization or use defaults
+      const workingStatusIds = (activeWorkflow.workingStatuses && activeWorkflow.workingStatuses.length > 0)
+        ? activeWorkflow.workingStatuses
+        : ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'];
+      const doneStatusIds = (activeWorkflow.doneStatuses && activeWorkflow.doneStatuses.length > 0)
+        ? activeWorkflow.doneStatuses
+        : ['CLOSED', 'RESOLVED'];
+
+      // Extract workflowId and statusName from workflow-specific format
+      const extractWorkflowAndStatus = (statusId: string): { workflowId: string | null; statusName: string } => {
+        if (statusId.startsWith('workflow-')) {
+          const match = statusId.match(/^workflow-([a-f0-9-]+)-(.+)$/i);
+          if (match && match[1] && match[2]) {
+            return { workflowId: match[1], statusName: match[2] };
+          }
+          const lastHyphenIndex = statusId.lastIndexOf('-');
+          if (lastHyphenIndex > 0 && lastHyphenIndex < statusId.length - 1) {
+            const workflowIdPart = statusId.substring(8, lastHyphenIndex);
+            return { workflowId: workflowIdPart, statusName: statusId.substring(lastHyphenIndex + 1) };
+          }
+        }
+        return { workflowId: null, statusName: statusId };
+      };
+
+      // Normalize status name (uppercase, replace spaces with underscores)
+      const normalizeStatus = (status: string): string => {
+        return status.toUpperCase().replace(/\s+/g, '_').trim();
+      };
+
+      // Build maps: workflowId -> Set of normalized status names
+      const workingStatusesByWorkflow = new Map<string, Set<string>>();
+      const doneStatusesByWorkflow = new Map<string, Set<string>>();
+
+      workingStatusIds.forEach(statusId => {
+        const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
+        const normalized = normalizeStatus(statusName);
+        const mappedWorkflowId = workflowId === null ? activeWorkflow.id : workflowId;
+        
+        if (!workingStatusesByWorkflow.has(mappedWorkflowId)) {
+          workingStatusesByWorkflow.set(mappedWorkflowId, new Set());
+        }
+        workingStatusesByWorkflow.get(mappedWorkflowId)!.add(normalized);
+      });
+
+      doneStatusIds.forEach(statusId => {
+        const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
+        const normalized = normalizeStatus(statusName);
+        const mappedWorkflowId = workflowId === null ? activeWorkflow.id : workflowId;
+        
+        if (!doneStatusesByWorkflow.has(mappedWorkflowId)) {
+          doneStatusesByWorkflow.set(mappedWorkflowId, new Set());
+        }
+        doneStatusesByWorkflow.get(mappedWorkflowId)!.add(normalized);
+      });
+
+      // Build base WHERE conditions for user role (for raw SQL)
+      const baseConditions: string[] = [];
+      console.log('🔍 Checking user role:', { userRole, SUPPORT_STAFF: UserRole.SUPPORT_STAFF, END_USER: UserRole.END_USER, userId });
+      if (userRole === UserRole.SUPPORT_STAFF && userId) {
+        baseConditions.push(`"assignedToId" = '${userId.replace(/'/g, "''")}'`);
+        console.log('🔍 Added SUPPORT_STAFF filter');
+      } else if (userRole === UserRole.END_USER && userId) {
+        baseConditions.push(`"requesterId" = '${userId.replace(/'/g, "''")}'`);
+        console.log('🔍 Added END_USER filter');
+      } else {
+        console.log('🔍 No role filter (Manager/Admin - see all tickets)');
+      }
+      // Support Manager and Admin see all tickets (no additional filter)
+
+      // Get all tickets count using raw SQL for consistency
+      const allWhereClause = baseConditions.length > 0
+        ? `WHERE ${baseConditions.join(' AND ')}`
+        : '';
+      const allCountResult = await this.prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(*)::int as count FROM tickets ${allWhereClause}`
+      );
+      const allCount = Number(allCountResult[0]?.count || 0);
+
+      // Use raw SQL with case-insensitive matching for better reliability
+      // Build OR conditions for workflow-status combinations
+      const buildRawQueryConditions = (statusesByWorkflow: Map<string, Set<string>>): string => {
+        const conditions: string[] = [];
+        const statusSet = new Set<string>(); // Collect all unique statuses across all workflows
+        
+        statusesByWorkflow.forEach((statusSetForWorkflow, workflowId) => {
+          statusSetForWorkflow.forEach(normalizedStatus => {
+            statusSet.add(normalizedStatus); // Collect status for null workflowId matching
+            
+            // Normalize ticket status in database (uppercase, spaces to underscores) and compare
+            // Match both exact workflow and active workflow if different
+            const workflowIdParam = workflowId.replace(/'/g, "''"); // Escape single quotes
+            const statusParam = normalizedStatus.replace(/'/g, "''"); // Escape single quotes
+            // Column names need quotes for camelCase: "workflowId" and "status"
+            conditions.push(
+              `("workflowId" = '${workflowIdParam}' AND UPPER(REPLACE("status", ' ', '_')) = '${statusParam}')`
+            );
+            if (workflowId !== activeWorkflow.id) {
+              const activeWorkflowIdParam = activeWorkflow.id.replace(/'/g, "''");
+              conditions.push(
+                `("workflowId" = '${activeWorkflowIdParam}' AND UPPER(REPLACE("status", ' ', '_')) = '${statusParam}')`
+              );
+            }
+          });
+        });
+        
+        return conditions.length > 0 ? conditions.join(' OR ') : 'FALSE';
+      };
+
+      // Get working tickets count using raw SQL
+      const workingStatusConditions = buildRawQueryConditions(workingStatusesByWorkflow);
+      let workingCount = 0;
+      if (workingStatusConditions !== 'FALSE') {
+        const whereClause = baseConditions.length > 0
+          ? `WHERE ${baseConditions.join(' AND ')} AND (${workingStatusConditions})`
+          : `WHERE (${workingStatusConditions})`;
+        
+        const result = await this.prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+          `SELECT COUNT(*)::int as count FROM tickets ${whereClause}`
+        );
+        workingCount = Number(result[0]?.count || 0);
+      }
+
+      // Get done tickets count using raw SQL
+      const doneStatusConditions = buildRawQueryConditions(doneStatusesByWorkflow);
+      let doneCount = 0;
+      if (doneStatusConditions !== 'FALSE') {
+        const whereClause = baseConditions.length > 0
+          ? `WHERE ${baseConditions.join(' AND ')} AND (${doneStatusConditions})`
+          : `WHERE (${doneStatusConditions})`;
+        
+        const result = await this.prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+          `SELECT COUNT(*)::int as count FROM tickets ${whereClause}`
+        );
+        doneCount = Number(result[0]?.count || 0);
+      }
+
+      // Hold tickets are everything else
+      const holdCount = allCount - workingCount - doneCount;
+
+      return {
+        all: allCount,
+        working: workingCount,
+        done: doneCount,
+        hold: holdCount,
+      };
+    } catch (error) {
+      console.error('Error in getDashboardStats:', error);
+      throw error;
+    }
   }
 }

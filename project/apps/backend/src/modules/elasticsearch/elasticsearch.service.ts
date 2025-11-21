@@ -150,7 +150,6 @@ export class ElasticsearchService {
         status: ticket.status,
         impact: ticket.impact,
         urgency: ticket.urgency,
-        slaLevel: ticket.slaLevel,
         requesterId: ticket.requesterId,
         assignedToId: ticket.assignedToId,
         requesterName: ticket.requester?.name || '',
@@ -459,7 +458,6 @@ export class ElasticsearchService {
           status: ticket.status,
           impact: ticket.impact,
           urgency: ticket.urgency,
-          slaLevel: ticket.slaLevel,
           requesterId: ticket.requesterId,
           assignedToId: ticket.assignedToId,
           requesterName: ticket.requester?.name || '',
@@ -517,11 +515,6 @@ export class ElasticsearchService {
     // Add category as tag
     if (ticket.categoryId) {
       tags.push(`category:${ticket.categoryId.toLowerCase()}`);
-    }
-
-    // Add SLA level as tag
-    if (ticket.slaLevel) {
-      tags.push(`sla:${ticket.slaLevel.toLowerCase()}`);
     }
 
     return tags;

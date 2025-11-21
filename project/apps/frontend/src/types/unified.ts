@@ -139,6 +139,7 @@ export interface Ticket {
   resolutionTime?: number;
   customFields?: Record<string, string>;
   relatedTickets?: string[];
+  workflowId?: string; // ID of the workflow this ticket belongs to
   workflowSnapshot?: {
     definition?: {
       nodes?: Array<{

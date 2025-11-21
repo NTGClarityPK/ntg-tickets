@@ -16,7 +16,7 @@ interface RouteGuardProps {
 export function RouteGuard({
   children,
   allowedRoles = [],
-  redirectTo = '/reports',
+  redirectTo = '/dashboard',
   fallbackComponent,
 }: RouteGuardProps) {
   const theme = useMantineTheme();
@@ -79,7 +79,7 @@ export function RouteGuard({
 // Convenience components for common role restrictions
 export function AdminOnly({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard allowedRoles={['ADMIN']} redirectTo='/reports'>
+    <RouteGuard allowedRoles={['ADMIN']} redirectTo='/dashboard'>
       {children}
     </RouteGuard>
   );
@@ -89,7 +89,7 @@ export function ManagerAndAdmin({ children }: { children: React.ReactNode }) {
   return (
     <RouteGuard
       allowedRoles={['SUPPORT_MANAGER', 'ADMIN']}
-      redirectTo='/reports'
+      redirectTo='/dashboard'
     >
       {children}
     </RouteGuard>
@@ -100,7 +100,7 @@ export function StaffAndAbove({ children }: { children: React.ReactNode }) {
   return (
     <RouteGuard
       allowedRoles={['SUPPORT_STAFF', 'SUPPORT_MANAGER', 'ADMIN']}
-      redirectTo='/reports'
+      redirectTo='/dashboard'
     >
       {children}
     </RouteGuard>

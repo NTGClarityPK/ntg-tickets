@@ -1125,6 +1125,197 @@ async function main() {
     },
   ];
 
+  // Get or create default workflow BEFORE creating tickets
+  console.log('🔍 Checking for default workflow...');
+  let defaultWorkflow = await prisma.workflow.findFirst({
+    where: { isSystemDefault: true },
+  });
+
+  if (!defaultWorkflow) {
+    // Create default workflow if it doesn't exist
+    console.log('📝 Creating system default workflow...');
+    
+    const defaultDefinition = {
+      nodes: [
+        {
+          id: 'create',
+          type: 'statusNode',
+          position: { x: 50, y: 80 },
+          data: { label: 'Create Ticket', color: '#4caf50', isInitial: true },
+        },
+        {
+          id: 'new',
+          type: 'statusNode',
+          position: { x: 280, y: 80 },
+          data: { label: 'New', color: '#ff9800' },
+        },
+        {
+          id: 'open',
+          type: 'statusNode',
+          position: { x: 510, y: 80 },
+          data: { label: 'Open', color: '#2196f3' },
+        },
+        {
+          id: 'in_progress',
+          type: 'statusNode',
+          position: { x: 510, y: 200 },
+          data: { label: 'In Progress', color: '#ff9800' },
+        },
+        {
+          id: 'resolved',
+          type: 'statusNode',
+          position: { x: 740, y: 80 },
+          data: { label: 'Resolved', color: '#4caf50' },
+        },
+        {
+          id: 'closed',
+          type: 'statusNode',
+          position: { x: 970, y: 80 },
+          data: { label: 'Closed', color: '#9e9e9e' },
+        },
+        {
+          id: 'reopened',
+          type: 'statusNode',
+          position: { x: 1100, y: 280 },
+          data: { label: 'Reopened', color: '#f44336' },
+        },
+        {
+          id: 'on_hold',
+          type: 'statusNode',
+          position: { x: 510, y: 320 },
+          data: { label: 'On Hold', color: '#9e9e9e' },
+        },
+      ],
+      edges: [
+        {
+          id: 'e1',
+          source: 'new',
+          target: 'open',
+          label: 'Open',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e2',
+          source: 'open',
+          target: 'in_progress',
+          label: 'Start Work',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e3',
+          source: 'in_progress',
+          target: 'resolved',
+          label: 'Resolve',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e3-hold',
+          source: 'in_progress',
+          target: 'on_hold',
+          label: 'Put On Hold',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e3-resume',
+          source: 'on_hold',
+          target: 'in_progress',
+          label: 'Resume Work',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e4',
+          source: 'resolved',
+          target: 'closed',
+          label: 'Close',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e5',
+          source: 'closed',
+          target: 'reopened',
+          label: 'Reopen',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['END_USER', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+        {
+          id: 'e6',
+          source: 'reopened',
+          target: 'in_progress',
+          label: 'Resume Work',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['SUPPORT_STAFF', 'ADMIN'],
+            conditions: [],
+            actions: [],
+          },
+        },
+      ],
+    };
+    
+    defaultWorkflow = await prisma.workflow.create({
+      data: {
+        name: 'Default Workflow',
+        description: 'System default workflow for ticket management. This workflow cannot be edited or deleted.',
+        status: 'ACTIVE',
+        isDefault: true,
+        isSystemDefault: true,
+        isActive: true,
+        version: 1,
+        definition: defaultDefinition as any,
+        createdBy: admin.id,
+        workingStatuses: ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'],
+        doneStatuses: ['CLOSED', 'RESOLVED'],
+      },
+    });
+    
+    console.log('✅ Successfully created system default workflow!');
+    console.log(`   ID: ${defaultWorkflow.id}`);
+  } else {
+    console.log(`✅ System default workflow already exists: "${defaultWorkflow.name}" (ID: ${defaultWorkflow.id})`);
+  }
+
   for (const ticketData of tickets) {
     // Find the category and subcategory
     const category = await prisma.category.findFirst({
@@ -1154,7 +1345,11 @@ async function main() {
 
     await prisma.ticket.upsert({
       where: { ticketNumber: ticketData.ticketNumber },
-      update: {},
+      update: {
+        workflow: {
+          connect: { id: defaultWorkflow.id },
+        },
+      },
       create: {
         ticketNumber: ticketData.ticketNumber,
         title: ticketData.title,
@@ -1167,6 +1362,9 @@ async function main() {
         resolution: ticketData.resolution,
         closedAt: ticketData.closedAt,
         createdAt: ticketData.createdAt,
+        workflow: {
+          connect: { id: defaultWorkflow.id },
+        },
         requester: {
           connect: { id: ticketData.requesterId },
         },
@@ -1185,7 +1383,6 @@ async function main() {
     });
   }
 
-  console.log('✅ Sample tickets created');
 
   // Create comprehensive comments and ticket history
   const overdueTicket1 = await prisma.ticket.findUnique({
@@ -1518,7 +1715,7 @@ async function main() {
     {
       userId: supportStaff1.id,
       ticketId: overdueTicket1?.id,
-      type: 'SLA_BREACH',
+      type: 'TICKET_ESCALATED',
       title: 'SLA Breach Alert',
       message:
         'Ticket TKT-2024-000001 has breached its SLA deadline by 3 days. Immediate action required.',
@@ -1528,7 +1725,7 @@ async function main() {
     {
       userId: manager.id,
       ticketId: overdueTicket1?.id,
-      type: 'SLA_BREACH',
+      type: 'TICKET_ESCALATED',
       title: 'SLA Breach Alert',
       message:
         'Critical ticket TKT-2024-000001 has breached SLA. This requires immediate escalation.',
@@ -1538,7 +1735,7 @@ async function main() {
     {
       userId: supportStaff2.id,
       ticketId: overdueTicket2?.id,
-      type: 'SLA_BREACH',
+      type: 'TICKET_ESCALATED',
       title: 'SLA Breach Alert',
       message:
         'Ticket TKT-2024-000002 has breached its SLA deadline by 2 days.',
@@ -1548,7 +1745,7 @@ async function main() {
     {
       userId: endUser1.id,
       ticketId: overdueTicket2?.id,
-      type: 'SLA_BREACH',
+      type: 'TICKET_ESCALATED',
       title: 'SLA Breach Alert',
       message:
         'Your ticket TKT-2024-000002 has exceeded the expected resolution time.',
@@ -1560,7 +1757,7 @@ async function main() {
     {
       userId: supportStaff4.id,
       ticketId: slaWarningTicket?.id,
-      type: 'SLA_WARNING',
+      type: 'TICKET_DUE',
       title: 'SLA Warning',
       message:
         'Ticket TKT-2024-000004 is approaching its SLA deadline. Due in 2 hours.',
@@ -1570,7 +1767,7 @@ async function main() {
     {
       userId: endUser2.id,
       ticketId: slaWarningTicket?.id,
-      type: 'SLA_WARNING',
+      type: 'TICKET_DUE',
       title: 'SLA Warning',
       message:
         'Your ticket TKT-2024-000004 is approaching its resolution deadline.',
@@ -1833,7 +2030,7 @@ async function main() {
     {
       userId: admin.id,
       ticketId: adminSecurityTicket?.id,
-      type: 'SLA_WARNING',
+      type: 'TICKET_DUE',
       title: 'SLA Warning - Security Audit',
       message:
         'Your security audit ticket TKT-2024-000026 is approaching its SLA deadline. Due in 1 day.',
@@ -1843,7 +2040,7 @@ async function main() {
     {
       userId: admin.id,
       ticketId: adminEmergencyTicket?.id,
-      type: 'SLA_WARNING',
+      type: 'TICKET_DUE',
       title: 'SLA Warning - Emergency Maintenance',
       message:
         'Your emergency maintenance ticket TKT-2024-000035 is approaching its SLA deadline. Due in 4 hours.',
@@ -2029,7 +2226,7 @@ async function main() {
     },
     {
       name: 'SLA Warning',
-      type: 'SLA_WARNING',
+      type: 'TICKET_DUE',
       subject: 'SLA Warning - {{ticketNumber}}',
       html: `
         <h2>SLA Warning</h2>
@@ -2045,7 +2242,7 @@ async function main() {
     },
     {
       name: 'SLA Breach',
-      type: 'SLA_BREACH',
+      type: 'TICKET_ESCALATED',
       subject: 'SLA Breach - {{ticketNumber}}',
       html: `
         <h2>SLA Breach Alert</h2>
@@ -2203,11 +2400,17 @@ async function main() {
 
   console.log('✅ Saved searches created');
 
-  // Create default workflow if it doesn't exist
-  console.log('🔍 Checking for default workflow...');
-  const workflowCount = await prisma.workflow.count();
+  // Default workflow is already created before tickets, so just verify it exists
+  const existingDefaultWorkflow = await prisma.workflow.findFirst({
+    where: { isSystemDefault: true },
+  });
   
-  if (workflowCount === 0) {
+  if (!existingDefaultWorkflow) {
+    console.log('⚠️  Warning: Default workflow was not created before tickets. This should not happen.');
+    // Fallback: create it now if somehow it doesn't exist
+    const workflowCount = await prisma.workflow.count();
+    
+    if (workflowCount === 0) {
     console.log('📝 No workflows found, creating system default workflow...');
     
     // Create default workflow definition
@@ -2429,6 +2632,9 @@ async function main() {
         console.log(`✅ Marked "${oldestWorkflow.name}" as system default`);
       }
     }
+    }
+  } else {
+    console.log(`✅ Default workflow verified: "${existingDefaultWorkflow.name}" (ID: ${existingDefaultWorkflow.id})`);
   }
 
   console.log('🎉 Database seeding completed successfully!');

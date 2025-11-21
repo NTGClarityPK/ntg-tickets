@@ -101,7 +101,11 @@
     "quickActions": "Quick Actions",
     "closedTickets": "Closed",
     "overdueTickets": "Overdue",
-    "assignedTickets": "Assigned Tickets"
+    "assignedTickets": "Assigned Tickets",
+    "allTickets": "All",
+    "workingTickets": "Working",
+    "doneTickets": "Done",
+    "holdTickets": "Hold"
   },
   "tickets": {
     "title": "Tickets",

@@ -11,10 +11,10 @@ import {
   Badge,
   Card,
   Avatar,
-  Timeline,
+  Table,
+  ScrollArea,
 } from '@mantine/core';
 import { AreaChart } from '@mantine/charts';
-import { IconTicket } from '@tabler/icons-react';
 import { ManagerDashboardMetrics } from '../types/dashboard.types';
 
 interface ManagerDashboardPresenterProps {
@@ -29,7 +29,6 @@ interface ManagerDashboardPresenterProps {
 
 export function ManagerDashboardPresenter({
   metrics,
-  themeColors,
 }: ManagerDashboardPresenterProps) {
   return (
     <Container size='xl' py='md'>
@@ -92,37 +91,162 @@ export function ManagerDashboardPresenter({
           </Grid.Col>
         </Grid>
 
-        {/* Recent Activity */}
+        {/* Tables */}
         <Grid>
+          <Grid.Col span={6}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Category</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Category</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByCategory.map((item) => (
+                      <Table.Tr key={`category-${item.category}`}>
+                        <Table.Td>{item.category}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={6}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Status</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Status</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByStatus.map((item) => (
+                      <Table.Tr key={`status-${item.status}`}>
+                        <Table.Td>
+                          <Badge size='sm'>{item.status}</Badge>
+                        </Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Impact</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Impact</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByImpact.map((item) => (
+                      <Table.Tr key={`impact-${item.impact}`}>
+                        <Table.Td>{item.impact}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Urgency</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Urgency</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByUrgency.map((item) => (
+                      <Table.Tr key={`urgency-${item.urgency}`}>
+                        <Table.Td>{item.urgency}</Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Paper withBorder p='md'>
+              <Title order={3} mb='md'>Tickets by Priority</Title>
+              <ScrollArea h={300}>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Priority</Table.Th>
+                      <Table.Th>Count</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.ticketsByPriority.map((item) => (
+                      <Table.Tr key={`priority-${item.priority}`}>
+                        <Table.Td>
+                          <Badge size='sm' color={item.priority === 'CRITICAL' ? 'red' : item.priority === 'HIGH' ? 'orange' : 'blue'}>
+                            {item.priority}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>{item.count}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          </Grid.Col>
+
+          {/* Staff Performance Table - Manager Only */}
           <Grid.Col span={12}>
             <Paper withBorder p='md'>
-              <Title order={3} mb='md'>
-                Recent Activity
-              </Title>
-              <Timeline active={-1} bulletSize={24} lineWidth={2}>
-                {metrics.recentTickets.map(ticket => (
-                  <Timeline.Item
-                    key={ticket.id}
-                    bullet={<IconTicket size={12} />}
-                    title={ticket.title}
-                  >
-                    <Text c='dimmed' size='sm'>
-                      {ticket.status} •{' '}
-                      {new Date(ticket.updatedAt).toLocaleDateString()}
-                    </Text>
-                    <Badge
-                      size='sm'
-                      mt={4}
-                      style={{
-                        backgroundColor: themeColors.primaryDarker,
-                        color: 'white',
-                      }}
-                    >
-                      {ticket.ticketNumber}
-                    </Badge>
-                  </Timeline.Item>
-                ))}
-              </Timeline>
+              <Title order={3} mb='md'>Staff Performance</Title>
+              <ScrollArea>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Staff Name</Table.Th>
+                      <Table.Th>Total Tickets</Table.Th>
+                      <Table.Th>Working</Table.Th>
+                      <Table.Th>Done</Table.Th>
+                      <Table.Th>Hold</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {metrics.staffPerformance?.map((staff) => (
+                      <Table.Tr key={staff.staffName}>
+                        <Table.Td>{staff.staffName}</Table.Td>
+                        <Table.Td>{staff.totalTickets}</Table.Td>
+                        <Table.Td>{staff.workingTickets}</Table.Td>
+                        <Table.Td>{staff.doneTickets}</Table.Td>
+                        <Table.Td>{staff.holdTickets}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
             </Paper>
           </Grid.Col>
         </Grid>

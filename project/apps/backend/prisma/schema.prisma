@@ -457,6 +457,8 @@ model Workflow {
   isSystemDefault Boolean    @default(false) // System default workflow - cannot be edited or deleted
   version     Int            @default(1)
   definition  Json?          // The workflow definition JSON
+  workingStatuses String[]   @default([]) // Statuses that count as "Working" for dashboard stats
+  doneStatuses    String[]   @default([]) // Statuses that count as "Done" for dashboard stats
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   deletedAt   DateTime?      // Soft delete - for hiding from UI but keeping for old tickets

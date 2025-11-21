@@ -1,6 +1,14 @@
 import { httpClient } from './http-client';
 import { ApiResponse } from '../../types/unified';
 
+interface WorkflowStatusItem {
+  id: string;
+  workflowId: string;
+  workflowName: string;
+  status: string;
+  displayName: string;
+}
+
 export interface Workflow {
   id: string;
   name: string;
@@ -10,6 +18,8 @@ export interface Workflow {
   isActive?: boolean;
   isSystemDefault?: boolean;
   definition?: Record<string, unknown>;
+  workingStatuses?: string[];
+  doneStatuses?: string[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -73,14 +83,33 @@ export const workflowsClient = {
   setDefaultWorkflow: (id: string) =>
     httpClient.patch<ApiResponse<void>>(`/workflows/${id}/set-default`),
 
-  activateWorkflow: (id: string) =>
-    httpClient.patch<ApiResponse<void>>(`/workflows/${id}/activate`),
+  activateWorkflow: (id: string, workingStatuses?: string[], doneStatuses?: string[]) =>
+    httpClient.patch<ApiResponse<void>>(`/workflows/${id}/activate`, {
+      workingStatuses,
+      doneStatuses,
+    }),
 
   deactivateWorkflow: (id: string) =>
     httpClient.patch<ApiResponse<void>>(`/workflows/${id}/deactivate`),
 
   getDefaultWorkflow: () =>
     httpClient.get<ApiResponse<Workflow>>('/workflows/default'),
+
+  getWorkflowStatuses: (id: string) =>
+    httpClient.get<ApiResponse<string[]>>(`/workflows/${id}/statuses`),
+
+  getStatusCategorization: (id: string) =>
+    httpClient.get<ApiResponse<{ workingStatuses: string[]; doneStatuses: string[] }>>(
+      `/workflows/${id}/status-categorization`
+    ),
+
+  getAllWorkflowStatuses: () =>
+    httpClient.get<ApiResponse<WorkflowStatusItem[]>>('/workflows/all-statuses'),
+
+  getDashboardStats: () =>
+    httpClient.get<ApiResponse<{ all: number; working: number; done: number; hold: number }>>(
+      '/workflows/dashboard-stats'
+    ),
 };
 
 

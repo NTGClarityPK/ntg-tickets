@@ -85,7 +85,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
     {
       label: tDashboard('title') || 'Dashboard',
       icon: IconChartBar,
-      href: '/reports',
+      href: '/dashboard',
       show: true,
     },
     {

@@ -1,79 +1,86 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Container, Group, Loader, useMantineTheme } from '@mantine/core';
+import { useMemo, useState, useEffect } from 'react';
+import { Container, Group, Loader } from '@mantine/core';
 import {
   IconClock,
   IconCheck,
-  IconX,
+  IconPlayerPause,
   IconTicket,
 } from '@tabler/icons-react';
 import { useTickets } from '../../../hooks/useTickets';
 import { useAuthUser } from '../../../stores/useAuthStore';
-import { Ticket } from '../../../types/unified';
 import { useRouter } from 'next/navigation';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 import { useTranslations } from 'next-intl';
+import { useWorkflows } from '../../../hooks/useWorkflows';
 import { EndUserDashboardPresenter } from '../presenters/EndUserDashboardPresenter';
 import { EndUserDashboardMetrics } from '../types/dashboard.types';
 
 export function EndUserDashboardContainer() {
-  const theme = useMantineTheme();
   const t = useTranslations('dashboard');
   const user = useAuthUser();
   const router = useRouter();
-  const { data: tickets, isLoading: ticketsLoading } = useTickets();
-  const { primary } = useDynamicTheme();
+  const { isLoading: ticketsLoading } = useTickets();
+  const { primaryLight } = useDynamicTheme();
   const { canCreate: canCreateTicket } = useCanCreateTicket();
+  const { getDashboardStats } = useWorkflows();
+  const [dashboardStats, setDashboardStats] = useState<{ all: number; working: number; done: number; hold: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // Fetch dashboard stats from backend on mount
+  useEffect(() => {
+    setStatsLoading(true);
+    getDashboardStats()
+      .then((stats) => {
+        setDashboardStats(stats);
+        setStatsLoading(false);
+      })
+      .catch(() => {
+        setStatsLoading(false);
+      });
+  }, [getDashboardStats]);
 
   const metrics = useMemo((): EndUserDashboardMetrics => {
-    const myTickets =
-      tickets?.filter((ticket: Ticket) => ticket.requester.id === user?.id) || [];
-    const openTickets = myTickets.filter((ticket: Ticket) =>
-      ['NEW', 'OPEN', 'IN_PROGRESS'].includes(ticket.status)
-    );
-    const resolvedTickets = myTickets.filter(
-      (ticket: Ticket) => ticket.status === 'RESOLVED'
-    );
-    const closedTickets = myTickets.filter(
-      (ticket: Ticket) => ticket.status === 'CLOSED'
-    );
+    // Use backend stats for cards (calculated on backend with proper workflow filtering)
+    const stats = dashboardStats || { all: 0, working: 0, done: 0, hold: 0 };
 
-    const stats = [
+    // Use backend stats for cards
+    const statsCards = [
       {
-        title: t('totalTickets'),
-        value: myTickets.length,
+        title: t('allTickets') || 'All',
+        value: stats.all,
         icon: IconTicket,
-        color: theme.colors[theme.primaryColor][9],
+        color: primaryLight,
       },
       {
-        title: t('openTickets'),
-        value: openTickets.length,
+        title: t('workingTickets') || 'Working',
+        value: stats.working,
         icon: IconClock,
-        color: 'orange',
+        color: primaryLight,
       },
       {
-        title: t('resolvedTickets'),
-        value: resolvedTickets.length,
+        title: t('doneTickets') || 'Done',
+        value: stats.done,
         icon: IconCheck,
-        color: primary,
+        color: primaryLight,
       },
       {
-        title: t('closedTickets'),
-        value: closedTickets.length,
-        icon: IconX,
-        color: 'gray',
+        title: t('holdTickets') || 'Hold',
+        value: stats.hold,
+        icon: IconPlayerPause,
+        color: primaryLight,
       },
     ];
 
     return {
-      stats,
+      stats: statsCards,
       canCreateTicket,
     };
-  }, [tickets, user?.id, primary, canCreateTicket, t, theme]);
+  }, [dashboardStats, primaryLight, canCreateTicket, t]);
 
-  if (ticketsLoading) {
+  if (ticketsLoading || statsLoading) {
     return (
       <Container size='xl' py='md'>
         <Group justify='center' py='xl'>

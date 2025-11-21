@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 import { workflowsApi, Workflow, WorkflowData } from '../lib/apiClient';
 import { useDynamicTheme } from './useDynamicTheme';
@@ -132,15 +132,24 @@ export function useWorkflows() {
     }
   };
 
-  const activateWorkflow = async (id: string): Promise<void> => {
+  const activateWorkflow = async (
+    id: string,
+    workingStatuses?: string[],
+    doneStatuses?: string[]
+  ): Promise<void> => {
     try {
-      await workflowsApi.activateWorkflow(id);
+      await workflowsApi.activateWorkflow(id, workingStatuses, doneStatuses);
 
       // Deactivate all other workflows and activate the selected one
       setWorkflows(prev =>
         prev.map(workflow =>
           workflow.id === id 
-            ? { ...workflow, status: 'ACTIVE' as const } 
+            ? { 
+                ...workflow, 
+                status: 'ACTIVE' as const,
+                workingStatuses: workingStatuses || workflow.workingStatuses,
+                doneStatuses: doneStatuses || workflow.doneStatuses,
+              } 
             : { ...workflow, status: 'INACTIVE' as const }
         )
       );
@@ -185,6 +194,47 @@ export function useWorkflows() {
     }
   };
 
+  const getActiveWorkflow = useCallback(async (): Promise<Workflow | null> => {
+    try {
+      const response = await workflowsApi.getDefaultWorkflow();
+      return response.data.data;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch active workflow:', err);
+      return null;
+    }
+  }, []);
+
+  const getDashboardStats = useCallback(async (): Promise<{ all: number; working: number; done: number; hold: number }> => {
+    try {
+      // eslint-disable-next-line no-console
+      console.log('🚀 [useWorkflows] Calling getDashboardStats API...');
+      const response = await workflowsApi.getDashboardStats();
+      // eslint-disable-next-line no-console
+      console.log('📊 [useWorkflows] Dashboard stats API response:', response);
+      // eslint-disable-next-line no-console
+      console.log('📊 [useWorkflows] Dashboard stats response.data:', response.data);
+      // eslint-disable-next-line no-console
+      console.log('📊 [useWorkflows] Dashboard stats response.data.data:', response.data?.data);
+      
+      const stats = response.data?.data || { all: 0, working: 0, done: 0, hold: 0 };
+      // eslint-disable-next-line no-console
+      console.log('✅ [useWorkflows] Dashboard stats extracted:', stats);
+      return stats;
+    } catch (err: unknown) {
+      // eslint-disable-next-line no-console
+      console.error('❌ [useWorkflows] Failed to fetch dashboard stats:', err);
+      // eslint-disable-next-line no-console
+      console.error('❌ [useWorkflows] Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        response: err && typeof err === 'object' && 'response' in err ? (err as { response?: { data?: unknown; status?: number } }).response : undefined,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      // Return zeros on error
+      return { all: 0, working: 0, done: 0, hold: 0 };
+    }
+  }, []);
+
   useEffect(() => {
     fetchWorkflows();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,5 +251,7 @@ export function useWorkflows() {
     setDefaultWorkflow,
     activateWorkflow,
     deactivateWorkflow,
+    getActiveWorkflow,
+    getDashboardStats,
   };
 }
