@@ -77,16 +77,22 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
     badge?: number;
   }> = [
     {
+      label: tDashboard('title') || 'Dashboard',
+      icon: IconChartBar,
+      href: '/dashboard',
+      show: !hasRole('ADMIN'), // Show for non-Admin users
+    },
+    {
       label: tDashboard('overview'),
       icon: IconDashboard,
-      href: '/dashboard',
-      show: hasRole('ADMIN'), // Only show for Admin
+      href: '/admin/overview',
+      show: hasRole('ADMIN'), // Overview goes to overview page
     },
     {
       label: tDashboard('title') || 'Dashboard',
       icon: IconChartBar,
       href: '/dashboard',
-      show: true,
+      show: hasRole('ADMIN'), // Dashboard goes to reports page for Admin
     },
     {
       label: t('notifications'),

@@ -2,6 +2,7 @@
 export { EndUserDashboardContainer } from './containers/EndUserDashboardContainer';
 export { ManagerDashboardContainer } from './containers/ManagerDashboardContainer';
 export { SupportStaffDashboardContainer } from './containers/SupportStaffDashboardContainer';
+export { AdminOverviewContainer } from './containers/AdminOverviewContainer';
 
 // Export presenters (if needed elsewhere)
 export { EndUserDashboardPresenter } from './presenters/EndUserDashboardPresenter';
