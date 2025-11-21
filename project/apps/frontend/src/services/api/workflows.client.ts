@@ -110,6 +110,17 @@ export const workflowsClient = {
     httpClient.get<ApiResponse<{ all: number; working: number; done: number; hold: number }>>(
       '/workflows/dashboard-stats'
     ),
+
+  getStaffPerformance: () =>
+    httpClient.get<ApiResponse<Array<{
+      name: string;
+      all: number;
+      working: number;
+      done: number;
+      hold: number;
+      overdue: number;
+      performance: number;
+    }>>>('/workflows/staff-performance'),
 };
 
 

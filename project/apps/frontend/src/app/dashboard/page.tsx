@@ -102,10 +102,20 @@ export default function ReportsPage() {
   const { user } = useAuthStore();
   const isSmall = useMediaQuery('(max-width: 48em)');
   const { getEarthyColorByIndex, primaryLight, primaryLighter, primaryDark } = useDynamicTheme();
-  const { getActiveWorkflow, getDashboardStats } = useWorkflows();
-  const [activeWorkflow, setActiveWorkflow] = useState<{ workingStatuses?: string[]; doneStatuses?: string[] } | null>(null);
+  const { getActiveWorkflow, getDashboardStats, getStaffPerformance } = useWorkflows();
+  const [activeWorkflow, setActiveWorkflow] = useState<{ id?: string; workingStatuses?: string[]; doneStatuses?: string[] } | null>(null);
   const [dashboardStats, setDashboardStats] = useState<{ all: number; working: number; done: number; hold: number } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [staffPerformance, setStaffPerformance] = useState<Array<{
+    name: string;
+    all: number;
+    working: number;
+    done: number;
+    hold: number;
+    overdue: number;
+    performance: number;
+  }>>([]);
+  const [staffPerformanceLoading, setStaffPerformanceLoading] = useState(true);
 
   const [filters, setFilters] = useState<ReportFilters>({});
   const [exportModalOpen, setExportModalOpen] = useState(false);
@@ -120,7 +130,11 @@ export default function ReportsPage() {
       try {
         const workflow = await getActiveWorkflow();
         if (isMounted) {
-          setActiveWorkflow(workflow);
+          setActiveWorkflow(workflow ? { 
+            id: workflow.id, 
+            workingStatuses: workflow.workingStatuses, 
+            doneStatuses: workflow.doneStatuses 
+          } : null);
         }
         
         const stats = await getDashboardStats();
@@ -142,6 +156,37 @@ export default function ReportsPage() {
       isMounted = false;
     };
   }, [getActiveWorkflow, getDashboardStats]);
+
+  // Fetch staff performance for Support Manager
+  useEffect(() => {
+    if (user?.activeRole !== 'SUPPORT_MANAGER') {
+      setStaffPerformanceLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    
+    const fetchStaffPerformance = async () => {
+      try {
+        setStaffPerformanceLoading(true);
+        const performance = await getStaffPerformance();
+        if (isMounted) {
+          setStaffPerformance(performance);
+          setStaffPerformanceLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setStaffPerformanceLoading(false);
+        }
+      }
+    };
+    
+    fetchStaffPerformance();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [getStaffPerformance, user?.activeRole]);
 
   // For End Users and Support Staff, we'll use their own tickets data
   const { data: tickets, isLoading: ticketsLoading } = useTickets();
@@ -318,16 +363,19 @@ export default function ReportsPage() {
   };
 
   // Build maps: workflowId -> Set of normalized status names
+  // Match backend logic: statuses without workflow prefix are mapped to active workflow ID
   const workingStatusesByWorkflow = new Map<string | null, Set<string>>();
   const doneStatusesByWorkflow = new Map<string | null, Set<string>>();
 
   workingStatusIds.forEach(statusId => {
     const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
     const normalized = normalizeStatus(statusName);
-    if (!workingStatusesByWorkflow.has(workflowId)) {
-      workingStatusesByWorkflow.set(workflowId, new Set());
+    // Map null workflowId to active workflow ID (like backend does)
+    const mappedWorkflowId = workflowId === null && activeWorkflow?.id ? activeWorkflow.id : workflowId;
+    if (!workingStatusesByWorkflow.has(mappedWorkflowId)) {
+      workingStatusesByWorkflow.set(mappedWorkflowId, new Set());
     }
-    const statusSet = workingStatusesByWorkflow.get(workflowId);
+    const statusSet = workingStatusesByWorkflow.get(mappedWorkflowId);
     if (statusSet) {
       statusSet.add(normalized);
     }
@@ -336,16 +384,19 @@ export default function ReportsPage() {
   doneStatusIds.forEach(statusId => {
     const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
     const normalized = normalizeStatus(statusName);
-    if (!doneStatusesByWorkflow.has(workflowId)) {
-      doneStatusesByWorkflow.set(workflowId, new Set());
+    // Map null workflowId to active workflow ID (like backend does)
+    const mappedWorkflowId = workflowId === null && activeWorkflow?.id ? activeWorkflow.id : workflowId;
+    if (!doneStatusesByWorkflow.has(mappedWorkflowId)) {
+      doneStatusesByWorkflow.set(mappedWorkflowId, new Set());
     }
-    const statusSet = doneStatusesByWorkflow.get(workflowId);
+    const statusSet = doneStatusesByWorkflow.get(mappedWorkflowId);
     if (statusSet) {
       statusSet.add(normalized);
     }
   });
 
   // Helper function to check if a ticket matches a workflow-status combination
+  // Matches backend logic exactly: for each categorized status, check both the categorized workflow and active workflow
   const matchesWorkflowStatus = (
     ticket: Ticket,
     workflowStatusMap: Map<string | null, Set<string>>
@@ -353,19 +404,34 @@ export default function ReportsPage() {
     const ticketWorkflowId = ticket.workflowId || null;
     const normalizedTicketStatus = normalizeStatus(ticket.status);
 
-    // Check if ticket's workflow has this status in the category
-    if (workflowStatusMap.has(ticketWorkflowId)) {
-      const statuses = workflowStatusMap.get(ticketWorkflowId);
-      if (statuses && statuses.has(normalizedTicketStatus)) {
+    // Iterate through all workflow-status combinations in the map (like backend does)
+    // For each status categorized for a workflow, check if ticket matches
+    for (const [categorizedWorkflowId, statuses] of Array.from(workflowStatusMap.entries())) {
+      if (!statuses.has(normalizedTicketStatus)) {
+        continue; // Status doesn't match, skip
+      }
+
+      // Map null to active workflow ID (like backend does when building the map)
+      const mappedCategorizedWorkflowId = categorizedWorkflowId === null && activeWorkflow?.id 
+        ? activeWorkflow.id 
+        : categorizedWorkflowId;
+
+      // Backend logic: check if ticket's workflowId matches the categorized workflowId
+      if (ticketWorkflowId === mappedCategorizedWorkflowId) {
         return true;
       }
-    }
 
-    // Also check null workflowId (for tickets without workflow or legacy tickets)
-    // Only if the selected statuses include null workflowId
-    if (ticketWorkflowId !== null && workflowStatusMap.has(null)) {
-      const statuses = workflowStatusMap.get(null);
-      if (statuses && statuses.has(normalizedTicketStatus)) {
+      // Backend fallback: if categorized workflowId !== activeWorkflow.id,
+      // also check if ticket's workflowId === activeWorkflow.id (for the same status)
+      if (activeWorkflow?.id && 
+          mappedCategorizedWorkflowId !== null &&
+          mappedCategorizedWorkflowId !== activeWorkflow.id && 
+          ticketWorkflowId === activeWorkflow.id) {
+        return true;
+      }
+
+      // Handle null workflowId case (tickets without workflow)
+      if (categorizedWorkflowId === null && ticketWorkflowId === null) {
         return true;
       }
     }
@@ -621,76 +687,6 @@ export default function ReportsPage() {
     return breakdown;
   }, [ticketsForBreakdown]);
 
-  // Staff performance calculation for Support Manager
-  const staffPerformance = useMemo(() => {
-    if (user?.activeRole !== 'SUPPORT_MANAGER') return [];
-
-    const staffMap = new Map<
-      string,
-      {
-        name: string;
-        assignedTickets: number;
-        resolvedTickets: number;
-        openTickets: number;
-        overdueTickets: number;
-        slaBreachedTickets: number;
-        avgResolutionTime: number;
-      }
-    >();
-
-    filteredTickets.forEach((ticket: Ticket) => {
-      if (!ticket.assignedTo) return;
-
-      const staffId = ticket.assignedTo.id;
-      const staffName = ticket.assignedTo.name;
-
-      if (!staffMap.has(staffId)) {
-        staffMap.set(staffId, {
-          name: staffName,
-          assignedTickets: 0,
-          resolvedTickets: 0,
-          openTickets: 0,
-          overdueTickets: 0,
-          slaBreachedTickets: 0,
-          avgResolutionTime: 0,
-        });
-      }
-
-      const staff = staffMap.get(staffId);
-      if (!staff) {
-        return;
-      }
-      staff.assignedTickets++;
-
-      if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
-        staff.resolvedTickets++;
-      }
-
-      if (['NEW', 'OPEN', 'IN_PROGRESS'].includes(ticket.status)) {
-        staff.openTickets++;
-      }
-
-      if (
-        ticket.dueDate &&
-        new Date(ticket.dueDate) < new Date() &&
-        !['RESOLVED', 'CLOSED'].includes(ticket.status)
-      ) {
-        staff.overdueTickets++;
-      }
-
-      if (
-        ticket.dueDate &&
-        ticket.closedAt &&
-        new Date(ticket.closedAt) > new Date(ticket.dueDate)
-      ) {
-        staff.slaBreachedTickets++;
-      }
-    });
-
-    return Array.from(staffMap.values()).sort(
-      (a, b) => b.assignedTickets - a.assignedTickets
-    );
-  }, [filteredTickets, user]);
 
   const handlePDFExport = async () => {
     try {
@@ -1013,7 +1009,7 @@ export default function ReportsPage() {
   };
 
   // Show loading state
-  if (ticketsLoading || auditLogsLoading || statsLoading) {
+  if (ticketsLoading || auditLogsLoading || statsLoading || (user?.activeRole === 'SUPPORT_MANAGER' && staffPerformanceLoading)) {
     return (
       <Container size='xl' py='md'>
         <Group justify='center' py='xl'>
@@ -1414,8 +1410,7 @@ export default function ReportsPage() {
           )}
 
           {/* Staff Performance Section - Support Manager Only */}
-          {user?.activeRole === 'SUPPORT_MANAGER' &&
-            staffPerformance.length > 0 && (
+          {user?.activeRole === 'SUPPORT_MANAGER' && (
               <Paper withBorder p='md' data-section="staff-performance">
                 <Title order={3} mb='md'>
                   Staff Performance
@@ -1426,7 +1421,7 @@ export default function ReportsPage() {
                       <Table.Th>Staff Member</Table.Th>
                       <Table.Th>
                         <Group gap='xs' align='center'>
-                          Assigned
+                          All
                           <Tooltip
                             label='Total tickets assigned to this staff member'
                             position='top'
@@ -1442,9 +1437,9 @@ export default function ReportsPage() {
                       </Table.Th>
                       <Table.Th>
                         <Group gap='xs' align='center'>
-                          Resolved
+                          Working
                           <Tooltip
-                            label='Tickets resolved or closed by this staff member'
+                            label='Tickets in working status (based on active workflow)'
                             position='top'
                             withArrow
                           >
@@ -1458,9 +1453,25 @@ export default function ReportsPage() {
                       </Table.Th>
                       <Table.Th>
                         <Group gap='xs' align='center'>
-                          Open
+                          Done
                           <Tooltip
-                            label='Currently open tickets assigned to this staff member'
+                            label='Tickets in done status (based on active workflow)'
+                            position='top'
+                            withArrow
+                          >
+                            <IconInfoCircle
+                              size={12}
+                              color='var(--mantine-color-dimmed)'
+                              style={{ cursor: 'help' }}
+                            />
+                          </Tooltip>
+                        </Group>
+                      </Table.Th>
+                      <Table.Th>
+                        <Group gap='xs' align='center'>
+                          Hold
+                          <Tooltip
+                            label='Tickets in hold status (not working or done)'
                             position='top'
                             withArrow
                           >
@@ -1476,7 +1487,7 @@ export default function ReportsPage() {
                         <Group gap='xs' align='center'>
                           Overdue
                           <Tooltip
-                            label='Open tickets that have passed their due date'
+                            label='Tickets in Working state that have passed their due date'
                             position='top'
                             withArrow
                           >
@@ -1492,7 +1503,7 @@ export default function ReportsPage() {
                         <Group gap='xs' align='center'>
                           Performance
                           <Tooltip
-                            label='SLA compliance percentage based on resolved tickets only'
+                            label='Percentage of all tickets to tickets where status is Done but were completed before due date, or are in Working state and not past due date'
                             position='top'
                             withArrow
                           >
@@ -1507,70 +1518,68 @@ export default function ReportsPage() {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {staffPerformance.map(staff => {
-                      const slaCompliance =
-                        staff.resolvedTickets > 0
-                          ? Math.round(
-                              ((staff.resolvedTickets -
-                                staff.slaBreachedTickets) /
-                                staff.resolvedTickets) *
-                                100
-                            )
-                          : 100;
-
-                      return (
-                        <Table.Tr key={staff.name}>
-                          <Table.Td>
-                            <Group gap='sm'>
-                              <Avatar size='sm' color='dynamic'>
-                                {staff.name.charAt(0).toUpperCase()}
-                              </Avatar>
-                              <Text fw={500}>{staff.name}</Text>
-                            </Group>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge variant='light' color='dynamic'>
-                              {staff.assignedTickets}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge variant='light' color='dynamic'>
-                              {staff.resolvedTickets}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }}>
-                              {staff.openTickets}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
-                              {staff.overdueTickets}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
-                              {staff.slaBreachedTickets}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Badge
-                              variant='light'
-                              style={{
-                                backgroundColor: slaCompliance >= 90
-                                  ? primaryLight
-                                  : slaCompliance >= 70
-                                    ? primaryLighter
-                                    : primaryDark,
-                                color: 'white'
-                              }}
-                            >
-                              {slaCompliance}%
-                            </Badge>
-                          </Table.Td>
-                        </Table.Tr>
-                      );
-                    })}
+                    {staffPerformance.length > 0 ? (
+                      staffPerformance.map(staff => {
+                        return (
+                          <Table.Tr key={staff.name}>
+                            <Table.Td>
+                              <Group gap='sm'>
+                                <Avatar size='sm' color='dynamic'>
+                                  {staff.name.charAt(0).toUpperCase()}
+                                </Avatar>
+                                <Text fw={500}>{staff.name}</Text>
+                              </Group>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge variant='light' color='dynamic'>
+                                {staff.all}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge variant='light' color='dynamic'>
+                                {staff.working}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge variant='light' color='dynamic'>
+                                {staff.done}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge variant='light' color='dynamic'>
+                                {staff.hold}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
+                                {staff.overdue}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Badge
+                                variant='light'
+                                style={{
+                                  backgroundColor: staff.performance >= 90
+                                    ? primaryLight
+                                    : staff.performance >= 70
+                                      ? primaryLighter
+                                      : primaryDark,
+                                  color: 'white'
+                                }}
+                              >
+                                {staff.performance}%
+                              </Badge>
+                            </Table.Td>
+                          </Table.Tr>
+                        );
+                      })
+                    ) : (
+                      <Table.Tr>
+                        <Table.Td colSpan={7} style={{ textAlign: 'center' }}>
+                          <Text c='dimmed'>No staff performance data available</Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    )}
                   </Table.Tbody>
                 </Table>
               </Paper>

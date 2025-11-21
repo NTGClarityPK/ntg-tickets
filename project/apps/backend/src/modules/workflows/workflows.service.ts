@@ -894,4 +894,227 @@ export class WorkflowsService {
       throw error;
     }
   }
+
+  async getStaffPerformance() {
+    try {
+      // Get active workflow
+      const activeWorkflow = await this.prisma.workflow.findFirst({
+        where: { status: WorkflowStatus.ACTIVE },
+        select: {
+          id: true,
+          workingStatuses: true,
+          doneStatuses: true,
+        },
+      });
+
+      if (!activeWorkflow) {
+        return [];
+      }
+
+      // Get status categorization or use defaults
+      const workingStatusIds = (activeWorkflow.workingStatuses && activeWorkflow.workingStatuses.length > 0)
+        ? activeWorkflow.workingStatuses
+        : ['NEW', 'OPEN', 'IN_PROGRESS', 'REOPENED'];
+      const doneStatusIds = (activeWorkflow.doneStatuses && activeWorkflow.doneStatuses.length > 0)
+        ? activeWorkflow.doneStatuses
+        : ['CLOSED', 'RESOLVED'];
+
+      // Extract workflowId and statusName from workflow-specific format
+      const extractWorkflowAndStatus = (statusId: string): { workflowId: string | null; statusName: string } => {
+        if (statusId.startsWith('workflow-')) {
+          const match = statusId.match(/^workflow-([a-f0-9-]+)-(.+)$/i);
+          if (match && match[1] && match[2]) {
+            return { workflowId: match[1], statusName: match[2] };
+          }
+          const lastHyphenIndex = statusId.lastIndexOf('-');
+          if (lastHyphenIndex > 0 && lastHyphenIndex < statusId.length - 1) {
+            const workflowIdPart = statusId.substring(8, lastHyphenIndex);
+            return { workflowId: workflowIdPart, statusName: statusId.substring(lastHyphenIndex + 1) };
+          }
+        }
+        return { workflowId: null, statusName: statusId };
+      };
+
+      // Normalize status name (uppercase, replace spaces with underscores)
+      const normalizeStatus = (status: string): string => {
+        return status.toUpperCase().replace(/\s+/g, '_').trim();
+      };
+
+      // Build maps: workflowId -> Set of normalized status names
+      const workingStatusesByWorkflow = new Map<string, Set<string>>();
+      const doneStatusesByWorkflow = new Map<string, Set<string>>();
+
+      workingStatusIds.forEach(statusId => {
+        const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
+        const normalized = normalizeStatus(statusName);
+        const mappedWorkflowId = workflowId === null ? activeWorkflow.id : workflowId;
+        
+        if (!workingStatusesByWorkflow.has(mappedWorkflowId)) {
+          workingStatusesByWorkflow.set(mappedWorkflowId, new Set());
+        }
+        workingStatusesByWorkflow.get(mappedWorkflowId)!.add(normalized);
+      });
+
+      doneStatusIds.forEach(statusId => {
+        const { workflowId, statusName } = extractWorkflowAndStatus(statusId);
+        const normalized = normalizeStatus(statusName);
+        const mappedWorkflowId = workflowId === null ? activeWorkflow.id : workflowId;
+        
+        if (!doneStatusesByWorkflow.has(mappedWorkflowId)) {
+          doneStatusesByWorkflow.set(mappedWorkflowId, new Set());
+        }
+        doneStatusesByWorkflow.get(mappedWorkflowId)!.add(normalized);
+      });
+
+      // Build OR conditions for workflow-status combinations
+      const buildRawQueryConditions = (statusesByWorkflow: Map<string, Set<string>>): string => {
+        const conditions: string[] = [];
+        
+        statusesByWorkflow.forEach((statusSetForWorkflow, workflowId) => {
+          statusSetForWorkflow.forEach(normalizedStatus => {
+            const workflowIdParam = workflowId.replace(/'/g, "''");
+            const statusParam = normalizedStatus.replace(/'/g, "''");
+            conditions.push(
+              `("workflowId" = '${workflowIdParam}' AND UPPER(REPLACE("status", ' ', '_')) = '${statusParam}')`
+            );
+            if (workflowId !== activeWorkflow.id) {
+              const activeWorkflowIdParam = activeWorkflow.id.replace(/'/g, "''");
+              conditions.push(
+                `("workflowId" = '${activeWorkflowIdParam}' AND UPPER(REPLACE("status", ' ', '_')) = '${statusParam}')`
+              );
+            }
+          });
+        });
+        
+        return conditions.length > 0 ? conditions.join(' OR ') : 'FALSE';
+      };
+
+      const workingStatusConditions = buildRawQueryConditions(workingStatusesByWorkflow);
+      const doneStatusConditions = buildRawQueryConditions(doneStatusesByWorkflow);
+
+      // Get all tickets grouped by assignedToId using SQL
+      const allTicketsQuery = `
+        SELECT 
+          COALESCE("assignedToId", 'unassigned') as "staffId",
+          u.name as "staffName",
+          COUNT(*)::int as "all"
+        FROM tickets t
+        LEFT JOIN users u ON t."assignedToId" = u.id
+        GROUP BY COALESCE("assignedToId", 'unassigned'), u.name
+      `;
+
+      const allTicketsResult = await this.prisma.$queryRawUnsafe<Array<{
+        staffId: string;
+        staffName: string | null;
+        all: number;
+      }>>(allTicketsQuery);
+
+      // Get working tickets grouped by assignedToId
+      const workingTicketsQuery = workingStatusConditions !== 'FALSE'
+        ? `
+          SELECT 
+            COALESCE("assignedToId", 'unassigned') as "staffId",
+            COUNT(*)::int as "working"
+          FROM tickets
+          WHERE (${workingStatusConditions})
+          GROUP BY COALESCE("assignedToId", 'unassigned')
+        `
+        : null;
+
+      const workingTicketsResult = workingTicketsQuery
+        ? await this.prisma.$queryRawUnsafe<Array<{ staffId: string; working: number }>>(workingTicketsQuery)
+        : [];
+
+      // Get done tickets grouped by assignedToId
+      const doneTicketsQuery = doneStatusConditions !== 'FALSE'
+        ? `
+          SELECT 
+            COALESCE("assignedToId", 'unassigned') as "staffId",
+            COUNT(*)::int as "done"
+          FROM tickets
+          WHERE (${doneStatusConditions})
+          GROUP BY COALESCE("assignedToId", 'unassigned')
+        `
+        : null;
+
+      const doneTicketsResult = doneTicketsQuery
+        ? await this.prisma.$queryRawUnsafe<Array<{ staffId: string; done: number }>>(doneTicketsQuery)
+        : [];
+
+      // Get overdue tickets (working status and past due date) grouped by assignedToId
+      const overdueTicketsQuery = workingStatusConditions !== 'FALSE'
+        ? `
+          SELECT 
+            COALESCE("assignedToId", 'unassigned') as "staffId",
+            COUNT(*)::int as "overdue"
+          FROM tickets
+          WHERE (${workingStatusConditions})
+            AND "dueDate" IS NOT NULL
+            AND "dueDate" < NOW()
+          GROUP BY COALESCE("assignedToId", 'unassigned')
+        `
+        : null;
+
+      const overdueTicketsResult = overdueTicketsQuery
+        ? await this.prisma.$queryRawUnsafe<Array<{ staffId: string; overdue: number }>>(overdueTicketsQuery)
+        : [];
+
+      // Get performance count: done tickets completed before due date OR working tickets not past due
+      let performanceResult: Array<{ staffId: string; performanceCount: number }> = [];
+      
+      if (doneStatusConditions !== 'FALSE' || workingStatusConditions !== 'FALSE') {
+        const doneCondition = doneStatusConditions !== 'FALSE' 
+          ? `(${doneStatusConditions}) AND ("dueDate" IS NULL OR ("closedAt" IS NOT NULL AND "closedAt" <= "dueDate"))`
+          : 'FALSE';
+        const workingCondition = workingStatusConditions !== 'FALSE'
+          ? `(${workingStatusConditions}) AND ("dueDate" IS NULL OR "dueDate" >= NOW())`
+          : 'FALSE';
+        
+        const performanceQuery = `
+          SELECT 
+            COALESCE("assignedToId", 'unassigned') as "staffId",
+            COUNT(*)::int as "performanceCount"
+          FROM tickets
+          WHERE (${doneCondition} OR ${workingCondition})
+          GROUP BY COALESCE("assignedToId", 'unassigned')
+        `;
+
+        performanceResult = await this.prisma.$queryRawUnsafe<Array<{ staffId: string; performanceCount: number }>>(performanceQuery);
+      }
+
+      // Build maps for quick lookup
+      const workingMap = new Map(workingTicketsResult.map(r => [r.staffId, r.working]));
+      const doneMap = new Map(doneTicketsResult.map(r => [r.staffId, r.done]));
+      const overdueMap = new Map(overdueTicketsResult.map(r => [r.staffId, r.overdue]));
+      const performanceMap = new Map(performanceResult.map(r => [r.staffId, r.performanceCount]));
+
+      // Build result array
+      return allTicketsResult.map(staff => {
+        const all = staff.all;
+        const working = workingMap.get(staff.staffId) || 0;
+        const done = doneMap.get(staff.staffId) || 0;
+        const hold = all - working - done;
+        const overdue = overdueMap.get(staff.staffId) || 0;
+        const performanceCount = performanceMap.get(staff.staffId) || 0;
+
+        return {
+          name: staff.staffName || 'Unassigned',
+          all,
+          working,
+          done,
+          hold,
+          overdue,
+          performance: all > 0 ? Math.round((performanceCount / all) * 100) : 100,
+        };
+      }).sort((a, b) => {
+        // Sort: Unassigned last, others by name
+        if (a.name === 'Unassigned') return 1;
+        if (b.name === 'Unassigned') return -1;
+        return a.name.localeCompare(b.name);
+      });
+    } catch (error) {
+      console.error('Error in getStaffPerformance:', error);
+      throw error;
+    }
+  }
 }

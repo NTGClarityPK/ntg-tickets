@@ -235,6 +235,25 @@ export function useWorkflows() {
     }
   }, []);
 
+  const getStaffPerformance = useCallback(async (): Promise<Array<{
+    name: string;
+    all: number;
+    working: number;
+    done: number;
+    hold: number;
+    overdue: number;
+    performance: number;
+  }>> => {
+    try {
+      const response = await workflowsApi.getStaffPerformance();
+      return response.data?.data || [];
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('❌ [useWorkflows] Failed to fetch staff performance:', err);
+      return [];
+    }
+  }, []);
+
   useEffect(() => {
     fetchWorkflows();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,5 +272,6 @@ export function useWorkflows() {
     deactivateWorkflow,
     getActiveWorkflow,
     getDashboardStats,
+    getStaffPerformance,
   };
 }

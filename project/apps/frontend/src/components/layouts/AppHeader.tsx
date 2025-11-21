@@ -13,6 +13,7 @@ import {
   Image,
   Stack,
   useMantineTheme,
+  Box,
 } from '@mantine/core';
 import {
   IconBell,
@@ -180,8 +181,8 @@ export function AppHeader({
   };
 
   return (
-    <AppShell.Header>
-      <Group h='100%' px='md' justify='space-between'>
+    <AppShell.Header style={{ overflow: 'visible' }}>
+      <Group h='100%' px='md' justify='space-between' style={{ overflow: 'visible' }}>
         {/* Left side - Logo and Brand */}
         <Group>
           <Burger
@@ -225,24 +226,48 @@ export function AppHeader({
         </Group>
 
         {/* Right side - Actions */}
-        <Group gap='xs'>
+        <Group gap='xs' style={{ overflow: 'visible' }}>
           {/* Notifications - Always visible (most important) */}
           <Menu shadow='md' width={400}>
             <Menu.Target>
-              <ActionIcon variant='subtle' style={{ color: primary }} size='lg' pos='relative'>
-                <IconBell size={20} />
+              <Box style={{ position: 'relative', overflow: 'visible', display: 'inline-block' }}>
+                <ActionIcon 
+                  variant='subtle' 
+                  style={{ 
+                    color: primary,
+                    overflow: 'visible',
+                    position: 'relative'
+                  }} 
+                  size='lg'
+                >
+                  <IconBell size={20} />
+                </ActionIcon>
                 {unreadCount > 0 && (
                   <Badge
                     size='xs'
-                    style={{ backgroundColor: primary, color: 'white', minWidth: 18, height: 18 }}
-                    pos='absolute'
-                    top={-2}
-                    right={-2}
+                    style={{ 
+                      backgroundColor: primary, 
+                      color: 'white', 
+                      minWidth: 18, 
+                      height: 18,
+                      padding: '0 4px',
+                      fontSize: '10px',
+                      lineHeight: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '9px',
+                      position: 'absolute',
+                      top: -4,
+                      right: -4,
+                      zIndex: 10,
+                      pointerEvents: 'none'
+                    }}
                   >
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Badge>
                 )}
-              </ActionIcon>
+              </Box>
             </Menu.Target>
             <Menu.Dropdown>
               <Menu.Label>{t('notifications')}</Menu.Label>

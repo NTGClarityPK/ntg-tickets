@@ -89,6 +89,16 @@ export class WorkflowsController {
     };
   }
 
+  @Get('staff-performance')
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
+  async getStaffPerformance() {
+    const performance = await this.workflowsService.getStaffPerformance();
+    return {
+      data: performance,
+      message: 'Staff performance retrieved successfully',
+    };
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER)
   async findOne(@Param('id') id: string) {
