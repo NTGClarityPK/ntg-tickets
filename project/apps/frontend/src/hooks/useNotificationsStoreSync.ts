@@ -3,7 +3,6 @@ import { useSession } from 'next-auth/react';
 import { useNotificationsStore } from '../stores/useNotificationsStore';
 import { notificationsApi } from '../lib/apiClient';
 import { NotificationType } from '../types/notification';
-import { TIMING_CONFIG } from '../lib/constants';
 
 /**
  * Hook to sync the notifications store with API data
@@ -66,48 +65,6 @@ export function useNotificationsStoreSync() {
     initializeNotifications();
   }, [status, session?.accessToken, syncWithApi, setLoading]);
 
-  // Optional: Set up periodic refresh to keep data in sync
-  useEffect(() => {
-    if (status === 'authenticated' && session?.accessToken) {
-      const interval = setInterval(async () => {
-        try {
-          const response = await notificationsApi.getNotifications();
-          const apiNotifications = response.data.data.map(
-            (apiNotification: {
-              id: string;
-              userId: string;
-              ticketId?: string;
-              type: string;
-              title: string;
-              message: string;
-              isRead: boolean;
-              createdAt: string;
-              ticket?: {
-                id: string;
-                ticketNumber: string;
-                title: string;
-              };
-            }) => ({
-              id: apiNotification.id,
-              userId: apiNotification.userId,
-              ticketId: apiNotification.ticketId,
-              type: apiNotification.type as NotificationType,
-              title: apiNotification.title,
-              message: apiNotification.message,
-              isRead: apiNotification.isRead,
-              createdAt: new Date(apiNotification.createdAt),
-              ticket: apiNotification.ticket,
-            })
-          );
-
-          syncWithApi(apiNotifications);
-        } catch (error) {
-          // Silently handle error to avoid breaking the app
-          // In production, consider using a proper logging service
-        }
-      }, TIMING_CONFIG.STORE_SYNC_INTERVAL); // Refresh every 30 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [status, session?.accessToken, syncWithApi]);
+  // Note: Periodic refresh is handled by React Query in useNotifications hook
+  // No need for duplicate polling here
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useNotificationsStore } from '../../stores/useNotificationsStore';
 import { useTicketsStore } from '../../stores/useTicketsStore';
@@ -29,14 +29,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const { updateTicket, addTicket } = useTicketsStore();
   const { data: session } = useSession();
 
+  // Memoize access token to prevent unnecessary reconnects
+  const accessToken = useMemo(() => session?.accessToken, [session?.accessToken]);
+
   useEffect(() => {
-    if (isAuthenticated && user && user.id && session?.accessToken) {
+    if (isAuthenticated && user && user.id && accessToken) {
       const wsUrl = API_CONFIG.WS_URL;
 
       // Create Socket.IO connection
       const socket = io(wsUrl, {
         auth: {
-          token: session.accessToken,
+          token: accessToken,
         },
         transports: ['websocket'],
       });
@@ -238,7 +241,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     notifications,
     updateTicket,
     addTicket,
-    session?.accessToken,
+    accessToken,
     primaryDark,
     primaryLight,
   ]);
