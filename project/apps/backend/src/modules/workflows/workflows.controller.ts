@@ -13,7 +13,6 @@ import {
 import { WorkflowsService } from './workflows.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
-import { CreateWorkflowTransitionDto } from './dto/create-workflow-transition.dto';
 import { ActivateWorkflowDto } from './dto/activate-workflow.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -28,21 +27,12 @@ export class WorkflowsController {
   @Post()
   @Roles(UserRole.ADMIN)
   async create(@Body() createWorkflowDto: CreateWorkflowDto, @Request() req) {
-    console.log('📝 Creating workflow:', createWorkflowDto);
-    console.log('👤 User:', req.user);
     const userId = req.user?.sub || req.user?.id;
-    console.log('👤 User ID:', userId);
-    try {
-      const result = await this.workflowsService.create(createWorkflowDto, userId);
-      console.log('✅ Workflow created successfully:', result.id);
-      return {
-        data: result,
-        message: 'Workflow created successfully',
-      };
-    } catch (error) {
-      console.error('❌ Error creating workflow:', error);
-      throw error;
-    }
+    const result = await this.workflowsService.create(createWorkflowDto, userId);
+    return {
+      data: result,
+      message: 'Workflow created successfully',
+    };
   }
 
   @Get()
@@ -80,9 +70,7 @@ export class WorkflowsController {
   async getDashboardStats(@Request() req) {
     const userId = req.user?.sub || req.user?.id;
     const userRole = req.user?.activeRole || req.user?.role || req.user?.roles?.[0];
-    console.log('🔍 Dashboard Stats Request:', { userId, userRole, user: req.user });
     const stats = await this.workflowsService.getDashboardStats(userId, userRole);
-    console.log('🔍 Dashboard Stats Response:', stats);
     return {
       data: stats,
       message: 'Dashboard stats retrieved successfully',
@@ -191,68 +179,6 @@ export class WorkflowsController {
     };
   }
 
-  // Transition management endpoints
-  @Post(':workflowId/transitions')
-  @Roles(UserRole.ADMIN)
-  addTransition(
-    @Param('workflowId') workflowId: string,
-    @Body() createTransitionDto: CreateWorkflowTransitionDto,
-  ) {
-    return this.workflowsService.addTransition(workflowId, createTransitionDto);
-  }
-
-  @Patch('transitions/:transitionId')
-  @Roles(UserRole.ADMIN)
-  updateTransition(
-    @Param('transitionId') transitionId: string,
-    @Body() updateData: Partial<CreateWorkflowTransitionDto>,
-  ) {
-    return this.workflowsService.updateTransition(transitionId, updateData);
-  }
-
-  @Delete('transitions/:transitionId')
-  @Roles(UserRole.ADMIN)
-  removeTransition(@Param('transitionId') transitionId: string) {
-    return this.workflowsService.removeTransition(transitionId);
-  }
-
-  // Workflow execution endpoints
-  @Get(':workflowId/can-transition')
-  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF)
-  canExecuteTransition(
-    @Param('workflowId') workflowId: string,
-    @Query('fromState') fromState: string,
-    @Query('toState') toState: string,
-    @Request() req,
-  ) {
-    return this.workflowsService.canExecuteTransition(
-      workflowId,
-      fromState,
-      toState,
-      req.user.roles[0], // Assuming single role for simplicity
-    );
-  }
-
-  @Post(':workflowId/execute-transition')
-  @Roles(UserRole.ADMIN, UserRole.SUPPORT_MANAGER, UserRole.SUPPORT_STAFF)
-  executeTransition(
-    @Param('workflowId') workflowId: string,
-    @Body() body: {
-      ticketId: string;
-      fromState: string;
-      toState: string;
-      comment?: string;
-    },
-    @Request() req,
-  ) {
-    const userId = req.user?.sub || req.user?.id;
-    return this.workflowsService.executeTransition(
-      body.ticketId,
-      workflowId,
-      body.fromState,
-      body.toState,
-      userId,
-      body.comment,
-    );
-  }
+  // Transition management and execution endpoints removed - not used by frontend
+  // Workflow transitions are managed through the workflow definition itself
 }

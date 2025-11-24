@@ -44,7 +44,7 @@ export const authClient = {
     }),
 
   updateUserRole: (userId: string, role: string) =>
-    httpClient.patch<ApiResponse<User>>(`/auth/users/${userId}/role`, { role }),
+    httpClient.post<ApiResponse<User>>(`/auth/users/${userId}/role`, { role }),
 
   switchRole: (data: { activeRole: string }) =>
     httpClient.post<ApiResponse<SwitchRoleResponse>>('/auth/switch-role', data),

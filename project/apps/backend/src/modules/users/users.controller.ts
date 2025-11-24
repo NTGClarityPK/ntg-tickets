@@ -77,20 +77,6 @@ export class UsersController {
     };
   }
 
-  @Get('support-managers')
-  @ApiOperation({ summary: 'Get all support manager users' })
-  @ApiResponse({
-    status: 200,
-    description: 'Support managers retrieved successfully',
-  })
-  async getSupportManagers() {
-    const users = await this.usersService.getSupportManagers();
-    return {
-      data: users,
-      message: 'Support managers retrieved successfully',
-    };
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })

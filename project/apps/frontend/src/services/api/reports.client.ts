@@ -52,10 +52,8 @@ export const reportsClient = {
       }
     ),
 
-  exportReports: (filters?: ReportFilters) =>
-    httpClient.post<Blob>('/reports/export', filters, {
-      responseType: 'blob',
-    }),
+  // exportReports removed - backend endpoint /reports/export doesn't exist
+  // Use exportReport(type, format, filters, data) instead with explicit type parameter
 
   getSystemMetrics: () =>
     httpClient.get<ApiResponse<SystemMetrics>>('/reports/system-metrics'),

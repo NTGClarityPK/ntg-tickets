@@ -43,20 +43,6 @@ export class NotificationsController {
     };
   }
 
-  @Get('unread-count')
-  @ApiOperation({ summary: 'Get unread notification count' })
-  @ApiResponse({
-    status: 200,
-    description: 'Unread count retrieved successfully',
-  })
-  async getUnreadCount(@Request() req) {
-    const count = await this.notificationsService.getUnreadCount(req.user.id);
-    return {
-      data: { count },
-      message: 'Unread count retrieved successfully',
-    };
-  }
-
   @Patch(':id/read')
   @ApiOperation({ summary: 'Mark notification as read' })
   @ApiResponse({ status: 200, description: 'Notification marked as read' })
@@ -93,9 +79,7 @@ export class NotificationsController {
     },
   })
   async sendBulkNotification(
-    @Body() body: { ticketIds: string[]; message: string },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Request() req
+    @Body() body: { ticketIds: string[]; message: string }
   ) {
     const result = await this.notificationsService.sendBulkNotification(
       body.ticketIds,

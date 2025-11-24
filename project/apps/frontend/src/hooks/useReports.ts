@@ -76,11 +76,5 @@ export function useExportReport() {
   });
 }
 
-export function useExportReports() {
-  return useMutation({
-    mutationFn: async (filters?: ReportFilters) => {
-      const response = await reportsApi.exportReports(filters);
-      return response.data as Blob;
-    },
-  });
-}
+// useExportReports removed - use useExportReport with explicit type parameter instead
+// This consolidates export functionality and matches backend endpoint structure

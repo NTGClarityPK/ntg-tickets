@@ -3,12 +3,14 @@ import {
   Get,
   Post,
   Body,
+  Param,
   UseGuards,
   Request,
   HttpCode,
   HttpStatus,
   BadRequestException,
   UnauthorizedException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import {
@@ -20,11 +22,9 @@ import {
 import { AuthService } from './auth.service';
 import { NextAuthJwtGuard } from './guards/nextauth-jwt.guard';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
-// import { User } from '../users/entities/user.entity'; // Removed unused import
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { SanitizationService } from '../../common/validation/sanitization.service';
 import { TokenBlacklistService } from '../../common/security/token-blacklist.service';
-// import { CsrfGuard } from '../../common/guards/csrf.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -186,53 +186,6 @@ export class AuthController {
     }
   }
 
-  @Post('validate')
-  @UseGuards(RateLimitGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Validate user credentials' })
-  @ApiResponse({
-    status: 200,
-    description: 'Credentials validated successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
-  async validateCredentials(
-    @Body() body: { email: string; password: string }
-  ): Promise<{
-    data: {
-      user: { id: string; email: string; name: string; roles: string[] };
-    };
-    message: string;
-  }> {
-    try {
-      // Sanitize inputs
-      const email = this.sanitizationService.sanitizeEmail(body.email);
-      const password = this.sanitizationService.sanitizePassword(body.password);
-
-      const user = await this.authService.validateUserCredentials(
-        email,
-        password
-      );
-
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-
-      return {
-        data: { user },
-        message: 'Credentials validated successfully',
-      };
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException('Invalid input data');
-    }
-  }
-
   @Get('me')
   @UseGuards(NextAuthJwtGuard)
   @ApiBearerAuth()
@@ -272,6 +225,7 @@ export class AuthController {
     description: 'Forbidden - Admin access required',
   })
   async updateUserRole(
+    @Param('userId') userId: string,
     @Request() req,
     @Body() updateUserRoleDto: UpdateUserRoleDto
   ): Promise<{
@@ -286,12 +240,12 @@ export class AuthController {
   }> {
     // Check if user is admin
     if (req.user.activeRole !== 'ADMIN') {
-      throw new Error('Forbidden - Admin access required');
+      throw new ForbiddenException('Admin access required');
     }
 
     // Pass current user ID to prevent self-admin removal
     const user = await this.authService.updateUserRoles(
-      req.params.userId,
+      userId,
       [updateUserRoleDto.role],
       req.user.id
     );
@@ -357,39 +311,4 @@ export class AuthController {
     }
   }
 
-  @Post('users/:userId/deactivate')
-  @UseGuards(NextAuthJwtGuard)
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Deactivate user (Admin only)' })
-  @ApiResponse({ status: 200, description: 'User deactivated successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Admin access required',
-  })
-  async deactivateUser(
-    @Request() req
-  ): Promise<{
-    data: {
-      id: string;
-      email: string;
-      name: string;
-      roles: string[];
-      isActive: boolean;
-    };
-    message: string;
-  }> {
-    // Check if user is admin
-    if (req.user.activeRole !== 'ADMIN') {
-      throw new Error('Forbidden - Admin access required');
-    }
-
-    const user = await this.authService.deactivateUser(req.params.userId);
-
-    return {
-      data: user,
-      message: 'User deactivated successfully',
-    };
-  }
 }
