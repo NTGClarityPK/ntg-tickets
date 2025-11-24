@@ -569,10 +569,35 @@ export class TicketsService {
       this.prisma.ticket.findMany({
         where,
         include: {
-          requester: true,
-          assignedTo: true,
-          category: true,
-          subcategory: true,
+          requester: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          category: {
+            select: {
+              id: true,
+              name: true,
+              customName: true,
+              description: true,
+            },
+          },
+          subcategory: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+            },
+          },
           _count: {
             select: {
               comments: true,

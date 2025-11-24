@@ -13,6 +13,20 @@ import {
   normalizeListResponse,
 } from '../services/api/response-normalizer';
 
+// Type for error with response property
+interface ErrorWithResponse extends Error {
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+}
+
+// Type for ticket not found error
+interface TicketNotFoundError extends Error {
+  status: number;
+  isNotFound: boolean;
+}
+
 export function useTickets(filters?: TicketFilters) {
   const activeRole = useAuthActiveRole();
   
@@ -112,16 +126,34 @@ export function useTicket(id: string) {
   return useQuery({
     queryKey: ['ticket', id],
     queryFn: async () => {
-      const response = await ticketApi.getTicket(id);
-      const ticket = normalizeItemResponse<Ticket>(response.data);
+      try {
+        const response = await ticketApi.getTicket(id);
+        const ticket = normalizeItemResponse<Ticket>(response.data);
 
-      if (!ticket) {
-        throw new Error('Ticket response payload is malformed.');
+        if (!ticket) {
+          throw new Error('Ticket response payload is malformed.');
+        }
+
+        return ticket;
+      } catch (error: unknown) {
+        // Check if it's a 404 error (ticket not found)
+        const errorWithResponse = error as ErrorWithResponse;
+        if (errorWithResponse?.response?.status === 404) {
+          const notFoundError = new Error('TICKET_NOT_FOUND') as TicketNotFoundError;
+          notFoundError.status = 404;
+          notFoundError.isNotFound = true;
+          throw notFoundError;
+        }
+        throw error;
       }
-
-      return ticket;
     },
     enabled: !!id,
+    // Always refetch when navigating to detail page to ensure fresh data
+    // This prevents using stale cached data from the list view
+    refetchOnMount: 'always',
+    staleTime: 0, // Always consider data stale to force fresh fetch
+    // Keep a short cache time for quick navigation back/forth
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 

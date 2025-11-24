@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -86,6 +86,7 @@ import { notifications } from '@mantine/notifications';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ROLE_GROUPS } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { TicketNotFound } from '../../../components/error/TicketNotFound';
 
 export default function TicketDetailPage() {
   const theme = useMantineTheme();
@@ -140,6 +141,13 @@ export default function TicketDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentContent, setEditCommentContent] = useState('');
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+
+  // Invalidate cache when navigating to a ticket to ensure fresh data
+  useEffect(() => {
+    if (ticketId) {
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+    }
+  }, [ticketId, queryClient]);
 
   const { data: ticket, isLoading, error } = useTicket(ticketId);
   // Get support staff with ticket counts for assignment
@@ -390,11 +398,21 @@ export default function TicketDetailPage() {
     );
   }
 
-  if (error || !ticket) {
+  // Check if the error is a 404 (ticket not found)
+  if (error) {
+    const errorObj = error as { isNotFound?: boolean; message?: string };
+    const isNotFound = errorObj?.isNotFound || errorObj?.message === 'TICKET_NOT_FOUND';
+    if (isNotFound) {
+      return <TicketNotFound />;
+    }
+  }
+
+  // If there's an error but it's not a 404, show generic error
+  if (error && !ticket) {
     return (
       <Container size='xl' py='md'>
         <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
-          Failed to load ticket: {error?.message || 'Ticket not found'}
+          Failed to load ticket: {error?.message || 'Unknown error occurred'}
         </Alert>
         <Group mt='md'>
           <Button
@@ -407,6 +425,11 @@ export default function TicketDetailPage() {
         </Group>
       </Container>
     );
+  }
+
+  // If no ticket and no error (shouldn't happen, but handle gracefully)
+  if (!ticket) {
+    return <TicketNotFound />;
   }
 
   return (
