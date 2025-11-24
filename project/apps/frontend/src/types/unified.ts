@@ -193,6 +193,7 @@ export interface TicketFilters {
   priority?: TicketPriority[];
   category?: string[]; // Category IDs
   assignedToId?: string[]; // Array of assigned user IDs
+  includeUnassigned?: boolean; // Include tickets with no assignee
   requesterId?: string[]; // Array of requester user IDs
   dateFrom?: string;
   dateTo?: string;

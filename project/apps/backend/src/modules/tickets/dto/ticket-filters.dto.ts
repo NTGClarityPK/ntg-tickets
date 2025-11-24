@@ -90,6 +90,14 @@ export class TicketFiltersDto {
   assignedToId?: string[];
 
   @ApiProperty({
+    description: 'Include tickets with no assignee (unassigned tickets)',
+    type: Boolean,
+    required: false,
+  })
+  @IsOptional()
+  includeUnassigned?: boolean;
+
+  @ApiProperty({
     description: 'Filter by requester user IDs',
     type: [String],
     required: false,

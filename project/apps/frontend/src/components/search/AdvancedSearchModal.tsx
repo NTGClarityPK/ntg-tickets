@@ -354,11 +354,21 @@ export function AdvancedSearchModal({
           })) || []
       ) || [];
 
-  const userOptions =
+  // Requester options (no Unassigned - every ticket has a requester)
+  const requesterOptions =
     users?.map(user => ({
       value: user.id,
       label: user.name,
     })) || [];
+
+  // Assigned To options (with Unassigned at the bottom)
+  const assignedToOptions = [
+    ...(users?.map(user => ({
+      value: user.id,
+      label: user.name,
+    })) || []),
+    { value: '__UNASSIGNED__', label: 'Unassigned' },
+  ];
 
   return (
     <Modal
@@ -499,7 +509,7 @@ export function AdvancedSearchModal({
                 <MultiSelect
                   label={tTickets('requester')}
                   placeholder={t('selectRequesters')}
-                  data={userOptions}
+                  data={requesterOptions}
                   searchable
                   {...form.getInputProps('requester')}
                 />
@@ -508,7 +518,7 @@ export function AdvancedSearchModal({
                 <MultiSelect
                   label={tTickets('assignedTo')}
                   placeholder={t('selectAssignees')}
-                  data={userOptions}
+                  data={assignedToOptions}
                   searchable
                   {...form.getInputProps('assignedTo')}
                 />

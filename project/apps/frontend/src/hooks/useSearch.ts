@@ -170,7 +170,14 @@ export const useSearch = () => {
     if (filters.category && filters.category.length > 0)
       query.category = filters.category;
     if (filters.assignedTo && filters.assignedTo.length > 0) {
-      const filteredAssignedTo = filters.assignedTo.filter((id): id is string => Boolean(id));
+      const hasUnassigned = filters.assignedTo.includes('__UNASSIGNED__');
+      const filteredAssignedTo = filters.assignedTo
+        .filter((id): id is string => Boolean(id) && id !== '__UNASSIGNED__');
+      
+      if (hasUnassigned) {
+        query.includeUnassigned = true;
+      }
+      
       if (filteredAssignedTo.length > 0) {
         query.assignedToId = filteredAssignedTo;
       }

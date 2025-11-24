@@ -34,6 +34,7 @@ interface TicketFilters {
   category?: string[];
   assignedTo?: string[];
   assignedToId?: string[];
+  includeUnassigned?: boolean;
   requesterId?: string[];
   search?: string;
   dateFrom?: string;
@@ -456,8 +457,62 @@ export class TicketsService {
       where.assignedToId = { in: filters.assignedTo };
     }
 
+    // Handle assignedToId filter with optional unassigned tickets
     if (filters.assignedToId && filters.assignedToId.length > 0) {
-      where.assignedToId = { in: filters.assignedToId };
+      if (filters.includeUnassigned) {
+        // Include both assigned tickets (from the array) and unassigned tickets (null)
+        // If there's already an OR condition (e.g., from viewType='my'), we need to nest it
+        if (where.OR) {
+          // Combine existing OR with the new assignedToId condition using AND
+          const existingOr = where.OR;
+          const existingAnd = Array.isArray(where.AND) ? where.AND : (where.AND ? [where.AND] : []);
+          where.AND = [
+            ...existingAnd,
+            { OR: existingOr },
+            {
+              OR: [
+                { assignedToId: { in: filters.assignedToId } },
+                { assignedToId: null },
+              ],
+            },
+          ];
+          delete where.OR;
+        } else {
+          // No existing OR, we can add one directly
+          where.OR = [
+            { assignedToId: { in: filters.assignedToId } },
+            { assignedToId: null },
+          ];
+        }
+      } else {
+        // Only assigned tickets - if there's an existing OR, we need to combine it
+        if (where.OR) {
+          const existingOr = where.OR;
+          const existingAnd = Array.isArray(where.AND) ? where.AND : (where.AND ? [where.AND] : []);
+          where.AND = [
+            ...existingAnd,
+            { OR: existingOr },
+            { assignedToId: { in: filters.assignedToId } },
+          ];
+          delete where.OR;
+        } else {
+          where.assignedToId = { in: filters.assignedToId };
+        }
+      }
+    } else if (filters.includeUnassigned) {
+      // Only unassigned tickets - if there's an existing OR, we need to combine it
+      if (where.OR) {
+        const existingOr = where.OR;
+        const existingAnd = Array.isArray(where.AND) ? where.AND : (where.AND ? [where.AND] : []);
+        where.AND = [
+          ...existingAnd,
+          { OR: existingOr },
+          { assignedToId: null },
+        ];
+        delete where.OR;
+      } else {
+        where.assignedToId = null;
+      }
     }
 
     if (filters.requesterId && filters.requesterId.length > 0) {
