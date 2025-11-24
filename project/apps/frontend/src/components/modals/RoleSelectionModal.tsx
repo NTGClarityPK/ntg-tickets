@@ -41,7 +41,6 @@ export function RoleSelectionModal({
   opened,
   onClose,
   roles,
-  activeRole,
   onRoleSelect,
   // loading, // Removed unused parameter
   error,
@@ -149,11 +148,7 @@ export function RoleSelectionModal({
                 withBorder
                 style={{
                   cursor: 'pointer',
-                  borderColor:
-                    activeRole === role
-                      ? `var(--mantine-color-${color}-5)`
-                      : undefined,
-                  borderWidth: activeRole === role ? 2 : 1,
+                  borderWidth:  1,
                   opacity: 1,
                 }}
                 onClick={() => handleRoleClick(role)}
@@ -179,7 +174,7 @@ export function RoleSelectionModal({
                   </Group>
                   <Badge
                     color={color}
-                    variant={activeRole === role ? 'filled' : 'light'}
+                    variant='light'
                     size='sm'
                   >
                     {role.replace('_', ' ')}
