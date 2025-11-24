@@ -265,21 +265,18 @@ export class TicketsService {
         workflowVersion: workflowVersion,
       },
       include: {
-        requester: true,
-        assignedTo: true,
-        category: true,
-        subcategory: true,
-        comments: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            createdAt: 'asc',
+        requester: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
-        attachments: {
-          include: {
-            uploader: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
       },
@@ -318,7 +315,7 @@ export class TicketsService {
       }
     }
 
-    // Index in Elasticsearch
+    // Index in Elasticsearch (ticket already has requester and assignedTo with minimal fields)
     try {
       await this.elasticsearch.indexTicket(ticket);
     } catch (error) {
@@ -334,11 +331,25 @@ export class TicketsService {
       message: `Your ticket ${ticket.ticketNumber} has been created successfully.`,
     });
 
-    // Emit WebSocket event
-    this.websocketGateway.emitTicketCreated(ticket);
+    // Emit WebSocket event (only basic fields needed)
+    this.websocketGateway.emitTicketCreated({
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      priority: ticket.priority,
+      status: ticket.status,
+      requesterId: ticket.requesterId,
+      assignedToId: ticket.assignedToId || undefined,
+    });
 
     this.logger.log(`Ticket created: ${ticket.ticketNumber}`, 'TicketsService');
-    return this.transformTicket(ticket);
+    
+    // Return minimal response with only essential fields needed by frontend (id for redirect)
+    return {
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      status: ticket.status,
+    };
   }
 
   /**
