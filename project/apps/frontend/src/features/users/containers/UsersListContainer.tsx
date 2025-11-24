@@ -10,6 +10,7 @@ import { useAuthUser } from '../../../stores/useAuthStore';
 import { UserRole } from '../../../types/unified';
 import { notifications } from '@mantine/notifications';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { UsersListPresenter } from '../presenters/UsersListPresenter';
 import {
   UsersListMetrics,
@@ -32,6 +33,9 @@ export function UsersListContainer() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  // Debounce search term to avoid API calls on every keystroke
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   // Check if user has admin role
   useEffect(() => {
     if (user && user.activeRole !== UserRole.ADMIN) {
@@ -48,11 +52,11 @@ export function UsersListContainer() {
     () => ({
       page: currentPage,
       limit: 20,
-      search: searchTerm || undefined,
+      search: debouncedSearchTerm || undefined,
       role: roleFilter || undefined,
       isActive: statusFilter ? statusFilter === 'true' : undefined,
     }),
-    [currentPage, searchTerm, roleFilter, statusFilter]
+    [currentPage, debouncedSearchTerm, roleFilter, statusFilter]
   );
 
   const { data: usersData, isLoading, error } = useUsers(filters);
