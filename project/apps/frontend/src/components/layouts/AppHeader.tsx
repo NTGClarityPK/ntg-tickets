@@ -609,11 +609,29 @@ export function AppHeader({
               <Menu.Item
                 leftSection={<IconLogout size={14} />}
                 onClick={handleLogout}
-                color={theme.colors[theme.primaryColor][9]}
+                color={primary}
                 style={{
-                  '&:hover': {
-                    backgroundColor: theme.colors[theme.primaryColor][1],
-                  },
+                  transition: 'background-color 0.2s ease',
+                  marginBottom: '4px',
+                }}
+                onMouseEnter={e => {
+                  // Use theme-aware hover: light for light mode, dark for dark mode
+                  const isDarkMode =
+                    document.documentElement.getAttribute(
+                      'data-mantine-color-scheme'
+                    ) === 'dark';
+                  if (isDarkMode) {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--mantine-color-red-2)';
+                    e.currentTarget.style.color = 'var(--mantine-color-red-8)';
+                  } else {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--mantine-color-red-0)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'inherit';
                 }}
               >
                 Sign out
