@@ -22,6 +22,7 @@ import {
   Alert,
   Pagination,
   useMantineTheme,
+  Modal,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -38,6 +39,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   useMyTicketsWithPagination,
+  useDeleteTicket,
 } from '../../../hooks/useTickets';
 import { Ticket, TicketStatus, TicketPriority } from '../../../types/unified';
 import { SearchBar } from '../../../components/search/SearchBar';
@@ -47,6 +49,10 @@ import { useSearch } from '../../../hooks/useSearch';
 import { PAGINATION_CONFIG } from '../../../lib/constants';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from '../../../lib/notifications';
 
 export default function MyTicketsPage() {
   const theme = useMantineTheme();
@@ -73,6 +79,9 @@ export default function MyTicketsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [simpleFiltersOpen, setSimpleFiltersOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const deleteTicketMutation = useDeleteTicket();
 
   const {
     filters: searchFilters,
@@ -158,6 +167,17 @@ export default function MyTicketsPage() {
 
   const handleEditTicket = (ticketId: string) => {
     router.push(`/tickets/${ticketId}/edit`);
+  };
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    try {
+      await deleteTicketMutation.mutateAsync(ticketId);
+      showSuccessNotification('Success', 'Ticket deleted successfully');
+      setDeleteModalOpen(false);
+      setSelectedTicket(null);
+    } catch (error) {
+      showErrorNotification('Error', 'Failed to delete ticket');
+    }
   };
 
   if (isLoading) {
@@ -290,7 +310,10 @@ export default function MyTicketsPage() {
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
-                    onClick={() => handleEditTicket(ticket.id)}
+                    onClick={() => {
+                      setSelectedTicket(ticket);
+                      setDeleteModalOpen(true);
+                    }}
                   >
                     Delete
                   </Menu.Item>
@@ -429,6 +452,43 @@ export default function MyTicketsPage() {
           setCurrentPage(1);
         }}
       />
+
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedTicket(null);
+        }}
+        title='Delete Ticket'
+        centered
+      >
+        <Text mb='md'>
+          Are you sure you want to delete ticket #{selectedTicket?.ticketNumber}
+          ? This action cannot be undone.
+        </Text>
+        <Group justify='flex-end'>
+          <Button
+            variant='light'
+            onClick={() => {
+              setDeleteModalOpen(false);
+              setSelectedTicket(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            color={theme.colors[theme.primaryColor][9]}
+            onClick={() => {
+              if (selectedTicket?.id) {
+                handleDeleteTicket(selectedTicket.id);
+              }
+            }}
+            loading={deleteTicketMutation.isPending}
+          >
+            Delete
+          </Button>
+        </Group>
+      </Modal>
     </Container>
   );
 }

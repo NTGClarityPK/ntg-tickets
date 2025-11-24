@@ -128,6 +128,7 @@ export function TicketsListContainer() {
       await deleteTicketMutation.mutateAsync(ticketId);
       showSuccessNotification('Success', 'Ticket deleted successfully');
       setDeleteModalOpen(false);
+      setSelectedTicket(null);
     } catch (error) {
       showErrorNotification('Error', 'Failed to delete ticket');
     }

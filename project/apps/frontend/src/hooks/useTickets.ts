@@ -196,8 +196,18 @@ export function useDeleteTicket() {
       await ticketApi.deleteTicket(id);
     },
     onSuccess: (_, id) => {
+      // Invalidate all ticket-related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['tickets-with-pagination'] });
+      queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['my-tickets-with-pagination'] });
+      queryClient.invalidateQueries({ queryKey: ['assigned-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['overdue-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['tickets-approaching-sla'] });
+      queryClient.invalidateQueries({ queryKey: ['breached-sla-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['all-tickets-counting'] });
+      queryClient.invalidateQueries({ queryKey: ['total-tickets-count'] });
     },
   });
 }
