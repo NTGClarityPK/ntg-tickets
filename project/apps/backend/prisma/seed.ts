@@ -1188,6 +1188,20 @@ async function main() {
       ],
       edges: [
         {
+          id: 'e0-create',
+          source: 'create',
+          target: 'new',
+          label: 'Create Ticket',
+          type: 'smoothstep',
+          markerEnd: { type: 'arrowclosed' },
+          data: {
+            roles: ['END_USER'],
+            conditions: [],
+            actions: [],
+            isCreateTransition: true,
+          },
+        },
+        {
           id: 'e1',
           source: 'new',
           target: 'open',
@@ -2146,6 +2160,7 @@ async function main() {
     { key: 'max_comment_length', value: '5000' },
     { key: 'ticket_auto_close_days', value: '7' },
     { key: 'dashboard_refresh_interval', value: '30' }, // seconds
+    { key: 'ticket_number_counter', value: '35' }, // Initialize counter to highest ticket number in seed (35)
   ];
 
   for (const setting of systemSettings) {

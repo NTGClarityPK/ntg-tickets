@@ -133,7 +133,34 @@ export class WorkflowsService {
   }
 
   async findDefault() {
-    // Return the currently ACTIVE workflow (there should only be one)
+    // First try to find a workflow marked as default
+    const defaultWorkflow = await this.prisma.workflow.findFirst({
+      where: { 
+        isDefault: true,
+        status: WorkflowStatus.ACTIVE,
+        deletedAt: null, // Only return non-deleted workflows
+      },
+      include: {
+        createdByUser: {
+          select: { id: true, name: true, email: true },
+        },
+        transitions: {
+          include: {
+            conditions: true,
+            actions: true,
+            permissions: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    // If no default workflow found, return the first ACTIVE workflow
+    if (defaultWorkflow) {
+      return defaultWorkflow;
+    }
+
+    // Fallback: return the currently ACTIVE workflow (there should only be one)
     // This is what the frontend uses to check permissions
     return this.prisma.workflow.findFirst({
       where: { 

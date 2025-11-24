@@ -1221,70 +1221,115 @@ export class TicketsService {
     const year = new Date().getFullYear();
     const prefix = `TKT-${year}-`;
 
-    // Get ALL tickets (not just current year) to find the absolute maximum number
-    // This ensures continuous numbering across years and prevents reuse of deleted ticket numbers
-    const allTickets = await this.prisma.ticket.findMany({
-      select: {
-        ticketNumber: true,
-      },
-      orderBy: {
-        ticketNumber: 'desc',
-      },
-      take: 1000, // Get last 1000 tickets to find the maximum
-    });
-
-    // Extract numeric parts from ALL tickets and find the absolute maximum
-    // This handles cases where tickets from different years exist
-    let maxNumber = 0;
-    const ticketNumberRegex = /^TKT-\d{4}-(\d+)$/;
+    // Use a persistent counter stored in SystemSettings to prevent ID reuse after deletion
+    // This counter only increments and never decreases, ensuring unique ticket numbers
+    const COUNTER_KEY = 'ticket_number_counter';
     
-    for (const ticket of allTickets) {
-      const match = ticket.ticketNumber.match(ticketNumberRegex);
-      if (match) {
-        const number = parseInt(match[1], 10);
-        if (!isNaN(number) && number > maxNumber) {
-          maxNumber = number;
-        }
-      }
-    }
+    try {
+      // Get the current counter value from SystemSettings
+      let counterValue = await this.systemConfigService.getSetting(COUNTER_KEY);
+      let nextNumber: number;
 
-    // If we got 1000 tickets, there might be more, so do a full scan to be absolutely sure
-    if (allTickets.length === 1000) {
-      const allTicketsFull = await this.prisma.ticket.findMany({
+      // Always check both counter and existing tickets to ensure we never reuse a number
+      // This prevents ID reuse even if tickets are deleted
+      const allTickets = await this.prisma.ticket.findMany({
         select: {
           ticketNumber: true,
         },
       });
 
-      for (const ticket of allTicketsFull) {
+      let maxNumberFromTickets = 0;
+      const ticketNumberRegex = /^TKT-\d{4}-(\d+)$/;
+      
+      for (const ticket of allTickets) {
         const match = ticket.ticketNumber.match(ticketNumberRegex);
         if (match) {
           const number = parseInt(match[1], 10);
-          if (!isNaN(number) && number > maxNumber) {
-            maxNumber = number;
+          if (!isNaN(number) && number > maxNumberFromTickets) {
+            maxNumberFromTickets = number;
           }
         }
       }
+
+      if (!counterValue || counterValue === null || counterValue === '') {
+        // Counter doesn't exist, initialize it from existing tickets
+        this.logger.log('Ticket number counter not found, initializing from existing tickets', 'TicketsService');
+        nextNumber = maxNumberFromTickets + 1;
+      } else {
+        // Counter exists, use the higher of counter value or max from tickets
+        // This ensures we never reuse a number even if counter is out of sync
+        const currentValue = typeof counterValue === 'string' 
+          ? parseInt(counterValue, 10) 
+          : Number(counterValue);
+        
+        if (isNaN(currentValue)) {
+          this.logger.warn('Invalid counter value, using max from tickets', 'TicketsService');
+          nextNumber = maxNumberFromTickets + 1;
+        } else {
+          // Use whichever is higher: counter value or max from existing tickets
+          nextNumber = Math.max(currentValue, maxNumberFromTickets) + 1;
+          
+          // If counter was lower than max from tickets, log a warning
+          if (currentValue < maxNumberFromTickets) {
+            this.logger.warn(
+              `Counter value (${currentValue}) is lower than max ticket number (${maxNumberFromTickets}). Using ${maxNumberFromTickets + 1} to prevent ID reuse.`,
+              'TicketsService'
+            );
+          }
+        }
+      }
+
+      // Atomically update the counter in SystemSettings
+      await this.systemConfigService.updateSetting(COUNTER_KEY, nextNumber.toString());
+
+      const ticketNumber = `${prefix}${nextNumber.toString().padStart(6, '0')}`;
+
+      // Double-check uniqueness to prevent race conditions
+      const existing = await this.prisma.ticket.findUnique({
+        where: { ticketNumber },
+      });
+
+      if (existing) {
+        // If somehow the ticket number exists (race condition), recursively try the next one
+        // This handles race conditions where multiple tickets are created simultaneously
+        this.logger.warn(
+          `Ticket number ${ticketNumber} already exists, trying next number`,
+          'TicketsService'
+        );
+        return this.generateTicketNumberWithRetry(prefix, nextNumber + 1, 10);
+      }
+
+      this.logger.log(`Generated ticket number: ${ticketNumber} (counter: ${nextNumber})`, 'TicketsService');
+      return ticketNumber;
+    } catch (error) {
+      this.logger.error('Error generating ticket number from counter, falling back to max-based method', error);
+      
+      // Fallback to the old method if SystemSettings fails
+      const allTickets = await this.prisma.ticket.findMany({
+        select: {
+          ticketNumber: true,
+        },
+        orderBy: {
+          ticketNumber: 'desc',
+        },
+        take: 1,
+      });
+
+      let maxNumber = 0;
+      const ticketNumberRegex = /^TKT-\d{4}-(\d+)$/;
+      
+      if (allTickets.length > 0) {
+        const match = allTickets[0].ticketNumber.match(ticketNumberRegex);
+        if (match) {
+          maxNumber = parseInt(match[1], 10) || 0;
+        }
+      }
+
+      const nextNumber = maxNumber + 1;
+      const ticketNumber = `${prefix}${nextNumber.toString().padStart(6, '0')}`;
+      
+      return ticketNumber;
     }
-
-    // Always increment from the absolute maximum to ensure uniqueness
-    // This prevents reuse even if tickets are deleted or from different years
-    const nextNumber = maxNumber + 1;
-
-    const ticketNumber = `${prefix}${nextNumber.toString().padStart(6, '0')}`;
-
-    // Double-check uniqueness to prevent race conditions
-    const existing = await this.prisma.ticket.findUnique({
-      where: { ticketNumber },
-    });
-
-    if (existing) {
-      // If somehow the ticket number exists, recursively try the next one
-      // This handles race conditions where multiple tickets are created simultaneously
-      return this.generateTicketNumberWithRetry(prefix, nextNumber + 1, 10);
-    }
-
-    return ticketNumber;
   }
 
   private async generateTicketNumberWithRetry(
@@ -1292,6 +1337,8 @@ export class TicketsService {
     startNumber: number,
     maxRetries: number
   ): Promise<string> {
+    const COUNTER_KEY = 'ticket_number_counter';
+    
     for (let i = 0; i < maxRetries; i++) {
       const candidate = `${prefix}${startNumber.toString().padStart(6, '0')}`;
       const existing = await this.prisma.ticket.findUnique({
@@ -1299,6 +1346,16 @@ export class TicketsService {
       });
 
       if (!existing) {
+        // Update the counter to reflect the number we're using
+        // This ensures the counter stays in sync even in race conditions
+        try {
+          await this.systemConfigService.updateSetting(COUNTER_KEY, startNumber.toString());
+        } catch (error) {
+          this.logger.warn(
+            `Failed to update counter after retry, but ticket number ${candidate} is valid`,
+            'TicketsService'
+          );
+        }
         return candidate;
       }
 
