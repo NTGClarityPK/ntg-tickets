@@ -8,7 +8,6 @@ import {
   Group,
   Button,
   Chip,
-  ScrollArea,
   Alert,
   Badge,
   Card,
@@ -135,20 +134,33 @@ export function StatusCategorizationModal({
   const doneCount = selectedDone.length;
   const holdCount = holdStatuses.length;
 
+  const scrollableStyle: React.CSSProperties = {
+    maxHeight: '400px',
+    overflow: 'auto',
+    scrollbarWidth: 'none', // Firefox
+    msOverflowStyle: 'none', // IE/Edge
+  } as React.CSSProperties;
+
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={
-        <Group gap="xs">
-          <IconInfoCircle size={20} />
-          <Text fw={600} size="lg">Configure Status Categorization</Text>
-        </Group>
-      }
-      size="xl"
-      centered
-      padding="xl"
-    >
+    <>
+      <style>{`
+        .invisible-scroll::-webkit-scrollbar {
+          display: none; /* Chrome, Safari, Opera */
+        }
+      `}</style>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title={
+          <Group gap="xs">
+            <IconInfoCircle size={20} />
+            <Text fw={600} size="lg">Configure Status Categorization</Text>
+          </Group>
+        }
+        size="xl"
+        centered
+        padding="xl"
+      >
       <Stack gap="lg">
         <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light" radius="md">
           <Text size="sm">
@@ -209,7 +221,7 @@ export function StatusCategorizationModal({
               </Tabs.List>
 
               <Tabs.Panel value="working" pt="md">
-                <ScrollArea mah={350}>
+                <div className="invisible-scroll" style={scrollableStyle}>
                   <Stack gap="md">
                     {statusesByWorkflow.map(([workflowName, statuses]) => (
                       <Card key={workflowName} withBorder radius="md" p="md">
@@ -239,11 +251,11 @@ export function StatusCategorizationModal({
                       </Card>
                     ))}
                   </Stack>
-                </ScrollArea>
+                </div>
               </Tabs.Panel>
 
               <Tabs.Panel value="done" pt="md">
-                <ScrollArea mah={350}>
+                <div className="invisible-scroll" style={scrollableStyle}>
                   <Stack gap="md">
                     {statusesByWorkflow.map(([workflowName, statuses]) => (
                       <Card key={workflowName} withBorder radius="md" p="md">
@@ -273,11 +285,11 @@ export function StatusCategorizationModal({
                       </Card>
                     ))}
                   </Stack>
-                </ScrollArea>
+                </div>
               </Tabs.Panel>
 
               <Tabs.Panel value="hold" pt="md">
-                <ScrollArea mah={350}>
+                <div className="invisible-scroll" style={scrollableStyle}>
                   <Stack gap="md">
                     {statusesByWorkflow.map(([workflowName, statuses]) => {
                       const workflowHoldStatuses = statuses.filter(
@@ -313,7 +325,7 @@ export function StatusCategorizationModal({
                       );
                     })}
                   </Stack>
-                </ScrollArea>
+                </div>
               </Tabs.Panel>
             </Tabs>
           </>
@@ -331,6 +343,7 @@ export function StatusCategorizationModal({
         </Group>
       </Stack>
     </Modal>
+    </>
   );
 }
 
