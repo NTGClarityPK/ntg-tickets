@@ -806,7 +806,9 @@ export interface AuditLogsFilters {
 // ===== ATTACHMENT INTERFACES =====
 export interface AttachmentDownloadUrl {
   downloadUrl: string;
-  expiresAt: string;
+  filename: string;
+  fileSize: number;
+  fileType: string;
 }
 
 // ===== REPORT INTERFACES =====

@@ -70,6 +70,7 @@ import {
   IconHistory,
   IconBell,
   IconShare,
+  IconUpload,
 } from '@tabler/icons-react';
 import { RTLArrowLeft } from '../../../components/ui/RTLIcon';
 import {
@@ -78,6 +79,7 @@ import {
   useAssignTicket,
 } from '../../../hooks/useTickets';
 import { useCreateComment, useUpdateComment, useDeleteComment } from '../../../hooks/useComments';
+import { useUploadAttachment, useGetAttachmentDownloadUrl } from '../../../hooks/useAttachments';
 import { useUsers, useSupportStaff } from '../../../hooks/useUsers';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import { useWorkflowTransitions } from '../../../hooks/useWorkflowTransitions';
@@ -141,6 +143,7 @@ export default function TicketDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentContent, setEditCommentContent] = useState('');
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
 
   // Invalidate cache when navigating to a ticket to ensure fresh data
   useEffect(() => {
@@ -160,6 +163,8 @@ export default function TicketDetailPage() {
   const addCommentMutation = useCreateComment();
   const updateCommentMutation = useUpdateComment();
   const deleteCommentMutation = useDeleteComment();
+  const uploadAttachmentMutation = useUploadAttachment();
+  const getDownloadUrlMutation = useGetAttachmentDownloadUrl();
   
   // Get workflow-based transitions for the current ticket status
   // Pass workflowSnapshot if ticket has one (for tickets created with older workflow versions)
@@ -763,31 +768,112 @@ export default function TicketDetailPage() {
               <Paper withBorder p='md'>
                 <Group justify='space-between' mb='md'>
                   <Title order={3}>Attachments</Title>
-                  <Button leftSection={<IconPaperclip size={16} />}>
+                  <input
+                    type='file'
+                    id='attachment-upload'
+                    style={{ display: 'none' }}
+                    multiple
+                    accept='image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        try {
+                          const uploadPromises = Array.from(files).map(file =>
+                            uploadAttachmentMutation.mutateAsync({
+                              ticketId,
+                              file,
+                            })
+                          );
+                          await Promise.all(uploadPromises);
+                          // Invalidate ticket query to refresh attachments
+                          queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
+                          notifications.show({
+                            title: 'Success',
+                            message: 'Attachments uploaded successfully',
+                            color: primaryLight,
+                          });
+                          // Reset input
+                          e.target.value = '';
+                        } catch (error) {
+                          notifications.show({
+                            title: 'Error',
+                            message: 'Failed to upload attachments',
+                            color: primaryDark,
+                          });
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    leftSection={<IconUpload size={16} />}
+                    onClick={() => {
+                      const input = document.getElementById('attachment-upload') as HTMLInputElement;
+                      input?.click();
+                    }}
+                    loading={uploadAttachmentMutation.isPending}
+                  >
                     Upload File
                   </Button>
                 </Group>
                 <Stack gap='md'>
-                  {ticket.attachments?.map((attachment: Attachment) => (
-                    <Card key={attachment.id} withBorder p='md'>
-                      <Group justify='space-between'>
-                        <Group gap='sm'>
-                          <IconPaperclip size={16} />
-                          <div>
-                            <Text fw={500} size='sm'>
-                              {attachment.filename}
-                            </Text>
-                            <Text size='xs' c='dimmed'>
-                              {(attachment.fileSize / 1024).toFixed(1)} KB
-                            </Text>
-                          </div>
+                  {ticket.attachments?.map((attachment: Attachment) => {
+                    const handleDownload = async (e?: React.MouseEvent<HTMLElement>) => {
+                      e?.stopPropagation();
+                      setDownloadingAttachmentId(attachment.id);
+                      try {
+                        const result = await getDownloadUrlMutation.mutateAsync(attachment.id);
+                        // Open download URL in new tab or trigger download
+                        const link = document.createElement('a');
+                        link.href = result.downloadUrl;
+                        // Use filename from the download URL response
+                        link.download = result.filename;
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      } catch (error) {
+                        notifications.show({
+                          title: 'Error',
+                          message: 'Failed to download attachment',
+                          color: primaryDark,
+                        });
+                      } finally {
+                        setDownloadingAttachmentId(null);
+                      }
+                    };
+
+                    return (
+                      <Card
+                        key={attachment.id}
+                        withBorder
+                        p='md'
+                        style={{ cursor: 'pointer' }}
+                        onClick={handleDownload}
+                      >
+                        <Group justify='space-between'>
+                          <Group gap='sm'>
+                            <IconPaperclip size={16} />
+                            <div>
+                              <Text fw={500} size='sm'>
+                                {attachment.filename}
+                              </Text>
+                              <Text size='xs' c='dimmed'>
+                                {(attachment.fileSize / 1024).toFixed(1)} KB
+                              </Text>
+                            </div>
+                          </Group>
+                          <ActionIcon
+                            variant='subtle'
+                            onClick={handleDownload}
+                            loading={downloadingAttachmentId === attachment.id}
+                            title='Download attachment'
+                          >
+                            <IconDownload size={16} />
+                          </ActionIcon>
                         </Group>
-                        <ActionIcon variant='subtle'>
-                          <IconDownload size={16} />
-                        </ActionIcon>
-                      </Group>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                   {(!ticket.attachments || ticket.attachments.length === 0) && (
                     <Text c='dimmed' ta='center' py='xl'>
                       No attachments yet.

@@ -124,10 +124,24 @@ export class AttachmentsService {
       );
     }
 
+    // Sanitize filename to remove special characters and emojis
+    // Keep the original extension
+    const fileExtension = file.originalname.split('.').pop() || '';
+    const fileNameWithoutExt = file.originalname.replace(/\.[^/.]+$/, '');
+    const timestamp = Date.now();
+    // Replace all non-ASCII and special characters with underscores
+    const sanitizedBaseName = fileNameWithoutExt
+      .replace(/[^\x00-\x7F]/g, '_') // Replace non-ASCII characters (emojis, etc.)
+      .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace remaining special characters
+      .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+      .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
+    
+    const sanitizedFilename = `${timestamp}_${sanitizedBaseName}${fileExtension ? '.' + fileExtension : ''}`;
+    
     // Upload file to Supabase Storage
     const fileUrl = await this.fileStorage.uploadFile(file, {
       folder: `tickets/${ticketId}`,
-      filename: file.originalname,
+      filename: sanitizedFilename,
       bucket: 'ticket-attachments',
     });
 

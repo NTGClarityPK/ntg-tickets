@@ -10,6 +10,9 @@ import { useAuthStore } from '../../../stores/useAuthStore';
 import { useCanCreateTicket } from '../../../hooks/useCanCreateTicket';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 import { useCreateTicket } from '../../../hooks/useTickets';
+import { useUploadAttachment } from '../../../hooks/useAttachments';
+import { UploadedFileInfo } from '../../../components/forms/FileUpload';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function CreateTicketPage() {
   const { primaryLight, primaryDark } = useDynamicTheme();
@@ -17,6 +20,8 @@ export default function CreateTicketPage() {
   const { isAuthenticated, user } = useAuthStore();
   const { canCreate, loading: checkingPermission } = useCanCreateTicket();
   const createTicketMutation = useCreateTicket();
+  const uploadAttachmentMutation = useUploadAttachment();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -57,6 +62,41 @@ export default function CreateTicketPage() {
       };
 
       const ticket = await createTicketMutation.mutateAsync(createTicketData);
+
+      // Upload attachments after ticket creation
+      const uploadedFiles = (values as DynamicTicketFormValues & { uploadedFiles?: UploadedFileInfo[] }).uploadedFiles;
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        try {
+          // Upload each completed file to create attachment records
+          const uploadPromises = uploadedFiles
+            .filter(fileInfo => fileInfo.status === 'completed' && fileInfo.file)
+            .map(fileInfo => 
+              uploadAttachmentMutation.mutateAsync({
+                ticketId: ticket.id,
+                file: fileInfo.file,
+              }).catch(error => {
+                // Log error but don't fail the whole operation
+                // eslint-disable-next-line no-console
+                console.error(`Failed to upload attachment ${fileInfo.file.name}:`, error);
+                notifications.show({
+                  title: 'Warning',
+                  message: `Failed to upload ${fileInfo.file.name}. You can upload it later.`,
+                  color: 'yellow',
+                });
+                return null;
+              })
+            );
+          
+          await Promise.all(uploadPromises);
+          
+          // Invalidate ticket query to refresh attachments
+          queryClient.invalidateQueries({ queryKey: ['ticket', ticket.id] });
+        } catch (error) {
+          // Log error but don't block ticket creation success
+          // eslint-disable-next-line no-console
+          console.error('Error uploading attachments:', error);
+        }
+      }
 
       notifications.show({
         title: 'Success',

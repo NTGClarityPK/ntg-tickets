@@ -38,7 +38,7 @@ import {
   useDynamicFields as useCategoryDynamicFields,
   useSubcategories as useCategorySubcategories,
 } from '../../hooks/useCategories';
-import { FileUpload } from './FileUpload';
+import { FileUpload, UploadedFileInfo } from './FileUpload';
 import { FileWithPath } from '@mantine/dropzone';
 import { CustomFieldsSection } from './CustomFieldsSection';
 
@@ -59,6 +59,7 @@ export function DynamicTicketForm({
   );
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>('');
   const [attachments, setAttachments] = useState<FileWithPath[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileInfo[]>([]);
 
   // Use hooks for API calls
   const { data: categories = [], isLoading: loadingCategories } =
@@ -165,6 +166,8 @@ export function DynamicTicketForm({
 
     // Add attachments to the form data
     filteredValues.attachments = attachments;
+    // Store uploaded file info for later use
+    (filteredValues as DynamicTicketFormValues & { uploadedFiles?: UploadedFileInfo[] }).uploadedFiles = uploadedFiles;
 
     onSubmit(filteredValues);
   };
@@ -372,6 +375,7 @@ export function DynamicTicketForm({
             </Text>
             <FileUpload
               onFilesChange={setAttachments}
+              onUploadedFilesChange={setUploadedFiles}
               maxFiles={5}
               maxSize={10}
               disabled={loading}
