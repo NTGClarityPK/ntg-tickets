@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { signIn as supabaseSignIn } from '../../../lib/supabase-auth';
+import { useAuthActions, useAuthStore } from '../../../stores/useAuthStore';
+import { UserRole } from '../../../types/unified';
 import {
   TextInput,
   PasswordInput,
@@ -28,7 +30,6 @@ import {
 import { useLoginAttempts } from '../../../hooks/useLoginAttempts';
 import { AuthLayout } from '../../../components/layouts/AuthLayout';
 import { RoleSelectionModal } from '../../../components/modals/RoleSelectionModal';
-import { UserRole } from '../../../types/unified';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
 
 export default function SignInPage() {
@@ -40,7 +41,7 @@ export default function SignInPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [currentStep, setCurrentStep] = useState<
+  const [currentStep ] = useState<
     'login' | 'complete'
   >('login');
   const [showRoleSelection, setShowRoleSelection] = useState(false);
@@ -50,6 +51,7 @@ export default function SignInPage() {
     null
   );
   const router = useRouter();
+  const { setUser } = useAuthActions();
   const {
     attempts,
     isLocked,
@@ -68,6 +70,13 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // eslint-disable-next-line no-console
+    console.log('=== SIGNIN STARTED ===');
+    // eslint-disable-next-line no-console
+    console.log('Email:', email);
+    // eslint-disable-next-line no-console
+    console.log('Can attempt login:', canAttemptLogin);
 
     if (!canAttemptLogin) {
       setError(t('tooManyAttempts', { time: formattedRemainingTime }));
@@ -78,61 +87,74 @@ export default function SignInPage() {
     setError('');
 
     try {
-      // First, validate credentials by making a direct API call to backend
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/v1/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      // eslint-disable-next-line no-console
+      console.log('Calling supabaseSignIn...');
+      // Use Supabase Auth for sign in
+      const result = await supabaseSignIn(email, password);
+      // eslint-disable-next-line no-console
+      console.log('Signin result:', result);
+      // eslint-disable-next-line no-console
+      console.log('Result structure:', {
+        hasUser: !!result?.user,
+        userId: result?.user?.id,
+        userEmail: result?.user?.email,
+        userRoles: result?.user?.roles,
+      });
 
-      if (!response.ok) {
-        incrementAttempts();
-        if (remainingAttempts <= 1) {
-          setError(
-            t('invalidCredentialsLocked', { attempts: remainingAttempts })
-          );
-        } else {
-          setError(
-            t('invalidCredentialsRemaining', { attempts: remainingAttempts })
-          );
-        }
-        return;
+      // Check if result has the expected structure
+      if (!result || !result.user) {
+        throw new Error('Invalid signin response: missing user data');
       }
 
-      const data = await response.json();
+      // Set user in auth store immediately
+      const userData = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        roles: result.user.roles as UserRole[],
+        activeRole: (result.user.activeRole || result.user.roles[0]) as UserRole,
+        isActive: true,
+        avatar: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      setUser(userData);
+      
+      // Verify user is set in store
+      const storedUser = useAuthStore.getState()?.user;
+      // eslint-disable-next-line no-console
+      console.log('User set in store:', storedUser);
 
-      if (data.message === 'Role selection required') {
+      if (result.user.roles.length > 1) {
         // User has multiple roles, show role selection modal
-        setUserRoles(data.data.user.roles);
+        setUserRoles(result.user.roles as UserRole[]);
         setShowRoleSelection(true);
         setLoading(false);
         return;
       }
 
-      // User has single role, proceed with NextAuth signIn
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.ok) {
-        // Reset attempts on successful login
-        resetAttempts();
-        setCurrentStep('complete');
-        // Redirect immediately after successful login
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1000);
-      }
+      // Reset attempts on successful login
+      resetAttempts();
+      setLoading(false);
+      
+      // Use router.push for client-side navigation
+      // eslint-disable-next-line no-console
+      console.log('Redirecting to dashboard with user:', storedUser);
+      router.push('/dashboard');
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('=== SIGNIN ERROR ===', error);
       incrementAttempts();
-      setError(t('errorOccurred'));
+      if (remainingAttempts <= 1) {
+        setError(
+          t('invalidCredentialsLocked', { attempts: remainingAttempts })
+        );
+      } else {
+        setError(
+          t('invalidCredentialsRemaining', { attempts: remainingAttempts })
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -143,41 +165,29 @@ export default function SignInPage() {
     setRoleSelectionError(null);
 
     try {
-      // Make API call to login with selected role
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/v1/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password, activeRole: selectedRole }),
-        }
-      );
+      // Sign in again with Supabase (role selection is handled server-side)
+      const result = await supabaseSignIn(email, password);
 
-      if (!response.ok) {
-        setRoleSelectionError(t('roleSelectionFailed'));
-        return;
-      }
-
-      // Proceed with NextAuth signIn
-      const result = await signIn('credentials', {
-        email,
-        password,
-        activeRole: selectedRole,
-        redirect: false,
+      // Set user in auth store with selected role
+      setUser({
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        roles: result.user.roles as UserRole[],
+        activeRole: selectedRole, // Use the selected role
+        isActive: true,
+        avatar: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      if (result?.ok) {
-        // Reset attempts on successful login
-        resetAttempts();
-        setShowRoleSelection(false);
-        setCurrentStep('complete');
-        // Redirect immediately after successful login
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1000);
-      }
+      // Reset attempts on successful login
+      resetAttempts();
+      setShowRoleSelection(false);
+      setLoading(false);
+      
+      // Use router.push for client-side navigation
+      router.push('/dashboard');
     } catch (error) {
       setRoleSelectionError(t('roleSelectionFailed'));
     } finally {

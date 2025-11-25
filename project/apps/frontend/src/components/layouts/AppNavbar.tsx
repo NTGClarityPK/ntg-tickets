@@ -123,7 +123,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       icon: IconFileText,
       href: '/tickets/my',
       show: true, // Show for all roles - tickets created by or assigned to them
-      badge: user ? safeTickets.filter((t: Ticket) => 
+      badge: user ? allTickets.filter((t: Ticket) => 
         t.requester?.id === user.id || t.assignedTo?.id === user.id
       ).length : 0,
     },

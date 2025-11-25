@@ -8,224 +8,261 @@ import {
   CustomFieldType,
   WorkflowStatus,
 } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '.env' });
 
 const prisma = new PrismaClient();
+
+// Initialize Supabase client for user creation
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('⚠️  Supabase credentials not found. Users will be created without Supabase Auth.');
+  console.warn('   Make sure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in .env');
+}
+
+const supabase = supabaseUrl && supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  : null;
+
+// Helper function to create user in Supabase Auth and database
+async function createUserWithSupabase(
+  email: string,
+  password: string,
+  name: string,
+  roles: UserRole[]
+) {
+  let supabaseUserId: string | null = null;
+
+  // Create user in Supabase Auth first (if Supabase is configured)
+  if (supabase) {
+    try {
+      // Check if user already exists by listing users and finding by email
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      
+      let foundUser: { id: string; email?: string } | null = null;
+      
+      if (usersList?.users && Array.isArray(usersList.users)) {
+        foundUser = (usersList.users as Array<{ id: string; email?: string }>).find(
+          (u) => u.email === email
+        ) || null;
+      }
+
+      if (foundUser) {
+        console.log(`   ℹ️  User ${email} already exists in Supabase Auth`);
+        supabaseUserId = foundUser.id;
+      } else {
+        // Create user in Supabase Auth
+        const {
+          data: { user: supabaseUser },
+          error: authError,
+        } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true, // Auto-confirm for seed users
+          user_metadata: {
+            name,
+            roles: roles.map((r) => r.toString()),
+            seeded: true,
+          },
+        });
+
+        if (authError || !supabaseUser) {
+          console.warn(`   ⚠️  Failed to create ${email} in Supabase Auth: ${authError?.message}`);
+          console.warn(`   ⚠️  Creating user in database only (without Supabase Auth)`);
+        } else {
+          supabaseUserId = supabaseUser.id;
+          console.log(`   ✅ Created ${email} in Supabase Auth`);
+        }
+      }
+    } catch (error) {
+      console.warn(`   ⚠️  Error creating ${email} in Supabase Auth:`, error);
+      console.warn(`   ⚠️  Creating user in database only (without Supabase Auth)`);
+    }
+  }
+
+  // Check if user already exists in database
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  let user;
+  if (existingUser) {
+    // Update existing user
+    // Note: We can't change the ID if user already exists, but we can update other fields
+    user = await prisma.user.update({
+      where: { email },
+      data: {
+        name,
+        password: null, // Clear password - Supabase handles it
+        roles,
+        isActive: true,
+      },
+    });
+
+    // If Supabase user ID is different, log a warning
+    if (supabaseUserId && supabaseUserId !== existingUser.id) {
+      console.warn(`   ⚠️  Warning: User ${email} has different ID in database (${existingUser.id}) vs Supabase (${supabaseUserId})`);
+      console.warn(`   ⚠️  Keeping existing database ID. Make sure Supabase user ID matches.`);
+    }
+  } else {
+    // Create new user
+    user = await prisma.user.create({
+      data: {
+        id: supabaseUserId || undefined, // Use Supabase ID if available, otherwise let Prisma generate
+        email,
+        name,
+        password: null, // No password stored - Supabase handles it
+        roles,
+        isActive: true,
+      },
+    });
+  }
+
+  return user;
+}
 
 async function main() {
   console.log('🌱 Starting database seeding...');
 
-  // Create comprehensive user data with multi-role support
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'admin@ntg-ticket.com',
-      name: 'Ahmad Muhammad Ali',
-      password: await bcrypt.hash('admin123', 12),
-      roles: [UserRole.ADMIN],
-      isActive: true,
-    },
-  });
+  // Create comprehensive user data with multi-role support using Supabase Auth
+  console.log('\n👥 Creating users in Supabase Auth and database...');
+  
+  const admin = await createUserWithSupabase(
+    'admin@ntg-ticket.com',
+    'admin123',
+    'Ahmad Muhammad Ali',
+    [UserRole.ADMIN]
+  );
 
-  const manager = await prisma.user.upsert({
-    where: { email: 'manager@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'manager@ntg-ticket.com',
-      name: 'Fatima Abd al-Rahman',
-      password: await bcrypt.hash('manager123', 12),
-      roles: [UserRole.SUPPORT_MANAGER],
-      isActive: true,
-    },
-  });
+  const manager = await createUserWithSupabase(
+    'manager@ntg-ticket.com',
+    'manager123',
+    'Fatima Abd al-Rahman',
+    [UserRole.SUPPORT_MANAGER]
+  );
 
-  const supportStaff1 = await prisma.user.upsert({
-    where: { email: 'support1@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'support1@ntg-ticket.com',
-      name: 'Muhammad Hassan Ibrahim',
-      password: await bcrypt.hash('support123', 12),
-      roles: [UserRole.SUPPORT_STAFF],
-      isActive: true,
-    },
-  });
+  const supportStaff1 = await createUserWithSupabase(
+    'support1@ntg-ticket.com',
+    'support123',
+    'Muhammad Hassan Ibrahim',
+    [UserRole.SUPPORT_STAFF]
+  );
 
-  const supportStaff2 = await prisma.user.upsert({
-    where: { email: 'support2@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'support2@ntg-ticket.com',
-      name: 'Aisha Ahmad Mahmoud',
-      password: await bcrypt.hash('support123', 12),
-      roles: [UserRole.SUPPORT_STAFF],
-      isActive: true,
-    },
-  });
+  const supportStaff2 = await createUserWithSupabase(
+    'support2@ntg-ticket.com',
+    'support123',
+    'Aisha Ahmad Mahmoud',
+    [UserRole.SUPPORT_STAFF]
+  );
 
-  const supportStaff3 = await prisma.user.upsert({
-    where: { email: 'support3@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'support3@ntg-ticket.com',
-      name: 'Khalid Abd Allah al-Saeed',
-      password: await bcrypt.hash('support123', 12),
-      roles: [UserRole.SUPPORT_STAFF],
-      isActive: true,
-    },
-  });
+  const supportStaff3 = await createUserWithSupabase(
+    'support3@ntg-ticket.com',
+    'support123',
+    'Khalid Abd Allah al-Saeed',
+    [UserRole.SUPPORT_STAFF]
+  );
 
-  const supportStaff4 = await prisma.user.upsert({
-    where: { email: 'support4@ntg-ticket.com' },
-    update: {},
-    create: {
-      email: 'support4@ntg-ticket.com',
-      name: 'Nur al-Din Muhammad',
-      password: await bcrypt.hash('support123', 12),
-      roles: [UserRole.SUPPORT_STAFF],
-      isActive: true,
-    },
-  });
+  const supportStaff4 = await createUserWithSupabase(
+    'support4@ntg-ticket.com',
+    'support123',
+    'Nur al-Din Muhammad',
+    [UserRole.SUPPORT_STAFF]
+  );
 
-  const endUser1 = await prisma.user.upsert({
-    where: { email: 'user1@company.com' },
-    update: {},
-    create: {
-      email: 'user1@company.com',
-      name: 'Maryam Ali Hassan',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser1 = await createUserWithSupabase(
+    'user1@company.com',
+    'user123',
+    'Maryam Ali Hassan',
+    [UserRole.END_USER]
+  );
 
-  const endUser2 = await prisma.user.upsert({
-    where: { email: 'user2@company.com' },
-    update: {},
-    create: {
-      email: 'user2@company.com',
-      name: 'Yusuf Abd al-Aziz',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser2 = await createUserWithSupabase(
+    'user2@company.com',
+    'user123',
+    'Yusuf Abd al-Aziz',
+    [UserRole.END_USER]
+  );
 
-  const endUser3 = await prisma.user.upsert({
-    where: { email: 'user3@company.com' },
-    update: {},
-    create: {
-      email: 'user3@company.com',
-      name: 'Zaynab Muhammad Abd al-Rahman',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser3 = await createUserWithSupabase(
+    'user3@company.com',
+    'user123',
+    'Zaynab Muhammad Abd al-Rahman',
+    [UserRole.END_USER]
+  );
 
-  const endUser4 = await prisma.user.upsert({
-    where: { email: 'user4@company.com' },
-    update: {},
-    create: {
-      email: 'user4@company.com',
-      name: 'Umar Ahmad al-Sharif',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser4 = await createUserWithSupabase(
+    'user4@company.com',
+    'user123',
+    'Umar Ahmad al-Sharif',
+    [UserRole.END_USER]
+  );
 
-  const endUser5 = await prisma.user.upsert({
-    where: { email: 'user5@company.com' },
-    update: {},
-    create: {
-      email: 'user5@company.com',
-      name: 'Sara Mahmoud Ibrahim',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser5 = await createUserWithSupabase(
+    'user5@company.com',
+    'user123',
+    'Sara Mahmoud Ibrahim',
+    [UserRole.END_USER]
+  );
 
-  const endUser6 = await prisma.user.upsert({
-    where: { email: 'user6@company.com' },
-    update: {},
-    create: {
-      email: 'user6@company.com',
-      name: 'Tariq Muhammad Ali',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER],
-      isActive: true,
-    },
-  });
+  const endUser6 = await createUserWithSupabase(
+    'user6@company.com',
+    'user123',
+    'Tariq Muhammad Ali',
+    [UserRole.END_USER]
+  );
 
   // Create multi-role users with Arabic/Egyptian names
-  const multiRoleUser1 = await prisma.user.upsert({
-    where: { email: 'ahmed@company.com' },
-    update: {},
-    create: {
-      email: 'ahmed@company.com',
-      name: 'Ahmed Hassan al-Masri',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER, UserRole.SUPPORT_STAFF],
-      isActive: true,
-    },
-  });
+  const multiRoleUser1 = await createUserWithSupabase(
+    'ahmed@company.com',
+    'user123',
+    'Ahmed Hassan al-Masri',
+    [UserRole.END_USER, UserRole.SUPPORT_STAFF]
+  );
 
-  const multiRoleUser2 = await prisma.user.upsert({
-    where: { email: 'nour@company.com' },
-    update: {},
-    create: {
-      email: 'nour@company.com',
-      name: 'Nour al-Din Abd al-Malik',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.SUPPORT_STAFF, UserRole.SUPPORT_MANAGER],
-      isActive: true,
-    },
-  });
+  const multiRoleUser2 = await createUserWithSupabase(
+    'nour@company.com',
+    'user123',
+    'Nour al-Din Abd al-Malik',
+    [UserRole.SUPPORT_STAFF, UserRole.SUPPORT_MANAGER]
+  );
 
-  const multiRoleUser3 = await prisma.user.upsert({
-    where: { email: 'layla@company.com' },
-    update: {},
-    create: {
-      email: 'layla@company.com',
-      name: 'Layla Muhammad al-Zahra',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.ADMIN, UserRole.SUPPORT_MANAGER],
-      isActive: true,
-    },
-  });
+  const multiRoleUser3 = await createUserWithSupabase(
+    'layla@company.com',
+    'user123',
+    'Layla Muhammad al-Zahra',
+    [UserRole.ADMIN, UserRole.SUPPORT_MANAGER]
+  );
 
-  const multiRoleUser4 = await prisma.user.upsert({
-    where: { email: 'omar@company.com' },
-    update: {},
-    create: {
-      email: 'omar@company.com',
-      name: 'Omar Abd al-Rahman al-Farouk',
-      password: await bcrypt.hash('user123', 12),
-      roles: [
-        UserRole.END_USER,
-        UserRole.SUPPORT_STAFF,
-        UserRole.SUPPORT_MANAGER,
-      ],
-      isActive: true,
-    },
-  });
+  const multiRoleUser4 = await createUserWithSupabase(
+    'omar@company.com',
+    'user123',
+    'Omar Abd al-Rahman al-Farouk',
+    [UserRole.END_USER, UserRole.SUPPORT_STAFF, UserRole.SUPPORT_MANAGER]
+  );
 
-  const multiRoleUser5 = await prisma.user.upsert({
-    where: { email: 'fatima@company.com' },
-    update: {},
-    create: {
-      email: 'fatima@company.com',
-      name: 'Fatima Zahra al-Batoul',
-      password: await bcrypt.hash('user123', 12),
-      roles: [UserRole.END_USER, UserRole.ADMIN],
-      isActive: true,
-    },
-  });
+  const multiRoleUser5 = await createUserWithSupabase(
+    'fatima@company.com',
+    'user123',
+    'Fatima Zahra al-Batoul',
+    [UserRole.END_USER, UserRole.ADMIN]
+  );
 
-  console.log('✅ Users created');
+  console.log('\n✅ Users created in Supabase Auth and database');
+  
+  if (!supabase) {
+    console.log('\n⚠️  WARNING: Supabase not configured. Users were created in database only.');
+    console.log('   To enable Supabase Auth, set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env');
+  }
 
   // Create categories
   let hardwareCategory = await prisma.category.findFirst({
@@ -1357,12 +1394,30 @@ async function main() {
       continue;
     }
 
+    // Create workflow snapshot for this ticket
+    const workflowSnapshot = {
+      id: defaultWorkflow.id,
+      name: defaultWorkflow.name,
+      description: defaultWorkflow.description,
+      status: defaultWorkflow.status,
+      isActive: defaultWorkflow.isActive,
+      isDefault: defaultWorkflow.isDefault,
+      isSystemDefault: defaultWorkflow.isSystemDefault,
+      version: defaultWorkflow.version,
+      definition: defaultWorkflow.definition,
+      workingStatuses: defaultWorkflow.workingStatuses,
+      doneStatuses: defaultWorkflow.doneStatuses,
+    };
+
     await prisma.ticket.upsert({
       where: { ticketNumber: ticketData.ticketNumber },
       update: {
         workflow: {
           connect: { id: defaultWorkflow.id },
         },
+        // Update snapshot if workflow changed
+        workflowSnapshot: workflowSnapshot as any,
+        workflowVersion: defaultWorkflow.version,
       },
       create: {
         ticketNumber: ticketData.ticketNumber,
@@ -1379,6 +1434,8 @@ async function main() {
         workflow: {
           connect: { id: defaultWorkflow.id },
         },
+        workflowSnapshot: workflowSnapshot as any, // Store snapshot at creation time
+        workflowVersion: defaultWorkflow.version,
         requester: {
           connect: { id: ticketData.requesterId },
         },

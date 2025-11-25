@@ -7,10 +7,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../common/supabase/supabase.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
-import * as bcrypt from 'bcryptjs';
 import { Prisma, UserRole } from '@prisma/client';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 
@@ -38,7 +38,8 @@ export class UsersService {
 
   constructor(
     private prisma: PrismaService,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private supabaseService: SupabaseService
   ) {}
 
   async create(
@@ -63,20 +64,58 @@ export class UsersService {
         throw new BadRequestException(passwordValidation.message);
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
-
-      const user = await this.prisma.user.create({
-        data: {
-          ...createUserDto,
-          password: hashedPassword,
+      // Create user in Supabase Auth first (Option A: Full Supabase Auth)
+      const supabase = this.supabaseService.getAdminClient();
+      const {
+        data: { user: supabaseUser },
+        error: authError,
+      } = await supabase.auth.admin.createUser({
+        email: createUserDto.email,
+        password: createUserDto.password,
+        email_confirm: true, // Auto-confirm (set to false in production)
+        user_metadata: {
+          name: createUserDto.name,
+          roles: (createUserDto.roles || [UserRole.END_USER]).map((r) =>
+            r.toString()
+          ),
         },
       });
 
-      const userWithoutPassword = this.sanitizeUserSimple(user);
-      this.logger.log(`User created: ${user.email}`);
-      return userWithoutPassword;
+      if (authError || !supabaseUser) {
+        this.logger.error('Error creating Supabase user:', authError);
+        throw new BadRequestException(
+          authError?.message || 'Failed to create user in Supabase Auth'
+        );
+      }
+
+      // Create user record in our database with Supabase user ID
+      try {
+        const user = await this.prisma.user.create({
+          data: {
+            id: supabaseUser.id, // Use Supabase user ID
+            email: supabaseUser.email!,
+            name: createUserDto.name,
+            password: null, // No password stored - Supabase handles it
+            roles: createUserDto.roles || [UserRole.END_USER],
+            isActive: true,
+          },
+        });
+
+        const userWithoutPassword = this.sanitizeUserSimple(user);
+        this.logger.log(`User created with Supabase Auth: ${user.email}`);
+        return userWithoutPassword;
+      } catch (error) {
+        // If database creation fails, delete the Supabase user
+        await supabase.auth.admin.deleteUser(supabaseUser.id);
+        throw error;
+      }
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof HttpException
+      ) {
+        throw error;
+      }
       this.handleServiceError(error, 'Failed to create user');
     }
   }
@@ -248,7 +287,7 @@ export class UsersService {
         updatedAt: new Date(),
       };
 
-      // Handle password update if provided
+      // Handle password update if provided (update in Supabase Auth)
       if (updateUserDto.password) {
         // Validate password
         const passwordValidation = this.validationService.validatePassword(
@@ -258,9 +297,22 @@ export class UsersService {
           throw new BadRequestException(passwordValidation.message);
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(updateUserDto.password, 12);
-        updateData.password = hashedPassword;
+        // Update password in Supabase Auth
+        const supabase = this.supabaseService.getAdminClient();
+        const { error: passwordError } = await supabase.auth.admin.updateUserById(
+          id,
+          {
+            password: updateUserDto.password,
+          }
+        );
+
+        if (passwordError) {
+          this.logger.error('Error updating password in Supabase:', passwordError);
+          throw new BadRequestException('Failed to update password');
+        }
+
+        // Don't store password in our database - Supabase handles it
+        delete updateData.password;
       } else {
         // Remove password from update data if not provided
         delete updateData.password;

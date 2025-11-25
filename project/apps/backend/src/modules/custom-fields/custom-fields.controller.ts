@@ -17,7 +17,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CustomFieldsService } from './custom-fields.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import {
   CreateCustomFieldDto,
   UpdateCustomFieldDto,
@@ -25,7 +25,7 @@ import {
 
 @ApiTags('Custom Fields')
 @Controller('custom-fields')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class CustomFieldsController {
   constructor(private readonly customFieldsService: CustomFieldsService) {}

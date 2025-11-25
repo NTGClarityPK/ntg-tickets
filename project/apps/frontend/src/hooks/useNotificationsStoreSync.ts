@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { useNotificationsStore } from '../stores/useNotificationsStore';
 import { notificationsApi } from '../lib/apiClient';
 import { NotificationType } from '../types/notification';
+import { useAuthUser } from '../stores/useAuthStore';
 
 /**
  * Hook to sync the notifications store with API data
@@ -10,12 +11,18 @@ import { NotificationType } from '../types/notification';
  * and stays in sync with the backend
  */
 export function useNotificationsStoreSync() {
-  const { data: session, status } = useSession();
+  const user = useAuthUser();
   const { syncWithApi, setLoading } = useNotificationsStore();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
     const initializeNotifications = async () => {
-      if (status === 'authenticated' && session?.accessToken) {
+      // Check if user is authenticated via Supabase
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session && user && !hasInitialized) {
         try {
           setLoading(true);
 
@@ -53,6 +60,7 @@ export function useNotificationsStoreSync() {
 
           // Sync notifications with store
           syncWithApi(apiNotifications);
+          setHasInitialized(true);
         } catch (error) {
           // Silently handle error to avoid breaking the app
           // In production, consider using a proper logging service
@@ -63,7 +71,7 @@ export function useNotificationsStoreSync() {
     };
 
     initializeNotifications();
-  }, [status, session?.accessToken, syncWithApi, setLoading]);
+  }, [user, hasInitialized, syncWithApi, setLoading]);
 
   // Note: Periodic refresh is handled by React Query in useNotifications hook
   // No need for duplicate polling here

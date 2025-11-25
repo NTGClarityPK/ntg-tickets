@@ -13,11 +13,11 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}

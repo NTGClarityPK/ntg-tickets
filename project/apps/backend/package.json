@@ -20,7 +20,8 @@
     "db:push": "prisma db push",
     "db:seed": "ts-node prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "migrate:users": "ts-node scripts/migrate-users-to-supabase.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.894.0",
@@ -42,6 +43,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.2.10",
     "@prisma/client": "^5.7.1",
+    "@supabase/supabase-js": "^2.84.0",
     "@types/multer": "^2.0.0",
     "apollo-server-express": "^3.13.0",
     "bcryptjs": "^2.4.3",
@@ -49,6 +51,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "compression": "^1.8.1",
+    "dotenv": "^17.2.3",
     "graphql": "^16.11.0",
     "helmet": "^8.1.0",
     "ioredis": "^5.3.2",
@@ -73,7 +76,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.8",
-    "@types/node": "^20.9.4",
+    "@types/node": "^20.19.25",
     "@types/passport-jwt": "^3.0.13",
     "@types/passport-local": "^1.0.38",
     "@types/supertest": "^2.0.16",

@@ -14,13 +14,13 @@ import { WorkflowsService } from './workflows.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { ActivateWorkflowDto } from './dto/activate-workflow.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 
 @Controller('workflows')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
 export class WorkflowsController {
   constructor(private readonly workflowsService: WorkflowsService) {}
 

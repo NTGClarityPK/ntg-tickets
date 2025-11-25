@@ -20,11 +20,11 @@ import {
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Categories')
 @Controller('categories')
-@UseGuards(NextAuthJwtGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}

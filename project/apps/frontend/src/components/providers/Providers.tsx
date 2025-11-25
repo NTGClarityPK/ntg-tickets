@@ -1,6 +1,5 @@
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
@@ -62,23 +61,21 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <ErrorBoundary>
-            <SkipLink targetId='main-content'>Skip to main content</SkipLink>
-            <GlobalErrorHandler />
-            <main id='main-content' role='main'>
-              <Notifications position='top-right' />
-              <DynamicThemeProvider>
-                <AuthProvider>
-                  <WebSocketProvider>{children}</WebSocketProvider>
-                </AuthProvider>
-              </DynamicThemeProvider>
-            </main>
-          </ErrorBoundary>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </SessionProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <SkipLink targetId='main-content'>Skip to main content</SkipLink>
+          <GlobalErrorHandler />
+          <main id='main-content' role='main'>
+            <Notifications position='top-right' />
+            <DynamicThemeProvider>
+              <AuthProvider>
+                <WebSocketProvider>{children}</WebSocketProvider>
+              </AuthProvider>
+            </DynamicThemeProvider>
+          </main>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

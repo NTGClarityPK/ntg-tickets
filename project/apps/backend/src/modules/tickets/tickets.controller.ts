@@ -23,11 +23,11 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketFiltersDto, TicketViewType } from './dto/ticket-filters.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
-import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Tickets')
 @Controller('tickets')
-@UseGuards(NextAuthJwtGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}

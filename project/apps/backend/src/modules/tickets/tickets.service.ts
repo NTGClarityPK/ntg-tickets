@@ -1040,6 +1040,22 @@ export class TicketsService {
     // Permission checks are now handled by the workflow execution service
     // No hardcoded role restrictions - all rules derived from active workflow
 
+    // Ensure ticket has a workflow assigned (use default if missing)
+    if (!ticket.workflowId) {
+      const defaultWorkflow = await this.workflowsService.findDefault();
+      if (defaultWorkflow) {
+        await this.prisma.ticket.update({
+          where: { id },
+          data: { workflowId: defaultWorkflow.id },
+        });
+        ticket.workflowId = defaultWorkflow.id;
+        this.logger.log(
+          `Assigned default workflow to ticket ${ticket.ticketNumber}`,
+          'TicketsService'
+        );
+      }
+    }
+
     // Use workflow execution service if a workflow is assigned
     if (ticket.workflowId) {
       try {

@@ -20,11 +20,11 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { AttachmentsService } from './attachments.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Attachments')
 @Controller('attachments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}

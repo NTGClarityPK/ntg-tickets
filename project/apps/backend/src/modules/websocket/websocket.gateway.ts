@@ -10,8 +10,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import { SupabaseService } from '../../common/supabase/supabase.service';
 import configuration from '../../config/configuration';
 
 const appConfig = configuration();
@@ -43,8 +43,8 @@ export class WebSocketGateway
   private connectedUsers = new Map<string, string>(); // userId -> socketId
 
   constructor(
-    private jwtService: JwtService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    private supabaseService: SupabaseService
   ) {}
 
   afterInit(server: Server) {
@@ -68,22 +68,40 @@ export class WebSocketGateway
         return;
       }
 
-      // Verify JWT token
-      const payload = this.jwtService.verify(token);
+      // Verify Supabase token
+      const supabase = this.supabaseService.getClient();
+      const {
+        data: { user: supabaseUser },
+        error: tokenError,
+      } = await supabase.auth.getUser(token);
+
+      if (tokenError || !supabaseUser) {
+        this.logger.warn('Invalid Supabase token for WebSocket connection:', tokenError?.message);
+        client.disconnect();
+        return;
+      }
+
+      // Get user from database
       const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-        select: { id: true, email: true, roles: true, name: true },
+        where: { id: supabaseUser.id },
+        select: { id: true, email: true, roles: true, name: true, isActive: true },
       });
 
       if (!user) {
-        this.logger.warn('Invalid user for WebSocket connection');
+        this.logger.warn('User not found in database for WebSocket connection');
+        client.disconnect();
+        return;
+      }
+
+      if (!user.isActive) {
+        this.logger.warn('User account is inactive for WebSocket connection');
         client.disconnect();
         return;
       }
 
       // Store user info in socket
       client.userId = user.id;
-      client.userRole = payload.activeRole || user.roles[0]; // Use activeRole from JWT or first role
+      client.userRole = user.roles[0] || 'END_USER'; // Use first role from database
       this.connectedUsers.set(user.id, client.id);
 
       // Join user to their personal room

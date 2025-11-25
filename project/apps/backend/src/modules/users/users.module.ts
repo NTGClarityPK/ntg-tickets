@@ -4,8 +4,10 @@ import { UsersController } from './users.controller';
 import { PrismaService } from '../../database/prisma.service';
 import { ValidationService } from '../../common/validation/validation.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
+import { SupabaseModule } from '../../common/supabase/supabase.module';
 
 @Module({
+  imports: [SupabaseModule],
   providers: [
     UsersService,
     PrismaService,

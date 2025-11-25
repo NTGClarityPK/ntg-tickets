@@ -27,7 +27,8 @@ import {
   IconAlertCircle,
   IconTrash,
 } from '@tabler/icons-react';
-import { FILE_CONSTANTS, TIMING_CONFIG } from '../../lib/constants';
+import { FILE_CONSTANTS } from '../../lib/constants';
+import { uploadFileWithProgress } from '../../lib/supabase-storage';
 
 interface FileUploadProps {
   onFilesChange: (files: FileWithPath[]) => void;
@@ -86,29 +87,28 @@ export function FileUpload({
 
   const simulateUpload = async (fileUpload: UploadedFile) => {
     try {
-      // Simulate upload progress
-      for (
-        let progress = 0;
-        progress <= 100;
-        progress += TIMING_CONFIG.PROGRESS_SIMULATION_INCREMENT
-      ) {
-        await new Promise(resolve =>
-          setTimeout(resolve, TIMING_CONFIG.PROGRESS_SIMULATION_DELAY)
-        );
+      // Upload file to Supabase Storage
+      const fileUrl = await uploadFileWithProgress(
+        fileUpload.file,
+        {
+          bucket: 'ticket-attachments',
+          folder: 'tickets',
+        },
+        (progress) => {
+          setFiles(prev =>
+            prev.map(f => (f.id === fileUpload.id ? { ...f, progress } : f))
+          );
+        }
+      );
 
-        setFiles(prev =>
-          prev.map(f => (f.id === fileUpload.id ? { ...f, progress } : f))
-        );
-      }
-
-      // Simulate successful upload
+      // Update file status to completed
       setFiles(prev =>
         prev.map(f =>
           f.id === fileUpload.id
             ? {
                 ...f,
                 status: 'completed' as const,
-                url: URL.createObjectURL(fileUpload.file),
+                url: fileUrl,
               }
             : f
         )
@@ -119,13 +119,15 @@ export function FileUpload({
         `${fileUpload.file.name} uploaded successfully`
       );
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      
       setFiles(prev =>
         prev.map(f =>
           f.id === fileUpload.id
             ? {
                 ...f,
                 status: 'error' as const,
-                error: 'Upload failed',
+                error: errorMessage,
               }
             : f
         )
@@ -133,7 +135,7 @@ export function FileUpload({
 
       showErrorNotification(
         'Upload failed',
-        `Failed to upload ${fileUpload.file.name}`
+        `Failed to upload ${fileUpload.file.name}: ${errorMessage}`
       );
     }
   };

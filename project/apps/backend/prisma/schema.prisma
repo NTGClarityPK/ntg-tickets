@@ -92,10 +92,10 @@ enum AuditAction {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) // This ID matches Supabase auth.users.id
   email     String   @unique
   name      String
-  password  String
+  password  String?  // Optional - Supabase handles password in auth.users
   roles     UserRole[] @default([END_USER])
   isActive  Boolean  @default(true)
   avatar    String?

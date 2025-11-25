@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ElasticsearchService } from './elasticsearch.service';
 
 @Controller('elasticsearch')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
 export class ElasticsearchController {
   constructor(private readonly elasticsearchService: ElasticsearchService) {}
 

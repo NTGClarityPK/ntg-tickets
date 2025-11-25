@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { notifications } from '@mantine/notifications';
 import { DynamicTicketForm } from '../../../components/forms/DynamicTicketForm';
 import { DynamicTicketFormValues } from '../../../types/unified';
@@ -15,13 +14,12 @@ import { useCreateTicket } from '../../../hooks/useTickets';
 export default function CreateTicketPage() {
   const { primaryLight, primaryDark } = useDynamicTheme();
   const router = useRouter();
-  const { status } = useSession();
-  const { user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { canCreate, loading: checkingPermission } = useCanCreateTicket();
   const createTicketMutation = useCreateTicket();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!isAuthenticated) {
       notifications.show({
         title: 'Authentication Required',
         message: 'Please log in to create a ticket',
@@ -29,7 +27,7 @@ export default function CreateTicketPage() {
       });
       router.push('/auth/signin');
     }
-  }, [status, router, primaryDark]);
+  }, [isAuthenticated, router, primaryDark]);
 
   // Check workflow-based permissions after hook has loaded
   useEffect(() => {

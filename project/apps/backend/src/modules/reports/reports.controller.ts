@@ -19,11 +19,11 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Reports')
 @Controller('reports')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class ReportsController {
   private readonly logger = new Logger(ReportsController.name);

@@ -9,14 +9,14 @@ import {
   WorkflowTransition
 } from './workflow.schema';
 import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Resolver(() => Workflow)
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
 export class WorkflowsResolver {
   constructor(private readonly workflowsService: WorkflowsService) {}
 

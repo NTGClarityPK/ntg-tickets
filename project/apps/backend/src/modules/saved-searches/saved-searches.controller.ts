@@ -21,11 +21,11 @@ import {
 import { SavedSearchesService } from './saved-searches.service';
 import { CreateSavedSearchDto } from './dto/create-saved-search.dto';
 import { UpdateSavedSearchDto } from './dto/update-saved-search.dto';
-import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Saved Searches')
 @Controller('saved-searches')
-@UseGuards(NextAuthJwtGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class SavedSearchesController {
   constructor(private readonly savedSearchesService: SavedSearchesService) {}

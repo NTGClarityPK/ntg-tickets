@@ -16,11 +16,11 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Notifications')
 @Controller('notifications')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}

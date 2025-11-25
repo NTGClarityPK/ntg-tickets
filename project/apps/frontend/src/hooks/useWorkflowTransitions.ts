@@ -92,8 +92,26 @@ export function useWorkflowTransitions(currentStatus?: string, workflowSnapshot?
         return;
       }
 
-      // Normalize the current status to match node IDs (lowercase, underscores to lowercase)
-      const normalizedCurrentStatus = currentStatus.toLowerCase().replace('_', '_');
+      // Normalize status names for comparison - handle various formats
+      const normalizeStatus = (status: string) => {
+        if (!status) return '';
+        // Convert to lowercase, replace spaces and hyphens with underscores
+        return status.toLowerCase().replace(/[\s-]+/g, '_').trim();
+      };
+      
+      const normalizedCurrentStatus = normalizeStatus(currentStatus);
+      
+      // Build a map of node IDs and labels for faster lookup
+      const nodeMap = new Map<string, string[]>();
+      if (definition.nodes) {
+        definition.nodes.forEach((node: WorkflowNode) => {
+          const normalizedId = normalizeStatus(node.id);
+          const normalizedLabel = node.data?.label ? normalizeStatus(node.data.label) : normalizedId;
+          const variations = [normalizedId, normalizedLabel];
+          // Remove duplicates using Array.from for better compatibility
+          nodeMap.set(node.id, Array.from(new Set(variations)));
+        });
+      }
       
       // Find all edges/transitions from the current status
       const transitions: WorkflowTransition[] = [];
@@ -104,19 +122,17 @@ export function useWorkflowTransitions(currentStatus?: string, workflowSnapshot?
           continue;
         }
 
-        // Check if this edge's source matches the current status
-        // The source is the node ID (e.g., "new", "open", "in_progress")
-        const edgeSource = edge.source.toLowerCase();
+        // Get all possible variations for source
+        const sourceVariations = nodeMap.get(edge.source) || [normalizeStatus(edge.source)];
         
-        // Match the source with current status
-        const sourceMatches = 
-          edgeSource === normalizedCurrentStatus ||
-          edgeSource.replace('_', '') === normalizedCurrentStatus.replace('_', '') ||
-          // Also try matching nodes by label
-          definition.nodes?.find((n) => 
-            n.id === edge.source && 
-            n.data?.label?.toLowerCase().replace(/\s+/g, '_') === normalizedCurrentStatus
-          );
+        // Also check node labels directly
+        const sourceNode = definition.nodes?.find((n) => n.id === edge.source);
+        if (sourceNode?.data?.label) {
+          sourceVariations.push(normalizeStatus(sourceNode.data.label));
+        }
+        
+        // Check if current status matches any source variation
+        const sourceMatches = sourceVariations.some(variation => variation === normalizedCurrentStatus);
 
         if (sourceMatches) {
           // Check if user's role is allowed to execute this transition
@@ -127,8 +143,19 @@ export function useWorkflowTransitions(currentStatus?: string, workflowSnapshot?
           const targetNode = definition.nodes?.find((n) => n.id === edge.target);
           const targetLabel = targetNode?.data?.label || edge.target;
           
-          // Convert target label to TicketStatus format (e.g., "In Progress" -> "IN_PROGRESS")
-          const targetStatus = targetLabel.toUpperCase().replace(/\s+/g, '_');
+          // Get the target status - use the node ID if it matches a standard status format
+          // Otherwise convert label to uppercase with underscores
+          let targetStatus: string;
+          const normalizedTargetId = normalizeStatus(edge.target);
+          const normalizedTargetLabel = targetLabel ? normalizeStatus(targetLabel) : normalizedTargetId;
+          
+          // If target node ID is already in the right format (e.g., "in_progress"), use it
+          // Otherwise convert the label
+          if (normalizedTargetId === normalizedTargetLabel && edge.target.includes('_')) {
+            targetStatus = edge.target.toUpperCase();
+          } else {
+            targetStatus = targetLabel.toUpperCase().replace(/\s+/g, '_');
+          }
 
           transitions.push({
             from: currentStatus,

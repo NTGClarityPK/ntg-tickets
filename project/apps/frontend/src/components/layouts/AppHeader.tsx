@@ -30,7 +30,7 @@ import { useNotificationsStore } from '../../stores/useNotificationsStore';
 import { useSiteBranding } from '../../hooks/useSiteBranding';
 import { useMarkNotificationAsRead } from '../../hooks/useNotifications';
 import { useRouter } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut as supabaseSignOut } from '../../lib/supabase-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { LanguageSwitcher } from '../language/LanguageSwitcher';
@@ -59,7 +59,6 @@ export function AppHeader({
   const t = useTranslations('common');
   const tAuth = useTranslations('auth');
   const { user, logout, updateUser } = useAuthStore();
-  const { update: updateSession } = useSession();
   const { unreadCount, getRecentNotifications } = useNotificationsStore();
   const { siteName } = useSiteBranding();
   const router = useRouter();
@@ -78,16 +77,22 @@ export function AppHeader({
     try {
       // Call backend logout endpoint using the project's API pattern
       await authApi.logout();
-    } catch (error) {}
+    } catch (error) {
+      // Continue with logout even if backend call fails
+    }
 
     // Clear local auth store
     logout();
 
-    // Use NextAuth's signOut with proper configuration
-    await signOut({
-      callbackUrl: '/',
-      redirect: true,
-    });
+    // Sign out from Supabase
+    try {
+      await supabaseSignOut();
+    } catch (error) {
+      // Continue with redirect even if Supabase signout fails
+    }
+
+    // Use hard redirect to ensure navigation works
+    window.location.href = '/auth/signin';
   };
 
 
@@ -151,24 +156,6 @@ export function AppHeader({
       });
 
       setShowRoleModal(false);
-
-      // Force NextAuth to think the token is expired so it will refresh
-      // This makes NextAuth pick up our new tokens
-      const nextAuthToken = localStorage.getItem('next-auth.session-token');
-      if (nextAuthToken) {
-        try {
-          const tokenData = JSON.parse(atob(nextAuthToken.split('.')[1]));
-          // Set the token expiration to the past to force refresh
-          tokenData.exp = Math.floor(Date.now() / 1000) - 1;
-          const newToken = btoa(JSON.stringify(tokenData));
-          localStorage.setItem('next-auth.session-token', newToken);
-        } catch (e) {
-          // Ignore token modification errors
-        }
-      }
-
-      // Trigger NextAuth session update
-      await updateSession();
       // No need to reload - the role has been switched successfully
     } catch (error) {
       // Error logging removed for production

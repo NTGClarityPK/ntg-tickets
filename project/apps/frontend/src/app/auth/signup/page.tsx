@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { signUp as supabaseSignUp } from '../../../lib/supabase-auth';
 import {
   TextInput,
   PasswordInput,
@@ -29,7 +30,6 @@ import {
 import { RTLArrowRight } from '../../../components/ui/RTLIcon';
 import Link from 'next/link';
 import { usePasswordValidation } from '../../../hooks/usePasswordValidation';
-import { userApi } from '../../../lib/apiClient';
 import { UserRole } from '@/types/unified';
 import { AuthLayout } from '../../../components/layouts/AuthLayout';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
@@ -89,32 +89,27 @@ export default function SignUpPage() {
     };
 
     try {
-      const response = await userApi.createUser({
-        ...sanitizedData,
-        roles: [sanitizedData.role as UserRole],
-      });
+      // Use Supabase Auth for sign up
+      await supabaseSignUp(
+        sanitizedData.email,
+        sanitizedData.password,
+        sanitizedData.name,
+        [sanitizedData.role as UserRole]
+      );
 
-      if (response.status === 201) {
-        router.push(
-          `/auth/signin?message=${tAuth('accountCreatedSuccessfully')}`
-        );
-      } else {
-        setError(tAuth('errorCreatingAccount'));
-      }
+      // Account created successfully
+      router.push(
+        `/auth/signin?message=${tAuth('accountCreatedSuccessfully')}`
+      );
     } catch (error: unknown) {
       // Handle signup error
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as {
-          response?: { status?: number; data?: { message?: string } };
-        };
-        if (axiosError.response?.status === 409) {
+      if (error instanceof Error) {
+        if (error.message.includes('already registered') || error.message.includes('already exists')) {
           setError(tAuth('accountExists'));
-        } else if (axiosError.response?.status === 400) {
-          setError(
-            axiosError.response?.data?.message || tAuth('invalidDataProvided')
-          );
+        } else if (error.message.includes('invalid') || error.message.includes('validation')) {
+          setError(tAuth('invalidDataProvided'));
         } else {
-          setError(tAuth('errorOccurred'));
+          setError(error.message || tAuth('errorOccurred'));
         }
       } else {
         setError(tAuth('errorOccurred'));

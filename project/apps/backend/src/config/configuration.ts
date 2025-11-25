@@ -48,6 +48,11 @@ export default () => {
     file: {
       maxSizeBytes: parseInt(process.env.MAX_FILE_SIZE ?? '10485760', 10),
     },
+    supabase: {
+      url: process.env.SUPABASE_URL ?? '',
+      anonKey: process.env.SUPABASE_ANON_KEY ?? '',
+      serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+    },
   };
 };
 

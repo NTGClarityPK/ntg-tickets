@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { io, Socket } from 'socket.io-client';
+import { supabase } from '../lib/supabase';
 import {
   showErrorNotification,
   showInfoNotification,
@@ -50,18 +50,37 @@ export interface NotificationEventData {
 }
 
 export function useWebSocket() {
-  const { data: session } = useSession();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Get access token from localStorage or Supabase session
   useEffect(() => {
-    if (!session?.accessToken) return;
+    const getToken = async () => {
+      const localToken = localStorage.getItem('access_token');
+      if (localToken) {
+        setAccessToken(localToken);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+        localStorage.setItem('access_token', session.access_token);
+      }
+    };
+
+    getToken();
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken) return;
 
     const newSocket = io(API_CONFIG.BACKEND_URL, {
       auth: {
-        token: session.accessToken,
+        token: accessToken,
       },
       transports: [...WEBSOCKET_CONFIG.TRANSPORTS],
     });
@@ -187,7 +206,7 @@ export function useWebSocket() {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [session?.accessToken]);
+  }, [accessToken]);
 
   const joinTicket = (ticketId: string) => {
     if (socket && connected) {

@@ -40,9 +40,31 @@ export class WorkflowExecutionService {
       throw new BadRequestException('Ticket not found');
     }
 
-    // If no workflow is assigned, use the default workflow
-    let workflow = ticket.workflow;
-    if (!workflow) {
+    // Priority: Use workflow snapshot if available (preserves workflow state at ticket creation)
+    // This allows old tickets to continue using their original workflow even if it becomes inactive
+    let workflow = null;
+    let usingSnapshot = false;
+    
+    if (ticket.workflowSnapshot) {
+      // Use the snapshot - this is the workflow state when the ticket was created
+      const snapshot = ticket.workflowSnapshot as any;
+      workflow = {
+        id: ticket.workflowId || 'snapshot',
+        name: snapshot.name || 'Captured Workflow',
+        status: snapshot.status || 'ACTIVE',
+        isActive: snapshot.isActive !== false, // Default to true for snapshots
+        isDefault: snapshot.isDefault || false,
+        isSystemDefault: snapshot.isSystemDefault || false,
+        definition: snapshot.definition,
+        version: snapshot.version || ticket.workflowVersion || 1,
+        transitions: [], // Snapshots don't have transitions, only definition
+      };
+      usingSnapshot = true;
+    } else if (ticket.workflow) {
+      // Use current workflow from database
+      workflow = ticket.workflow;
+    } else {
+      // No workflow assigned - get default workflow
       const defaultWorkflow = await this.workflowsService.findDefault();
       if (!defaultWorkflow) {
         throw new BadRequestException('No default workflow found');
@@ -69,6 +91,14 @@ export class WorkflowExecutionService {
       });
     }
 
+    // Only validate that the workflow is active if we're using the current workflow (not a snapshot)
+    // Snapshots preserve the workflow state at creation time, so they should always be usable
+    if (!usingSnapshot && workflow && workflow.status !== 'ACTIVE' && !workflow.isActive) {
+      throw new BadRequestException(
+        `Workflow "${workflow.name}" is not active. Status: ${workflow.status}, IsActive: ${workflow.isActive}`
+      );
+    }
+
     // Find the transition details from the workflow definition (for visual workflows)
     // or from the database table (for legacy workflows)
     let transition = null;
@@ -78,10 +108,30 @@ export class WorkflowExecutionService {
     if (workflow.definition && workflow.definition['edges']) {
       const definition = workflow.definition as any;
       
-      // Normalize status names for comparison
-      const normalizeStatus = (status: string) => status.toLowerCase().replace(/\s+/g, '_');
+      // Normalize status names for comparison - handle various formats
+      const normalizeStatus = (status: string) => {
+        if (!status) return '';
+        // Convert to lowercase, replace spaces and hyphens with underscores
+        return status.toLowerCase().replace(/[\s-]+/g, '_').trim();
+      };
+      
       const normalizedCurrentStatus = normalizeStatus(ticket.status);
       const normalizedNewStatus = normalizeStatus(newStatus);
+      
+      // Build a map of node IDs and labels for faster lookup
+      const nodeMap = new Map<string, string[]>();
+      if (definition.nodes) {
+        definition.nodes.forEach((node: any) => {
+          const normalizedId = normalizeStatus(node.id);
+          const normalizedLabel = node.data?.label ? normalizeStatus(node.data.label) : normalizedId;
+          const variations = [normalizedId, normalizedLabel];
+          // Also add the original status format if it's different
+          if (node.data?.label) {
+            variations.push(normalizeStatus(node.data.label));
+          }
+          nodeMap.set(node.id, [...new Set(variations)]);
+        });
+      }
       
       // Find the edge/transition in the definition
       const edge = definition.edges.find((e: any) => {
@@ -90,23 +140,44 @@ export class WorkflowExecutionService {
           return false;
         }
         
-        // Check if source matches current status
-        const edgeSource = normalizeStatus(e.source);
-        const edgeTarget = normalizeStatus(e.target);
+        // Get all possible variations for source and target
+        const sourceVariations = nodeMap.get(e.source) || [normalizeStatus(e.source)];
+        const targetVariations = nodeMap.get(e.target) || [normalizeStatus(e.target)];
         
-        // Also check node labels
+        // Also check node labels directly
         const sourceNode = definition.nodes?.find((n: any) => n.id === e.source);
         const targetNode = definition.nodes?.find((n: any) => n.id === e.target);
         
-        const sourceLabel = sourceNode?.data?.label ? normalizeStatus(sourceNode.data.label) : edgeSource;
-        const targetLabel = targetNode?.data?.label ? normalizeStatus(targetNode.data.label) : edgeTarget;
+        if (sourceNode?.data?.label) {
+          sourceVariations.push(normalizeStatus(sourceNode.data.label));
+        }
+        if (targetNode?.data?.label) {
+          targetVariations.push(normalizeStatus(targetNode.data.label));
+        }
         
-        return (edgeSource === normalizedCurrentStatus || sourceLabel === normalizedCurrentStatus) &&
-               (edgeTarget === normalizedNewStatus || targetLabel === normalizedNewStatus);
+        // Check if current status matches any source variation
+        const sourceMatches = sourceVariations.some(variation => variation === normalizedCurrentStatus);
+        // Check if new status matches any target variation
+        const targetMatches = targetVariations.some(variation => variation === normalizedNewStatus);
+        
+        return sourceMatches && targetMatches;
       });
       
       if (!edge) {
-        throw new BadRequestException(`No transition defined from ${ticket.status} to ${newStatus} in the workflow`);
+        // Provide more helpful error message with available transitions
+        const availableTransitions = definition.edges
+          .filter((e: any) => e.source !== 'create' && !e.data?.isCreateTransition)
+          .map((e: any) => {
+            const sourceNode = definition.nodes?.find((n: any) => n.id === e.source);
+            const targetNode = definition.nodes?.find((n: any) => n.id === e.target);
+            return `${sourceNode?.data?.label || e.source} -> ${targetNode?.data?.label || e.target}`;
+          })
+          .join(', ');
+        
+        throw new BadRequestException(
+          `No transition defined from "${ticket.status}" to "${newStatus}" in the workflow. ` +
+          `Available transitions: ${availableTransitions || 'none'}`
+        );
       }
       
       // Check if user's role is allowed

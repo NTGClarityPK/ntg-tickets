@@ -3,6 +3,7 @@ import { notifications } from '@mantine/notifications';
 import { workflowsApi, Workflow, WorkflowData } from '../lib/apiClient';
 import { useDynamicTheme } from './useDynamicTheme';
 import { useAuthStore } from '../stores/useAuthStore';
+import { supabase } from '../lib/supabase';
 
 
 export function useWorkflows() {
@@ -22,19 +23,58 @@ export function useWorkflows() {
       return;
     }
 
+    // Check if token is available before making request
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+      // eslint-disable-next-line no-console
+      console.warn('[useWorkflows] No access token found, checking Supabase session...');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        const errorMsg = 'Authentication required. Please sign in again.';
+        setError(errorMsg);
+        setLoading(false);
+        notifications.show({
+          title: 'Authentication Error',
+          message: errorMsg,
+          color: primaryDark,
+        });
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       setError(null);
       
       const response = await workflowsApi.getWorkflows();
       setWorkflows(response.data.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: unknown) {
+      let errorMessage = 'Failed to fetch workflows';
+      
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { status?: number; data?: { message?: string } }; message?: string };
+        if (axiosError.response?.status === 401) {
+          errorMessage = 'Authentication failed. Please sign in again.';
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = 'You do not have permission to view workflows.';
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      // eslint-disable-next-line no-console
+      console.error('[useWorkflows] Error fetching workflows:', err);
+      
       // Only show notification for users who should have access
       if (canFetchWorkflows) {
         notifications.show({
           title: 'Error',
-          message: 'Failed to fetch workflows',
+          message: errorMessage,
           color: primaryDark,
         });
       }
@@ -269,13 +309,14 @@ export function useWorkflows() {
   }, []);
 
   useEffect(() => {
-    if (canFetchWorkflows) {
+    // Only fetch if user is authenticated and has permission
+    if (canFetchWorkflows && user) {
       fetchWorkflows();
     } else {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canFetchWorkflows]);
+  }, [canFetchWorkflows, user]);
 
   return {
     workflows,

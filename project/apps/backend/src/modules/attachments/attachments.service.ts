@@ -124,20 +124,22 @@ export class AttachmentsService {
       );
     }
 
-    // Upload file to storage
+    // Upload file to Supabase Storage
     const fileUrl = await this.fileStorage.uploadFile(file, {
       folder: `tickets/${ticketId}`,
       filename: file.originalname,
+      bucket: 'ticket-attachments',
     });
 
     // Create attachment record
+    // Store both the public URL and the storage path
     const attachment = await this.prisma.attachment.create({
       data: {
         ticketId: ticketId,
         filename: file.originalname,
         fileSize: file.size,
         fileType: file.mimetype,
-        fileUrl,
+        fileUrl, // Store the public URL from Supabase
         uploadedBy: userId,
       },
       include: {
@@ -254,14 +256,27 @@ export class AttachmentsService {
       throw new BadRequestException('Access denied');
     }
 
-    // Generate signed URL for download
-    const downloadUrl = await this.fileStorage.getSignedUrl(
-      attachment.fileUrl,
-      {
-        expiresIn: 3600,
-        responseContentDisposition: `attachment; filename="${attachment.filename}"`,
+    // Generate signed URL for download from Supabase Storage
+    // Extract path from stored URL
+    let filePath = attachment.fileUrl;
+    if (filePath.includes('/storage/v1/object/public/')) {
+      // Extract path from Supabase public URL
+      const urlParts = filePath.split('/storage/v1/object/public/');
+      if (urlParts.length > 1) {
+        const bucketAndPath = urlParts[1];
+        const pathParts = bucketAndPath.split('/');
+        filePath = pathParts.slice(1).join('/'); // Remove bucket name
       }
-    );
+    } else if (!filePath.includes('/')) {
+      // Assume it's already a path
+      filePath = attachment.fileUrl;
+    }
+
+    const downloadUrl = await this.fileStorage.getSignedUrl(filePath, {
+      expiresIn: 3600,
+      responseContentDisposition: `attachment; filename="${attachment.filename}"`,
+      bucket: 'ticket-attachments',
+    });
 
     return {
       downloadUrl,
@@ -344,9 +359,26 @@ export class AttachmentsService {
       );
     }
 
-    // Delete file from storage
+    // Delete file from Supabase Storage
+    // Extract path from URL or use stored path
     try {
-      await this.fileStorage.deleteFile(attachment.fileUrl);
+      // If fileUrl is a full URL, extract the path
+      let filePath = attachment.fileUrl;
+      if (filePath.includes('/storage/v1/object/public/')) {
+        // Extract path from Supabase public URL
+        const urlParts = filePath.split('/storage/v1/object/public/');
+        if (urlParts.length > 1) {
+          const bucketAndPath = urlParts[1];
+          const pathParts = bucketAndPath.split('/');
+          filePath = pathParts.slice(1).join('/'); // Remove bucket name
+        }
+      } else if (filePath.includes('/storage/v1/object/sign/')) {
+        // For signed URLs, we need to store the path separately
+        // For now, log a warning
+        this.logger.warn('Cannot delete file from signed URL, path not stored');
+      }
+      
+      await this.fileStorage.deleteFile(filePath, 'ticket-attachments');
     } catch (error) {
       this.logger.warn('Failed to delete file from storage', error);
     }
@@ -392,9 +424,20 @@ export class AttachmentsService {
       throw new BadRequestException('File type not previewable');
     }
 
-    // Generate preview URL
-    const previewUrl = await this.fileStorage.getSignedUrl(attachment.fileUrl, {
+    // Generate preview URL from Supabase Storage
+    let filePath = attachment.fileUrl;
+    if (filePath.includes('/storage/v1/object/public/')) {
+      const urlParts = filePath.split('/storage/v1/object/public/');
+      if (urlParts.length > 1) {
+        const bucketAndPath = urlParts[1];
+        const pathParts = bucketAndPath.split('/');
+        filePath = pathParts.slice(1).join('/');
+      }
+    }
+
+    const previewUrl = await this.fileStorage.getSignedUrl(filePath, {
       expiresIn: 3600,
+      bucket: 'ticket-attachments',
     });
 
     return {

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { STORAGE_KEYS } from '../lib/constants';
 import {
   TicketFilters,
@@ -8,9 +7,9 @@ import {
   SearchCriteria,
   SavedSearch,
 } from '../types/unified';
+import { useAuthStore } from '../stores/useAuthStore';
 
 export const useSearch = () => {
-  const { data: session } = useSession();
   const [filters, setFilters] = useState<SearchCriteria>({
     search: '',
     status: [],
@@ -96,6 +95,8 @@ export const useSearch = () => {
     });
   }, []);
 
+  const { user } = useAuthStore();
+  
   const saveSearch = useCallback(
     (name: string, searchFilters: SearchCriteria) => {
       const newSearch: SavedSearch = {
@@ -103,7 +104,7 @@ export const useSearch = () => {
         name,
         description: '',
         searchCriteria: JSON.stringify({ ...searchFilters }),
-        userId: session?.user?.id || '',
+        userId: user?.id || '',
         isPublic: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -113,7 +114,7 @@ export const useSearch = () => {
       saveSearches(updatedSearches);
       return newSearch;
     },
-    [savedSearches, saveSearches, session?.user?.id]
+    [savedSearches, saveSearches, user?.id]
   );
 
   const deleteSearch = useCallback(

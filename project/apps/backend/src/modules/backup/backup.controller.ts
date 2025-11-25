@@ -6,14 +6,14 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { BackupService } from './backup.service';
-import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('backup')
 @Controller('backup')
-@UseGuards(NextAuthJwtGuard, RolesGuard)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class BackupController {
   constructor(private readonly backupService: BackupService) {}

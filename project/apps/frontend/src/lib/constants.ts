@@ -257,7 +257,7 @@ export const AUTH_CONFIG = {
     ACCESS_TOKEN_EXPIRY: 30 * 60 * 1000, // 30 minutes
   },
   COOKIES: {
-    SESSION_TOKEN_NAME: 'next-auth.session-token',
+    SESSION_TOKEN_NAME: 'supabase.session-token',
   },
 } as const;
 

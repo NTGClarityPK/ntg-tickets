@@ -373,6 +373,7 @@ export class AuthService {
     email: string;
     name: string;
     roles: string[];
+    activeRole?: string;
     isActive: boolean;
   } | null> {
     try {
@@ -392,7 +393,15 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
-      return user;
+      // Return user with activeRole (use first role as default)
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: user.roles.map((r) => r.toString()),
+        activeRole: user.roles[0]?.toString() || 'END_USER',
+        isActive: user.isActive,
+      };
     } catch (error) {
       this.logger.error('Error getting current user:', error);
       throw error;

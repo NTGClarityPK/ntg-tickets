@@ -18,13 +18,13 @@ import {
 import { EmailTemplatesService } from './email-templates.service';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
-import { NextAuthJwtGuard } from '../auth/guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Email Templates')
 @Controller('email-templates')
-@UseGuards(NextAuthJwtGuard, RolesGuard)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class EmailTemplatesController {
   constructor(private readonly emailTemplatesService: EmailTemplatesService) {}

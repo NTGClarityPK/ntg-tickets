@@ -19,11 +19,11 @@ import {
   IntegrationConfig,
   WebhookPayload,
 } from './integrations.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 
 @ApiTags('Integrations')
 @Controller('integrations')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class IntegrationsController {
   constructor(private readonly integrationsService: IntegrationsService) {}

@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useNotificationsStore } from '../../stores/useNotificationsStore';
 import { useTicketsStore } from '../../stores/useTicketsStore';
 import { notifications as mantineNotifications } from '@mantine/notifications';
 import { Notification } from '../../types/notification';
 import { Ticket, Comment } from '../../types/unified';
-import { useSession } from 'next-auth/react';
 import { io, Socket } from 'socket.io-client';
 import { API_CONFIG } from '@/lib/constants';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
+import { supabase } from '../../lib/supabase';
 
 interface WebSocketProviderProps {
   children: React.ReactNode;
@@ -27,10 +27,29 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     removeNotification,
   } = useNotificationsStore();
   const { updateTicket, addTicket } = useTicketsStore();
-  const { data: session } = useSession();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  // Memoize access token to prevent unnecessary reconnects
-  const accessToken = useMemo(() => session?.accessToken, [session?.accessToken]);
+  // Get access token from localStorage or Supabase session
+  useEffect(() => {
+    const getToken = async () => {
+      const localToken = localStorage.getItem('access_token');
+      if (localToken) {
+        setAccessToken(localToken);
+        return;
+      }
+
+      // Fallback to Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+        localStorage.setItem('access_token', session.access_token);
+      }
+    };
+
+    if (isAuthenticated && user) {
+      getToken();
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (isAuthenticated && user && user.id && accessToken) {

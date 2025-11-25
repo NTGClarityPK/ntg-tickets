@@ -14,12 +14,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PermissionsService } from './permissions.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Permissions')
 @Controller('permissions')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}

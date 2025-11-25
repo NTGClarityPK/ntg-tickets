@@ -8,15 +8,18 @@ import { SanitizationService } from '../../common/validation/sanitization.servic
 import { TokenBlacklistService } from '../../common/security/token-blacklist.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { SupabaseModule } from '../../common/supabase/supabase.module';
 import { AuthService } from './auth.service';
+import { SupabaseAuthService } from './supabase-auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { NextAuthJwtGuard } from './guards/nextauth-jwt.guard';
+import { SupabaseAuthGuard } from './guards/supabase-auth.guard';
 import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     UsersModule,
+    SupabaseModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       inject: [ConfigService, SystemConfigService],
@@ -56,8 +59,9 @@ import { UsersModule } from '../users/users.module';
   ],
   providers: [
     AuthService,
+    SupabaseAuthService,
     JwtStrategy,
-    NextAuthJwtGuard,
+    SupabaseAuthGuard,
     ValidationService,
     SanitizationService,
     TokenBlacklistService,
@@ -67,7 +71,9 @@ import { UsersModule } from '../users/users.module';
   controllers: [AuthController],
   exports: [
     AuthService,
+    SupabaseAuthService,
     JwtStrategy,
+    SupabaseAuthGuard,
     ValidationService,
     SanitizationService,
     TokenBlacklistService,

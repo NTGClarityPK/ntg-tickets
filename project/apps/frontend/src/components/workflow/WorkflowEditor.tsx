@@ -36,7 +36,6 @@ import {
   TextInput,
   Textarea,
   MultiSelect,
-  Switch,
   Badge,
   Alert,
   Table,
@@ -467,7 +466,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
   const [showNodeModal, setShowNodeModal] = useState(false);
   const [workflowName, setWorkflowName] = useState(workflow?.name || '');
   const [workflowDescription, setWorkflowDescription] = useState(workflow?.description || '');
-  const [isActive, setIsActive] = useState((workflow as { status?: string })?.status === 'ACTIVE');
+  const [isActive ] = useState((workflow as { status?: string })?.status === 'ACTIVE');
   const spacingAppliedRef = useRef(false);
 
   const onConnect = useCallback(
@@ -774,13 +773,6 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 onChange={(e) => setWorkflowName(e.target.value)}
                 readOnly={isReadOnly}
                 style={{ flex: 1 }}
-              />
-              <Switch
-                label="Activate"
-                description="Make this workflow active immediately"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.currentTarget.checked)}
-                disabled={isReadOnly}
               />
             </Group>
             <Textarea

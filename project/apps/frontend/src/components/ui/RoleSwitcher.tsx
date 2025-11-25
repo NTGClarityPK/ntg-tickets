@@ -5,7 +5,6 @@ import { Button, Menu, Badge, Group, Text, ActionIcon, useMantineTheme } from '@
 import { IconChevronDown, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 import { UserRole } from '../../types/unified';
 import { authApi } from '../../lib/apiClient';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -28,7 +27,6 @@ export function RoleSwitcher({
   const t = useTranslations('auth');
   const { updateUser } = useAuthStore();
   const queryClient = useQueryClient();
-  const { update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
 
   const getRoleBadgeColor = (role: UserRole) => {
@@ -119,24 +117,6 @@ export function RoleSwitcher({
         message: t('roleSwitchedMessage', { role: getRoleLabel(newRole) }),
         color: primaryLight,
       });
-
-      // Force NextAuth to think the token is expired so it will refresh
-      // This makes NextAuth pick up our new tokens
-      const nextAuthToken = localStorage.getItem('next-auth.session-token');
-      if (nextAuthToken) {
-        try {
-          const tokenData = JSON.parse(atob(nextAuthToken.split('.')[1]));
-          // Set the token expiration to the past to force refresh
-          tokenData.exp = Math.floor(Date.now() / 1000) - 1;
-          const newToken = btoa(JSON.stringify(tokenData));
-          localStorage.setItem('next-auth.session-token', newToken);
-        } catch (e) {
-          // Ignore token modification errors
-        }
-      }
-
-      // Trigger NextAuth session update
-      await updateSession();
 
       // No need to reload the page - API client will use new tokens from localStorage
     } catch (error) {
