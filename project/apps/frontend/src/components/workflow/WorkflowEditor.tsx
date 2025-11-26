@@ -363,7 +363,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_MANAGER', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -376,7 +376,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -389,7 +389,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -402,7 +402,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -415,7 +415,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -428,7 +428,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -441,7 +441,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['END_USER', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
       {
@@ -454,7 +454,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
         data: {
           roles: ['SUPPORT_STAFF', 'ADMIN'],
           conditions: [],
-          actions: [],
+          actions: [ 'SEND_NOTIFICATION' ],
         },
       },
     ]
@@ -1022,7 +1022,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               {selectedEdge.data?.isCreateTransition && (
                 <Alert color={theme.primaryColor} variant="light">
                   <Text size="sm">
-                    This is the ticket creation transition. Configure who can create tickets and what actions should occur.
+                    This is the ticket creation transition. Configure who can create tickets.
                   </Text>
                 </Alert>
               )}
@@ -1079,22 +1079,24 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 />
               )}
 
-              <MultiSelect
-                label={selectedEdge.data?.isCreateTransition ? "Actions on ticket creation" : "Actions"}
-                placeholder={selectedEdge.data?.isCreateTransition ? "Select actions to execute when ticket is created" : "Select actions to execute on transition"}
-                data={availableActions}
-                value={selectedEdge.data?.actions || []}
-                onChange={(value) => {
-                  const updatedEdge = {
-                    ...selectedEdge,
-                    data: { ...selectedEdge.data, actions: value }
-                  };
-                  setSelectedEdge(updatedEdge);
-                  updateEdge(selectedEdge.id, {
-                    data: { ...selectedEdge.data, actions: value },
-                  });
-                }}
-              />
+              {!selectedEdge.data?.isCreateTransition && (
+                <MultiSelect
+                  label="Actions"
+                  placeholder="Select actions to execute on transition"
+                  data={availableActions}
+                  value={selectedEdge.data?.actions || []}
+                  onChange={(value) => {
+                    const updatedEdge = {
+                      ...selectedEdge,
+                      data: { ...selectedEdge.data, actions: value }
+                    };
+                    setSelectedEdge(updatedEdge);
+                    updateEdge(selectedEdge.id, {
+                      data: { ...selectedEdge.data, actions: value },
+                    });
+                  }}
+                />
+              )}
 
               <Group justify="flex-end">
                 {!selectedEdge.data?.isCreateTransition && (

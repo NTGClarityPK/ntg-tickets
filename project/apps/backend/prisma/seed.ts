@@ -1248,7 +1248,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1261,7 +1261,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1274,7 +1274,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1287,7 +1287,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1300,7 +1300,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1313,7 +1313,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1326,7 +1326,7 @@ async function main() {
           data: {
             roles: ['END_USER', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -1339,7 +1339,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
       ],
@@ -2631,7 +2631,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_MANAGER', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2644,7 +2644,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2657,7 +2657,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2670,7 +2670,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2683,7 +2683,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2696,7 +2696,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2709,7 +2709,7 @@ async function main() {
           data: {
             roles: ['END_USER', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
         {
@@ -2722,7 +2722,7 @@ async function main() {
           data: {
             roles: ['SUPPORT_STAFF', 'ADMIN'],
             conditions: [],
-            actions: [],
+            actions: ['SEND_NOTIFICATION'],
           },
         },
       ],
