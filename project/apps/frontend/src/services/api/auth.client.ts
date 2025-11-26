@@ -46,8 +46,19 @@ export const authClient = {
   updateUserRole: (userId: string, role: string) =>
     httpClient.post<ApiResponse<User>>(`/auth/users/${userId}/role`, { role }),
 
-  switchRole: (data: { activeRole: string }) =>
-    httpClient.post<ApiResponse<SwitchRoleResponse>>('/auth/switch-role', data),
+  switchRole: (data: { activeRole: string; refresh_token?: string }) => {
+    // Get refresh token from localStorage if not provided
+    const refreshToken = data.refresh_token || (typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null);
+    
+    if (!refreshToken) {
+      throw new Error('Refresh token is required for role switching. Please log in again.');
+    }
+    
+    return httpClient.post<ApiResponse<SwitchRoleResponse>>('/auth/switch-role', {
+      activeRole: data.activeRole,
+      refresh_token: refreshToken,
+    });
+  },
 };
 
 

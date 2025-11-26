@@ -1,13 +1,17 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { WorkflowsService } from './workflows.service';
+import { EmailNotificationService } from '../../common/email/email-notification.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class WorkflowExecutionService {
+  private readonly logger = new Logger(WorkflowExecutionService.name);
+
   constructor(
     private prisma: PrismaService,
     private workflowsService: WorkflowsService,
+    private emailNotificationService: EmailNotificationService,
   ) {}
 
   async executeTicketTransition(
@@ -195,6 +199,15 @@ export class WorkflowExecutionService {
         isActive: true,
       }));
       
+      // Extract actions from edge data (e.g., SEND_NOTIFICATION)
+      const edgeActions = [];
+      const actions = edge.data?.actions || [];
+      for (const action of actions) {
+        if (action === 'SEND_NOTIFICATION' || action === 'SEND') {
+          edgeActions.push({ type: 'SEND_NOTIFICATION', isActive: true, config: {} });
+        }
+      }
+      
       // Create a pseudo-transition object for compatibility
       transition = {
         id: `visual-${edge.id}`,
@@ -202,7 +215,7 @@ export class WorkflowExecutionService {
         fromState: ticket.status,
         toState: newStatus,
         conditions: transitionConditions,
-        actions: [], // Visual workflows don't have actions yet
+        actions: edgeActions,
       };
     } else {
       // Legacy: Check database table for transitions
@@ -379,8 +392,10 @@ export class WorkflowExecutionService {
     actions: any[],
     userId: string,
   ): Promise<void> {
+    this.logger.log(`Executing ${actions.length} transition actions for ticket ${ticket.ticketNumber}`);
     for (const action of actions) {
       if (!action.isActive) continue;
+      this.logger.log(`Executing action: ${action.type}`);
 
       switch (action.type) {
         case 'SEND_NOTIFICATION':
@@ -406,8 +421,14 @@ export class WorkflowExecutionService {
   }
 
   private async sendNotification(ticket: any, config: any): Promise<void> {
-    // Implementation would depend on your notification system
-    console.log(`Sending notification for ticket ${ticket.id}`, config);
+    this.logger.log(`Sending notification for ticket ${ticket.ticketNumber} status change`);
+    // Send email notification for status change if requester exists
+    if (ticket.requester) {
+      this.logger.log(`Sending ticket update email to requester: ${ticket.requester.email}`);
+      await this.emailNotificationService.sendTicketUpdateEmail(ticket, ticket.requester);
+    } else {
+      this.logger.warn(`No requester found for ticket ${ticket.ticketNumber}, skipping email`);
+    }
   }
 
   private async assignToUser(ticket: any, config: any, userId: string): Promise<void> {
@@ -437,8 +458,10 @@ export class WorkflowExecutionService {
   }
 
   private async sendEmail(ticket: any, config: any): Promise<void> {
-    // Implementation would depend on your email system
-    console.log(`Sending email for ticket ${ticket.id}`, config);
+    // Send email notification for status change if requester exists
+    if (ticket.requester) {
+      await this.emailNotificationService.sendTicketUpdateEmail(ticket, ticket.requester);
+    }
   }
 
   private async logActivity(ticket: any, config: any, userId: string): Promise<void> {

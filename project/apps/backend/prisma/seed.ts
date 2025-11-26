@@ -2233,115 +2233,184 @@ async function main() {
   // Create email templates
   const emailTemplates = [
     {
-      name: 'Ticket Created',
-      type: 'TICKET_CREATED',
-      subject: 'New Ticket Created - {{ticketNumber}}',
-      html: `
-        <h2>New Ticket Created</h2>
-        <p>Hello {{userName}},</p>
-        <p>Your ticket has been created successfully.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>Priority:</strong> {{ticketPriority}}</p>
-        <p><strong>Status:</strong> {{ticketStatus}}</p>
-        <p>You can view your ticket details by clicking <a href="{{ticketUrl}}">here</a>.</p>
-        <p>Thank you for using our support system.</p>
-      `,
-    },
-    {
       name: 'Ticket Assigned',
       type: 'TICKET_ASSIGNED',
-      subject: 'Ticket Assigned - {{ticketNumber}}',
+      subject: 'Ticket Assigned - {{ticket.ticketNumber}}',
       html: `
-        <h2>Ticket Assigned</h2>
-        <p>Hello {{userName}},</p>
-        <p>You have been assigned a new ticket.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>Priority:</strong> {{ticketPriority}}</p>
-        <p><strong>Requester:</strong> {{requesterName}}</p>
-        <p>Please review and take action on this ticket by clicking <a href="{{ticketUrl}}">here</a>.</p>
-      `,
-    },
-    {
-      name: 'Ticket Status Changed',
-      type: 'TICKET_STATUS_CHANGED',
-      subject: 'Ticket Status Updated - {{ticketNumber}}',
-      html: `
-        <h2>Ticket Status Updated</h2>
-        <p>Hello {{userName}},</p>
-        <p>The status of your ticket has been updated.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>New Status:</strong> {{newStatus}}</p>
-        <p><strong>Previous Status:</strong> {{previousStatus}}</p>
-        <p>You can view the updated ticket details by clicking <a href="{{ticketUrl}}">here</a>.</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Ticket Assigned</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+            .content { padding: 20px; }
+            .ticket-info { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 15px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #6c757d; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>Ticket Assigned</h2>
+            </div>
+            <div class="content">
+              <p>Hello {{assignee.name}},</p>
+              <p>A new ticket has been assigned to you for resolution.</p>
+              
+              <div class="ticket-info">
+                <h3>Ticket Details</h3>
+                <p><strong>Ticket Number:</strong> {{ticket.ticketNumber}}</p>
+                <p><strong>Title:</strong> {{ticket.title}}</p>
+                <p><strong>Priority:</strong> {{ticket.priority}}</p>
+                <p><strong>Requester:</strong> {{requester.name}} ({{requester.email}})</p>
+                <p><strong>Category:</strong> {{ticket.category}}</p>
+                <p><strong>Due Date:</strong> {{ticket.dueDate}}</p>
+              </div>
+              
+              <p>Please review the ticket and begin working on it as soon as possible.</p>
+              <p><a href="{{ticket.url}}" class="button">View Ticket</a></p>
+            </div>
+            <div class="footer">
+              <p>This is an automated message from the NTG Ticket.</p>
+            </div>
+          </div>
+        </body>
+        </html>
       `,
     },
     {
       name: 'Comment Added',
       type: 'COMMENT_ADDED',
-      subject: 'New Comment Added - {{ticketNumber}}',
+      subject: 'New Comment Added - {{ticket.ticketNumber}}',
       html: `
-        <h2>New Comment Added</h2>
-        <p>Hello {{userName}},</p>
-        <p>A new comment has been added to your ticket.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>Comment by:</strong> {{commenterName}}</p>
-        <p><strong>Comment:</strong></p>
-        <div style="background-color: #f5f5f5; padding: 10px; border-left: 3px solid #007bff;">
-          {{commentContent}}
-        </div>
-        <p>You can view the full conversation by clicking <a href="{{ticketUrl}}">here</a>.</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>New Comment Added</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+            .content { padding: 20px; }
+            .ticket-info { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 15px 0; }
+            .comment-box { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 15px 0; border-radius: 5px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #6c757d; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>New Comment Added</h2>
+            </div>
+            <div class="content">
+              <p>Hello {{user.name}},</p>
+              <p>A new comment has been added to ticket <strong>{{ticket.ticketNumber}}</strong>.</p>
+              
+              <div class="ticket-info">
+                <h3>Ticket Details</h3>
+                <p><strong>Ticket Number:</strong> {{ticket.ticketNumber}}</p>
+                <p><strong>Title:</strong> {{ticket.title}}</p>
+                <p><strong>Priority:</strong> {{ticket.priority}}</p>
+                <p><strong>Status:</strong> {{ticket.status}}</p>
+              </div>
+              
+              <div class="comment-box">
+                <h3>New Comment</h3>
+                <p><strong>Comment by:</strong> {{comment.author}} ({{comment.authorEmail}})</p>
+                <p><strong>Comment:</strong></p>
+                <p>{{comment.content}}</p>
+                <p><small>Posted on: {{comment.createdAt}}</small></p>
+              </div>
+              
+              <p>You can view the full conversation and respond by clicking the button below:</p>
+              <p><a href="{{ticket.url}}" class="button">View Ticket</a></p>
+            </div>
+            <div class="footer">
+              <p>This is an automated message from the NTG Ticket.</p>
+            </div>
+          </div>
+        </body>
+        </html>
       `,
     },
     {
-      name: 'SLA Warning',
-      type: 'TICKET_DUE',
-      subject: 'SLA Warning - {{ticketNumber}}',
+      name: 'Ticket Update',
+      type: 'TICKET_UPDATE',
+      subject: 'Ticket Updated - {{ticket.ticketNumber}}',
       html: `
-        <h2>SLA Warning</h2>
-        <p>Hello {{userName}},</p>
-        <p>This is a warning that your ticket is approaching its SLA deadline.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>Priority:</strong> {{ticketPriority}}</p>
-        <p><strong>Due Date:</strong> {{dueDate}}</p>
-        <p><strong>Time Remaining:</strong> {{timeRemaining}}</p>
-        <p>Please take immediate action to resolve this ticket. You can view the ticket details by clicking <a href="{{ticketUrl}}">here</a>.</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Ticket Updated</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+            .content { padding: 20px; }
+            .ticket-info { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 15px 0; }
+            .update-box { background-color: #d4edda; padding: 15px; border-left: 4px solid #28a745; margin: 15px 0; border-radius: 5px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #6c757d; }
+            .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>Ticket Updated</h2>
+            </div>
+            <div class="content">
+              <p>Hello {{requester.name}},</p>
+              <p>Your ticket has been updated.</p>
+              
+              <div class="ticket-info">
+                <h3>Ticket Details</h3>
+                <p><strong>Ticket Number:</strong> {{ticket.ticketNumber}}</p>
+                <p><strong>Title:</strong> {{ticket.title}}</p>
+                <p><strong>Priority:</strong> {{ticket.priority}}</p>
+                <p><strong>Status:</strong> {{ticket.status}}</p>
+                <p><strong>Category:</strong> {{ticket.category}}</p>
+                <p><strong>Last Updated:</strong> {{ticket.updatedAt}}</p>
+              </div>
+              
+              <p>You can view the updated ticket by clicking the button below:</p>
+              <p><a href="{{ticket.url}}" class="button">View Ticket</a></p>
+              
+              <p>If you have any questions, please don't hesitate to contact our support team.</p>
+            </div>
+            <div class="footer">
+              <p>This is an automated message from the NTG Ticket.</p>
+            </div>
+          </div>
+        </body>
+        </html>
       `,
-    },
-    {
-      name: 'SLA Breach',
-      type: 'TICKET_ESCALATED',
-      subject: 'SLA Breach - {{ticketNumber}}',
-      html: `
-        <h2>SLA Breach Alert</h2>
-        <p>Hello {{userName}},</p>
-        <p><strong>URGENT:</strong> This ticket has breached its SLA deadline.</p>
-        <p><strong>Ticket Number:</strong> {{ticketNumber}}</p>
-        <p><strong>Title:</strong> {{ticketTitle}}</p>
-        <p><strong>Priority:</strong> {{ticketPriority}}</p>
-        <p><strong>Due Date:</strong> {{dueDate}}</p>
-        <p><strong>Time Overdue:</strong> {{timeOverdue}}</p>
-        <p>This ticket requires immediate attention and escalation. Please take action now by clicking <a href="{{ticketUrl}}">here</a>.</p>
-      `,
-    },
+    }
   ];
 
   for (const template of emailTemplates) {
-    await prisma.emailTemplate.upsert({
+    // Check if a template of this type already exists
+    const existing = await prisma.emailTemplate.findFirst({
       where: { type: template.type },
-      update: {},
-      create: {
-        name: template.name,
-        type: template.type,
-        subject: template.subject,
-        html: template.html,
-        isActive: true,
-      },
     });
+
+    if (!existing) {
+      await prisma.emailTemplate.create({
+        data: {
+          name: template.name,
+          type: template.type,
+          subject: template.subject,
+          html: template.html,
+          isActive: true,
+        },
+      });
+    }
   }
 
   console.log('✅ Email templates created');

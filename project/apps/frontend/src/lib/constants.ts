@@ -167,29 +167,45 @@ export const CACHE_CONFIG = {
 
 // Email Template Constants
 export const EMAIL_TEMPLATE_TYPES = [
-  { value: 'ticket_created', label: 'Ticket Created' },
-  { value: 'ticket_updated', label: 'Ticket Updated' },
-  { value: 'ticket_assigned', label: 'Ticket Assigned' },
-  { value: 'ticket_resolved', label: 'Ticket Resolved' },
-  { value: 'ticket_closed', label: 'Ticket Closed' },
-  { value: 'comment_added', label: 'Comment Added' },
-  { value: 'sla_warning', label: 'SLA Warning' },
-  { value: 'sla_breach', label: 'SLA Breach' },
-  { value: 'welcome', label: 'Welcome Email' },
-  { value: 'password_reset', label: 'Password Reset' },
+  { value: 'TICKET_ASSIGNED', label: 'Ticket Assigned' },
+  { value: 'COMMENT_ADDED', label: 'Comment Added' },
+  { value: 'TICKET_UPDATE', label: 'Ticket Update' },
 ] as const;
 
 export const EMAIL_TEMPLATE_VARIABLES = [
+  // User variables
   { value: '{{user.name}}', label: 'User Name' },
   { value: '{{user.email}}', label: 'User Email' },
+  
+  // Ticket variables
+  { value: '{{ticket.ticketNumber}}', label: 'Ticket Number' },
   { value: '{{ticket.title}}', label: 'Ticket Title' },
-  { value: '{{ticket.number}}', label: 'Ticket Number' },
-  { value: '{{ticket.status}}', label: 'Ticket Status' },
-  { value: '{{ticket.priority}}', label: 'Ticket Priority' },
-  { value: '{{ticket.category}}', label: 'Ticket Category' },
   { value: '{{ticket.description}}', label: 'Ticket Description' },
+  { value: '{{ticket.priority}}', label: 'Ticket Priority' },
+  { value: '{{ticket.status}}', label: 'Ticket Status' },
+  { value: '{{ticket.category}}', label: 'Ticket Category' },
+  { value: '{{ticket.dueDate}}', label: 'Ticket Due Date' },
+  { value: '{{ticket.createdAt}}', label: 'Ticket Created Date' },
+  { value: '{{ticket.updatedAt}}', label: 'Ticket Updated Date' },
   { value: '{{ticket.url}}', label: 'Ticket URL' },
-  { value: '{{assignedTo.name}}', label: 'Assigned To Name' },
+  { value: '{{ticket.assignee.name}}', label: 'Ticket Assignee Name' },
+  
+  // Assignee variables
+  { value: '{{assignee.name}}', label: 'Assignee Name' },
+  { value: '{{assignee.email}}', label: 'Assignee Email' },
+  
+  // Requester variables
+  { value: '{{requester.name}}', label: 'Requester Name' },
+  { value: '{{requester.email}}', label: 'Requester Email' },
+  
+  // Comment variables
+  { value: '{{comment.author}}', label: 'Comment Author Name' },
+  { value: '{{comment.authorEmail}}', label: 'Comment Author Email' },
+  { value: '{{comment.content}}', label: 'Comment Content' },
+  { value: '{{comment.createdAt}}', label: 'Comment Created Date' },
+  
+  // Other variables
+  { value: '{{updateDetails}}', label: 'Update Details' },
 ] as const;
 
 // Audit Log Constants

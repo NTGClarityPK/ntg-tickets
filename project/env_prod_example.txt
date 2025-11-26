@@ -1,16 +1,10 @@
 # --- EDIT JUST THESE 2 IF IP/PORTS CHANGE ---
 FRONTEND_ORIGIN=http://localhost:3000
 BACKEND_ORIGIN=http://localhost:4000
+
 # If your backend code expects these names explicitly, also include:
 CORS_ORIGIN=${FRONTEND_ORIGIN}
 FRONTEND_URL=${FRONTEND_ORIGIN}
-
-
-
-
-# Shared secrets
-JWT_SECRET=Jx8mK9pL2nQ5wR7sF4gH6jD1kA3bC0eN9mT8yU2xZ5v=
-JWT_EXPIRES_IN=30d
 
 # Next public vars (must be present at BUILD TIME)
 NEXT_PUBLIC_API_URL=${BACKEND_ORIGIN}

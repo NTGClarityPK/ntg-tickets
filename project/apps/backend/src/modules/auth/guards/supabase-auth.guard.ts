@@ -84,11 +84,12 @@ export class SupabaseAuthGuard implements CanActivate {
         throw new UnauthorizedException('User account is inactive');
       }
 
-      // Determine activeRole: use first role, or END_USER as fallback
-      // Note: activeRole is not stored in the database, it's determined from roles array
-      // In a multi-role scenario, the frontend should send the activeRole in a header or token
-      // For now, we'll use the first role as the activeRole
-      const activeRole = dbUser.roles[0] || 'END_USER';
+      // Determine activeRole: prefer metadata, fallback to first role
+      // The activeRole is stored in Supabase user metadata when switching roles
+      const metadataActiveRole = user.user_metadata?.activeRole as string | undefined;
+      const activeRole = metadataActiveRole && dbUser.roles.includes(metadataActiveRole as any)
+        ? metadataActiveRole
+        : dbUser.roles[0] || 'END_USER';
 
       // Attach user to request with role information
       request.user = {

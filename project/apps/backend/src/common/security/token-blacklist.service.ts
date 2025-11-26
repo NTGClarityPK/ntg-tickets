@@ -1,20 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TokenBlacklistService {
   private readonly logger = new Logger(TokenBlacklistService.name);
 
   constructor(
-    private readonly redis: RedisService,
-    private readonly jwtService: JwtService
+    private readonly redis: RedisService
   ) {}
+
+  /**
+   * Decode JWT token without verification (just to get expiration)
+   * Supabase tokens are JWTs, so we can decode the payload
+   */
+  private decodeToken(token: string): { exp?: number } | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+      return payload;
+    } catch (error) {
+      this.logger.warn('Error decoding token:', error);
+      return null;
+    }
+  }
 
   async blacklistToken(token: string): Promise<void> {
     try {
       // Decode token to get expiration time
-      const decoded = this.jwtService.decode(token) as { exp?: number };
+      const decoded = this.decodeToken(token);
       if (decoded && decoded.exp) {
         const expirationTime = decoded.exp * 1000; // Convert to milliseconds
         const currentTime = Date.now();

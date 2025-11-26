@@ -24,7 +24,7 @@ export default () => {
       password: process.env.REDIS_PASSWORD ?? '',
     },
     jwt: {
-      secret: process.env.JWT_SECRET ?? 'change-me',
+      secret: process.env.JWT_SECRET ?? 'not-needed-with-supabase',
       expiresIn: process.env.JWT_EXPIRES_IN ?? '24h',
     },
     cors: {

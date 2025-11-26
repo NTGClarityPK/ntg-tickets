@@ -242,6 +242,47 @@ export class SupabaseAuthService {
   }
 
   /**
+   * Get user metadata from Supabase
+   */
+  async getUserMetadata(userId: string): Promise<Record<string, any> | null> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data: currentUser, error } = await supabase.auth.admin.getUserById(userId);
+
+    if (error) {
+      this.logger.error('Error getting user metadata:', error);
+      return null;
+    }
+
+    return currentUser?.user?.user_metadata || null;
+  }
+
+  /**
+   * Update user metadata in Supabase
+   */
+  async updateUserMetadata(userId: string, metadata: Record<string, any>) {
+    const supabase = this.supabaseService.getAdminClient();
+
+    // Get current user metadata to preserve other fields
+    const { data: currentUser } = await supabase.auth.admin.getUserById(userId);
+    const currentMetadata = currentUser?.user?.user_metadata || {};
+
+    const { data, error } = await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: {
+        ...currentMetadata,
+        ...metadata,
+      },
+    });
+
+    if (error) {
+      this.logger.error('Error updating user metadata:', error);
+      throw new BadRequestException('Failed to update user metadata');
+    }
+
+    return { message: 'User metadata updated successfully', user: data.user };
+  }
+
+  /**
    * Reset password (send reset email)
    */
   async resetPassword(email: string) {

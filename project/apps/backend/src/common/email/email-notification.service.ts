@@ -57,30 +57,7 @@ export class EmailNotificationService {
     private emailService: EmailService
   ) {}
 
-  async sendTicketCreatedEmail(ticket: TicketWithRelations, user: User) {
-    try {
-      const template = await this.getEmailTemplate('TICKET_CREATED');
-      if (!template) {
-        this.logger.warn('No email template found for TICKET_CREATED');
-        return;
-      }
-
-      const subject = this.replaceTemplateVariables(template.subject, {
-        ticket,
-        user,
-      });
-      const html = this.replaceTemplateVariables(template.html, {
-        ticket,
-        user,
-      });
-
-      await this.emailService.sendEmail(user.email, subject, html, {});
-
-      this.logger.log(`Ticket created email sent to ${user.email}`);
-    } catch (error) {
-      this.logger.error('Error sending ticket created email:', error);
-    }
-  }
+  // Removed sendTicketCreatedEmail - no longer needed
 
   async sendTicketAssignedEmail(
     ticket: TicketWithRelations,
@@ -90,89 +67,82 @@ export class EmailNotificationService {
     try {
       const template = await this.getEmailTemplate('TICKET_ASSIGNED');
       if (!template) {
-        this.logger.warn('No email template found for TICKET_ASSIGNED');
+        this.logger.warn('No active email template found for TICKET_ASSIGNED');
         return;
       }
 
-      const subject = this.replaceTemplateVariables(template.subject, {
-        ticket,
-        assignee,
-        requester,
-      });
-      const html = this.replaceTemplateVariables(template.html, {
-        ticket,
-        assignee,
-        requester,
-      });
-
       // Send to assignee
-      await this.emailService.sendEmail(assignee.email, subject, html, {});
-
-      // Send to requester
-      const requesterSubject = this.replaceTemplateVariables(template.subject, {
+      const assigneeSubject = this.replaceTemplateVariables(template.subject, {
         ticket,
         assignee,
         requester,
-        recipient: 'requester',
+        user: assignee,
       });
-      const requesterHtml = this.replaceTemplateVariables(template.html, {
+      const assigneeHtml = this.replaceTemplateVariables(template.html, {
         ticket,
         assignee,
         requester,
-        recipient: 'requester',
+        user: assignee,
       });
+      await this.emailService.sendEmail(assignee.email, assigneeSubject, assigneeHtml, {});
+      this.logger.log(`Ticket assigned email sent to assignee ${assignee.email}`);
 
-      await this.emailService.sendEmail(
-        requester.email,
-        requesterSubject,
-        requesterHtml,
-        {}
-      );
-
-      this.logger.log(`Ticket assigned emails sent`);
+      // Send to requester (if different from assignee)
+      if (requester.id !== assignee.id) {
+        const requesterSubject = this.replaceTemplateVariables(template.subject, {
+          ticket,
+          assignee,
+          requester,
+          user: requester,
+        });
+        const requesterHtml = this.replaceTemplateVariables(template.html, {
+          ticket,
+          assignee,
+          requester,
+          user: requester,
+        });
+        await this.emailService.sendEmail(requester.email, requesterSubject, requesterHtml, {});
+        this.logger.log(`Ticket assigned email sent to requester ${requester.email}`);
+      }
     } catch (error) {
       this.logger.error('Error sending ticket assigned email:', error);
     }
   }
 
-  async sendTicketStatusChangedEmail(
+  async sendTicketUpdateEmail(
     ticket: TicketWithRelations,
-    user: User,
-    oldStatus: string,
-    newStatus: string
+    requester: User
   ) {
     try {
-      const template = await this.getEmailTemplate('TICKET_STATUS_CHANGED');
+      const template = await this.getEmailTemplate('TICKET_UPDATE');
       if (!template) {
-        this.logger.warn('No email template found for TICKET_STATUS_CHANGED');
+        this.logger.warn('No email template found for TICKET_UPDATE');
         return;
       }
 
       const subject = this.replaceTemplateVariables(template.subject, {
         ticket,
-        user,
-        oldStatus,
-        newStatus,
+        requester,
       });
       const html = this.replaceTemplateVariables(template.html, {
         ticket,
-        user,
-        oldStatus,
-        newStatus,
+        requester,
       });
 
-      await this.emailService.sendEmail(user.email, subject, html, {});
+      // Send only to requester
+      await this.emailService.sendEmail(requester.email, subject, html, {});
 
-      this.logger.log(`Ticket status changed email sent to ${user.email}`);
+      this.logger.log(`Ticket update email sent to ${requester.email}`);
     } catch (error) {
-      this.logger.error('Error sending ticket status changed email:', error);
+      this.logger.error('Error sending ticket update email:', error);
     }
   }
 
   async sendCommentAddedEmail(
     ticket: TicketWithRelations,
     commenter: User,
-    recipient: User,
+    requester: User,
+    assignee: User | null,
     comment: Comment
   ) {
     try {
@@ -182,26 +152,74 @@ export class EmailNotificationService {
         return;
       }
 
-      const subject = this.replaceTemplateVariables(template.subject, {
+      // Send to requester
+      const requesterSubject = this.replaceTemplateVariables(template.subject, {
         ticket,
-        commenter,
-        recipient,
-        comment,
+        user: requester,
+        comment: {
+          ...comment,
+          author: commenter.name,
+          authorEmail: commenter.email,
+        },
       });
-      const html = this.replaceTemplateVariables(template.html, {
+      const requesterHtml = this.replaceTemplateVariables(template.html, {
         ticket,
-        commenter,
-        recipient,
-        comment,
+        user: requester,
+        comment: {
+          ...comment,
+          author: commenter.name,
+          authorEmail: commenter.email,
+        },
       });
 
-      await this.emailService.sendEmail(recipient.email, subject, html, {});
+      await this.emailService.sendEmail(
+        requester.email,
+        requesterSubject,
+        requesterHtml,
+        {}
+      );
+      this.logger.log(`Comment added email sent to requester ${requester.email}`);
 
-      this.logger.log(`Comment added email sent to ${recipient.email}`);
+      // Send to assignee if exists
+      if (assignee && assignee.id !== requester.id) {
+        const assigneeSubject = this.replaceTemplateVariables(
+          template.subject,
+          {
+            ticket,
+            user: assignee,
+            comment: {
+              ...comment,
+              author: commenter.name,
+              authorEmail: commenter.email,
+            },
+          }
+        );
+        const assigneeHtml = this.replaceTemplateVariables(template.html, {
+          ticket,
+          user: assignee,
+          comment: {
+            ...comment,
+            author: commenter.name,
+            authorEmail: commenter.email,
+          },
+        });
+
+        await this.emailService.sendEmail(
+          assignee.email,
+          assigneeSubject,
+          assigneeHtml,
+          {}
+        );
+        this.logger.log(
+          `Comment added email sent to assignee ${assignee.email}`
+        );
+      }
     } catch (error) {
       this.logger.error('Error sending comment added email:', error);
     }
   }
+
+  // Password reset is handled by Supabase Auth directly
 
   async sendSLAWarningEmail(ticket: TicketWithRelations, user: User) {
     try {
@@ -255,37 +273,24 @@ export class EmailNotificationService {
 
   private async getEmailTemplate(type: string) {
     try {
-      const template = await this.prisma.emailTemplate.findUnique({
-        where: { type },
+      const template = await this.prisma.emailTemplate.findFirst({
+        where: { type, isActive: true },
       });
 
       if (!template) {
-        // Return default template if none exists
-        return this.getDefaultTemplate(type);
+        this.logger.log(`No active email template found for type: ${type}`);
+        return null;
       }
 
       return template;
     } catch (error) {
       this.logger.error('Error getting email template:', error);
-      return this.getDefaultTemplate(type);
+      return null;
     }
   }
 
   private getDefaultTemplate(type: string) {
     const templates = {
-      TICKET_CREATED: {
-        subject: 'Ticket Created: {{ticket.ticketNumber}}',
-        html: `
-          <h2>Ticket Created Successfully</h2>
-          <p>Hello {{user.name}},</p>
-          <p>Your ticket has been created successfully.</p>
-          <p><strong>Ticket Number:</strong> {{ticket.ticketNumber}}</p>
-          <p><strong>Title:</strong> {{ticket.title}}</p>
-          <p><strong>Priority:</strong> {{ticket.priority}}</p>
-          <p><strong>Status:</strong> {{ticket.status}}</p>
-          <p>You can view your ticket at: <a href="{{ticket.url}}">{{ticket.url}}</a></p>
-        `,
-      },
       TICKET_ASSIGNED: {
         subject: 'Ticket Assigned: {{ticket.ticketNumber}}',
         html: `
@@ -299,15 +304,15 @@ export class EmailNotificationService {
           <p>You can view the ticket at: <a href="{{ticket.url}}">{{ticket.url}}</a></p>
         `,
       },
-      TICKET_STATUS_CHANGED: {
-        subject: 'Ticket Status Updated: {{ticket.ticketNumber}}',
+      TICKET_UPDATE: {
+        subject: 'Ticket Updated: {{ticket.ticketNumber}}',
         html: `
-          <h2>Ticket Status Updated</h2>
-          <p>Hello {{user.name}},</p>
-          <p>The status of your ticket has been updated.</p>
+          <h2>Ticket Updated</h2>
+          <p>Hello {{requester.name}},</p>
+          <p>Your ticket has been updated.</p>
           <p><strong>Ticket Number:</strong> {{ticket.ticketNumber}}</p>
           <p><strong>Title:</strong> {{ticket.title}}</p>
-          <p><strong>Status:</strong> {{oldStatus}} → {{newStatus}}</p>
+          <p><strong>Status:</strong> {{ticket.status}}</p>
           <p>You can view your ticket at: <a href="{{ticket.url}}">{{ticket.url}}</a></p>
         `,
       },
@@ -315,34 +320,12 @@ export class EmailNotificationService {
         subject: 'New Comment on Ticket: {{ticket.ticketNumber}}',
         html: `
           <h2>New Comment Added</h2>
-          <p>Hello {{recipient.name}},</p>
+          <p>Hello {{user.name}},</p>
           <p>A new comment has been added to ticket {{ticket.ticketNumber}}.</p>
-          <p><strong>Comment by:</strong> {{commenter.name}}</p>
+          <p><strong>Comment by:</strong> {{comment.author}}</p>
           <p><strong>Comment:</strong></p>
           <p>{{comment.content}}</p>
           <p>You can view the ticket at: <a href="{{ticket.url}}">{{ticket.url}}</a></p>
-        `,
-      },
-      SLA_WARNING: {
-        subject: 'SLA Warning: {{ticket.ticketNumber}}',
-        html: `
-          <h2>SLA Warning</h2>
-          <p>Hello {{user.name}},</p>
-          <p>This is a warning that ticket {{ticket.ticketNumber}} is approaching its SLA deadline.</p>
-          <p><strong>Ticket:</strong> {{ticket.title}}</p>
-          <p><strong>Due Date:</strong> {{ticket.dueDate}}</p>
-          <p>Please take action to resolve this ticket before the deadline.</p>
-        `,
-      },
-      SLA_BREACH: {
-        subject: 'SLA Breach: {{ticket.ticketNumber}}',
-        html: `
-          <h2>SLA Breach Alert</h2>
-          <p>Hello {{user.name}},</p>
-          <p>Ticket {{ticket.ticketNumber}} has breached its SLA deadline.</p>
-          <p><strong>Ticket:</strong> {{ticket.title}}</p>
-          <p><strong>Due Date:</strong> {{ticket.dueDate}}</p>
-          <p>Immediate action is required to resolve this ticket.</p>
         `,
       },
     };

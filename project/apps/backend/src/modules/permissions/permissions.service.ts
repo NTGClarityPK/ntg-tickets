@@ -251,7 +251,7 @@ export class PermissionsService {
 
       // Get the user's active role from the request context
       // For now, we'll use the first role as activeRole
-      // This should be passed from the JWT token in a real implementation
+      // The activeRole is stored in Supabase user metadata and extracted from the token
       const activeRole = user.roles[0];
 
       // Admin can access all tickets

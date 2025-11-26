@@ -4,11 +4,11 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { ValidationService } from '../../common/validation/validation.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { SupabaseAuthService } from './supabase-auth.service';
 import { UserRole } from '@prisma/client';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
@@ -19,7 +19,7 @@ export class AuthService {
 
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private supabaseAuthService: SupabaseAuthService,
     private systemConfigService: SystemConfigService,
     private validationService: ValidationService,
     private auditLogsService: AuditLogsService
@@ -58,64 +58,7 @@ export class AuthService {
     }
   }
 
-  async login(
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      roles: string[];
-      activeRole?: string;
-    },
-    ipAddress?: string,
-    userAgent?: string
-  ) {
-    // If no activeRole is provided, use the first role as default
-    const activeRole = user.activeRole || user.roles[0];
-
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      roles: user.roles,
-      activeRole: activeRole,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh', activeRole: activeRole },
-      { expiresIn: '7d' }
-    );
-
-    // Log the login action with role information
-    try {
-      await this.auditLogsService.createAuditLog({
-        action: 'LOGIN',
-        resource: 'user',
-        resourceId: user.id,
-        metadata: {
-          userRoles: user.roles,
-          activeRole: activeRole,
-          loginTime: new Date().toISOString(),
-        },
-        userId: user.id,
-        ipAddress,
-        userAgent,
-      });
-    } catch (error) {
-      this.logger.error('Failed to create login audit log:', error);
-    }
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles,
-        activeRole: activeRole,
-      },
-    };
-  }
+  // Removed - using SupabaseAuthService.signIn() instead
 
   async createOrUpdateUser(userData: {
     id: string;
@@ -408,60 +351,7 @@ export class AuthService {
     }
   }
 
-  async verifyToken(token: string): Promise<{
-    sub: string;
-    email: string;
-    roles: string[];
-    activeRole: string;
-    iat: number;
-    exp: number;
-  }> {
-    try {
-      return this.jwtService.verify(token);
-    } catch (error) {
-      this.logger.error('Error verifying token:', error);
-      throw new UnauthorizedException('Invalid token');
-    }
-  }
-
-  async validateJwtToken(token: string): Promise<{
-    id: string;
-    email: string;
-    name: string;
-    roles: string[];
-    activeRole: string;
-    isActive: boolean;
-    avatar: string | null;
-  } | null> {
-    try {
-      const decoded = this.jwtService.verify(token);
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: decoded.sub },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          roles: true,
-          isActive: true,
-          avatar: true,
-        },
-      });
-
-      if (!user || !user.isActive) {
-        return null;
-      }
-
-      // Include activeRole from JWT payload
-      return {
-        ...user,
-        activeRole: decoded.activeRole,
-      };
-    } catch (error) {
-      this.logger.error('JWT validation failed', error);
-      return null;
-    }
-  }
+  // Removed - using SupabaseAuthService.verifyToken() instead
 
   async validateUserCredentials(
     email: string,
@@ -506,6 +396,7 @@ export class AuthService {
   async switchActiveRole(
     userId: string,
     newActiveRole: string,
+    refreshToken: string,
     ipAddress?: string,
     userAgent?: string
   ): Promise<{
@@ -535,26 +426,30 @@ export class AuthService {
         throw new UnauthorizedException('User not found or inactive');
       }
 
-      if (!user.roles.includes(newActiveRole as UserRole)) {
+      if (!user.roles.map(r => r.toString()).includes(newActiveRole)) {
         throw new BadRequestException('User does not have the specified role');
       }
 
-      // Get the previous active role from the current JWT (if available)
-      const previousActiveRole = user.roles[0]; // Default to first role as fallback
+      // Get the previous active role from Supabase user metadata (before updating)
+      let previousActiveRole: string = user.roles[0]?.toString() || 'END_USER'; // Default to first role as fallback
+      try {
+        const metadata = await this.supabaseAuthService.getUserMetadata(userId);
+        if (metadata?.activeRole) {
+          previousActiveRole = metadata.activeRole as string;
+        }
+      } catch (error) {
+        this.logger.warn('Could not get previous active role from Supabase', error);
+      }
 
-      const payload = {
-        sub: user.id,
-        email: user.email,
-        roles: user.roles,
+      // Update activeRole in Supabase user metadata
+      await this.supabaseAuthService.updateUserMetadata(userId, {
         activeRole: newActiveRole,
-      };
+      });
 
-      const newAccessToken = this.jwtService.sign(payload);
-      const newRefreshToken = this.jwtService.sign(
-        { sub: user.id, type: 'refresh', activeRole: newActiveRole },
-        { expiresIn: '7d' }
-      );
-
+      // Refresh the session to get new tokens with updated metadata
+      // Note: Supabase metadata updates are immediate, so we can refresh right away
+      const refreshedSession = await this.supabaseAuthService.refreshSession(refreshToken);
+      
       // Log the role switch action with role information
       try {
         await this.auditLogsService.createAuditLog({
@@ -579,8 +474,8 @@ export class AuthService {
       }
 
       return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
+        access_token: refreshedSession.access_token,
+        refresh_token: refreshedSession.refresh_token,
         user: {
           id: user.id,
           email: user.email,
@@ -595,59 +490,5 @@ export class AuthService {
     }
   }
 
-  async refreshToken(refreshToken: string): Promise<{
-    access_token: string;
-    refresh_token: string;
-  } | null> {
-    try {
-      const decoded = this.jwtService.verify(refreshToken);
-
-      if (decoded.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: decoded.sub },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          roles: true,
-          isActive: true,
-        },
-      });
-
-      if (!user || !user.isActive) {
-        this.logger.error(
-          `Refresh token - User not found or inactive for ID: ${decoded.sub}, user: ${JSON.stringify(user)}`
-        );
-        throw new UnauthorizedException('User not found or inactive');
-      }
-
-      // Preserve the activeRole from the original token if available
-      // Otherwise fall back to the first role
-      const activeRole = decoded.activeRole || user.roles[0];
-
-      const payload = {
-        sub: user.id,
-        email: user.email,
-        roles: user.roles,
-        activeRole: activeRole,
-      };
-
-      const newAccessToken = this.jwtService.sign(payload);
-      const newRefreshToken = this.jwtService.sign(
-        { sub: user.id, type: 'refresh', activeRole: activeRole },
-        { expiresIn: '7d' }
-      );
-
-      return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
-      };
-    } catch (error) {
-      this.logger.error('Error refreshing token:', error);
-      return null;
-    }
-  }
+  // Removed - using SupabaseAuthService.refreshSession() instead
 }

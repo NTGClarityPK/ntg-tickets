@@ -197,6 +197,7 @@ export function UserForm({
                   label='Confirm Password'
                   placeholder='Confirm password'
                   required
+                  description='Re-enter the password to confirm'
                   {...form.getInputProps('confirmPassword')}
                 />
               </Grid.Col>

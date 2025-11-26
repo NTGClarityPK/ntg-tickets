@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { signIn as supabaseSignIn } from '../../../lib/supabase-auth';
 import { useAuthActions, useAuthStore } from '../../../stores/useAuthStore';
+import { authClient } from '../../../services/api/auth.client';
 import { UserRole } from '../../../types/unified';
 import {
   TextInput,
@@ -165,21 +166,25 @@ export default function SignInPage() {
     setRoleSelectionError(null);
 
     try {
-      // Sign in again with Supabase (role selection is handled server-side)
-      const result = await supabaseSignIn(email, password);
+      // Call switch-role API to set the active role on the backend
+      const response = await authClient.switchRole({ activeRole: selectedRole });
 
-      // Set user in auth store with selected role
-      setUser({
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
-        roles: result.user.roles as UserRole[],
-        activeRole: selectedRole, // Use the selected role
-        isActive: true,
-        avatar: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      if (response.data?.data) {
+        const updatedUser = response.data.data.user;
+        
+        // Set user in auth store with selected role
+        setUser({
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          roles: updatedUser.roles as UserRole[],
+          activeRole: selectedRole,
+          isActive: true,
+          avatar: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
 
       // Reset attempts on successful login
       resetAttempts();
@@ -189,6 +194,8 @@ export default function SignInPage() {
       // Use router.push for client-side navigation
       router.push('/dashboard');
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Role selection error:', error);
       setRoleSelectionError(t('roleSelectionFailed'));
     } finally {
       setRoleSelectionLoading(false);

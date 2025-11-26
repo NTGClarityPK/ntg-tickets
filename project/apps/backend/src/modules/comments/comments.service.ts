@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { EmailNotificationService } from '../../common/email/email-notification.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { UserRole } from '@prisma/client';
@@ -13,7 +14,10 @@ import { UserRole } from '@prisma/client';
 export class CommentsService {
   private readonly logger = new Logger(CommentsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailNotificationService: EmailNotificationService
+  ) {}
 
   async create(
     createCommentDto: CreateCommentDto,
@@ -51,6 +55,19 @@ export class CommentsService {
       });
 
       this.logger.log(`Comment created for ticket ${ticket.ticketNumber}`);
+
+      // Send email notification for new comment
+      const commenter = comment.user;
+      if (commenter && ticket.requester) {
+        await this.emailNotificationService.sendCommentAddedEmail(
+          ticket,
+          commenter,
+          ticket.requester,
+          ticket.assignedTo || null,
+          comment
+        );
+      }
+
       return comment;
     } catch (error) {
       this.logger.error('Error creating comment:', error);

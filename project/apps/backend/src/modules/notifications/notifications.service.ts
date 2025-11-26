@@ -162,53 +162,61 @@ export class NotificationsService {
 
       switch (notification.type) {
         case 'TICKET_CREATED':
-          await this.emailNotificationService.sendTicketCreatedEmail(
-            ticket,
-            user
-          );
+          // No email sent for ticket creation
           break;
 
         case 'TICKET_ASSIGNED':
-          if (ticket.assignedToId) {
-            // Get assigned user details
-            const assignedUser = await this.prisma.user.findUnique({
-              where: { id: ticket.assignedToId },
-              select: { id: true, name: true, email: true },
-            });
-            const requesterUser = await this.prisma.user.findUnique({
-              where: { id: ticket.requesterId },
-              select: { id: true, name: true, email: true },
-            });
-
-            if (assignedUser && requesterUser) {
-              await this.emailNotificationService.sendTicketAssignedEmail(
-                ticket,
-                assignedUser,
-                requesterUser
-              );
-            }
-          }
+          // Email is sent from tickets.service after assignment
+          // to avoid duplicate emails (notification created for both requester and assignee)
           break;
 
         case 'TICKET_STATUS_CHANGED':
-          await this.emailNotificationService.sendTicketStatusChangedEmail(
-            ticket,
-            user,
-            'UNKNOWN', // We'd need to track old status
-            ticket.status
-          );
+          // Email for status change is handled by workflow execution service
+          // based on whether sendNotification is enabled for the transition
           break;
 
         case 'COMMENT_ADDED':
-          // This would need comment data
+          // Get requester and assignee for comment notification
+          const commentRequester = await this.prisma.user.findUnique({
+            where: { id: ticket.requesterId },
+            select: { id: true, name: true, email: true },
+          });
+          let commentAssignee = null;
+          if (ticket.assignedToId) {
+            commentAssignee = await this.prisma.user.findUnique({
+              where: { id: ticket.assignedToId },
+              select: { id: true, name: true, email: true },
+            });
+          }
+          // Get comment data from notification metadata or fetch latest comment
+          const latestComment = await this.prisma.comment.findFirst({
+            where: { ticketId: ticket.id },
+            orderBy: { createdAt: 'desc' },
+            include: {
+              user: {
+                select: { id: true, name: true, email: true },
+              },
+            },
+          });
+          if (commentRequester && latestComment && latestComment.user) {
+            await this.emailNotificationService.sendCommentAddedEmail(
+              ticket,
+              latestComment.user,
+              commentRequester,
+              commentAssignee,
+              {
+                id: latestComment.id,
+                content: latestComment.content,
+                createdAt: latestComment.createdAt,
+              }
+            );
+          }
           break;
 
         case 'SLA_WARNING':
-          await this.emailNotificationService.sendSLAWarningEmail(ticket, user);
-          break;
-
         case 'SLA_BREACH':
-          await this.emailNotificationService.sendSLABreachEmail(ticket, user);
+          // Email templates for SLA warnings/breaches removed
+          // These notifications will still be created but no emails sent
           break;
       }
     } catch (error) {

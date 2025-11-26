@@ -63,6 +63,63 @@ interface EmailTemplateFormData {
 const TEMPLATE_TYPES = EMAIL_TEMPLATE_TYPES;
 const AVAILABLE_VARIABLES = EMAIL_TEMPLATE_VARIABLES;
 
+// Function to format HTML with proper indentation
+const formatHTML = (html: string): string => {
+  if (!html) return '';
+  
+  // Self-closing tags
+  const selfClosingTags = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+  
+  let formatted = '';
+  let indent = 0;
+  const indentSize = 2;
+  
+  // Normalize: remove extra whitespace between tags but preserve content
+  const processed = html
+    .replace(/>\s+</g, '><') // Remove whitespace between tags
+    .trim();
+  
+  // Split by tags
+  const regex = /(<\/?[^>]+>)/g;
+  const tokens = processed.split(regex);
+  
+  for (const token of tokens) {
+    if (!token.trim()) continue;
+    
+    const trimmed = token.trim();
+    
+    if (trimmed.startsWith('</')) {
+      // Closing tag - decrease indent first
+      indent = Math.max(0, indent - indentSize);
+      formatted += ' '.repeat(indent) + trimmed + '\n';
+    } else if (trimmed.startsWith('<')) {
+      // Opening tag
+      const tagMatch = trimmed.match(/<(\w+)/);
+      const tagName = tagMatch ? tagMatch[1].toLowerCase() : '';
+      const isSelfClosing = trimmed.endsWith('/>') || selfClosingTags.includes(tagName);
+      
+      formatted += ' '.repeat(indent) + trimmed + '\n';
+      
+      // Increase indent for non-self-closing tags
+      if (!isSelfClosing && tagName) {
+        indent += indentSize;
+      }
+    } else {
+      // Text content (not a tag)
+      const text = trimmed;
+      if (text) {
+        // Preserve template variables and handle multiline text
+        const lines = text.split(/\n/).filter(line => line.trim());
+        if (lines.length > 0) {
+          formatted += ' '.repeat(indent) + lines.join(' ').trim() + '\n';
+        }
+      }
+    }
+  }
+  
+  return formatted.trim();
+};
+
 export default function EmailTemplatesPage() {
   const theme = useMantineTheme();
   const { primaryDark, primaryLight, primaryLighter, textMuted } = useDynamicTheme();
@@ -103,9 +160,11 @@ export default function EmailTemplatesPage() {
   const handleCreateTemplate = async () => {
     try {
       await createTemplate.mutateAsync({
-        ...formData,
+        name: formData.name,
+        subject: formData.subject,
         html: formData.htmlContent,
         type: formData.type as EmailTemplateType,
+        isActive: formData.isActive,
       });
       notifications.show({
         title: 'Success',
@@ -130,8 +189,11 @@ export default function EmailTemplatesPage() {
       await updateTemplate.mutateAsync({
         id: selectedTemplate.id,
         data: {
-          ...formData,
+          name: formData.name,
+          subject: formData.subject,
+          html: formData.htmlContent,
           type: formData.type as EmailTemplateType,
+          isActive: formData.isActive,
         },
       });
       notifications.show({
@@ -223,11 +285,13 @@ export default function EmailTemplatesPage() {
     isActive: boolean;
   }) => {
     setSelectedTemplate(template);
+    // Format HTML content with proper indentation
+    const formattedHTML = template.htmlContent ? formatHTML(template.htmlContent) : '';
     setFormData({
       name: template.name,
       subject: template.subject,
-      htmlContent: template.htmlContent,
-      textContent: '',
+      htmlContent: formattedHTML,
+      textContent: template.textContent || '',
       type: template.type,
       isActive: template.isActive,
       variables: [],
@@ -282,6 +346,26 @@ export default function EmailTemplatesPage() {
           start + variable.length
         );
       }, 0);
+      
+      // Show success notification
+      notifications.show({
+        title: 'Variable Inserted',
+        message: `${variable} inserted into template`,
+        color: 'green',
+        autoClose: 2000,
+      });
+    } else {
+      // Fallback: append to the end
+      setFormData({
+        ...formData,
+        htmlContent: formData.htmlContent + variable,
+      });
+      notifications.show({
+        title: 'Variable Added',
+        message: `${variable} added to template`,
+        color: 'green',
+        autoClose: 2000,
+      });
     }
   };
 
@@ -350,6 +434,7 @@ export default function EmailTemplatesPage() {
                     id: string;
                     name: string;
                     subject: string;
+                    html?: string;
                     type: string;
                     isActive: boolean;
                     updatedAt: string;
@@ -367,6 +452,7 @@ export default function EmailTemplatesPage() {
                     id: string;
                     name: string;
                     subject: string;
+                    html?: string;
                     type: string;
                     isActive: boolean;
                     updatedAt: string;
@@ -435,7 +521,7 @@ export default function EmailTemplatesPage() {
                                 id: template.id,
                                 name: template.name,
                                 subject: template.subject,
-                                htmlContent: '',
+                                htmlContent: template.html || '',
                                 textContent: '',
                                 type: template.type,
                                 isActive: template.isActive,
@@ -524,9 +610,7 @@ export default function EmailTemplatesPage() {
               <Tabs.Tab value='html' leftSection={<IconCode size={16} />}>
                 HTML Content
               </Tabs.Tab>
-              <Tabs.Tab value='text' leftSection={<IconTemplate size={16} />}>
-                Text Content
-              </Tabs.Tab>
+             
               <Tabs.Tab
                 value='variables'
                 leftSection={<IconSettings size={16} />}
@@ -535,7 +619,7 @@ export default function EmailTemplatesPage() {
               </Tabs.Tab>
             </Tabs.List>
 
-            <Tabs.Panel value='html'>
+            <Tabs.Panel value='html' style={{marginTop: '1rem'}}>
               <Stack>
                 <Group justify='space-between'>
                   <Text size='sm' fw={500}>
@@ -558,47 +642,138 @@ export default function EmailTemplatesPage() {
               </Stack>
             </Tabs.Panel>
 
-            <Tabs.Panel value='text'>
-              <Stack>
-                <Text size='sm' fw={500}>
-                  Text Content
-                </Text>
-                <Textarea
-                  placeholder='Enter plain text content...'
-                  value={formData.textContent}
-                  onChange={e =>
-                    setFormData({ ...formData, textContent: e.target.value })
-                  }
-                  minRows={10}
-                  autosize
-                />
-              </Stack>
-            </Tabs.Panel>
+          
 
             <Tabs.Panel value='variables'>
-              <Stack>
-                <Text size='sm' fw={500}>
-                  Available Variables
-                </Text>
-                <Text size='xs' c='dimmed' mb='md'>
-                  Click on a variable to insert it into your template
-                </Text>
-                <Grid>
-                  {AVAILABLE_VARIABLES.map(variable => (
-                    <Grid.Col span={6} key={variable.value}>
-                      <Card
-                        padding='sm'
-                        style={{ cursor: 'pointer' }}
+              <Stack gap='md' style={{marginTop: '1rem'}}>
+                <style>
+                  {`
+                    .variables-scroll-container::-webkit-scrollbar {
+                      display: none;
+                    }
+                    .variables-scroll-container {
+                      -ms-overflow-style: none;
+                      scrollbar-width: none;
+                    }
+                  `}
+                </style>
+                <div>
+                  <Text size='sm' fw={500} mb={4}>
+                    Available Variables
+                  </Text>
+                  <Text size='xs' c='dimmed'>
+                    Click on a variable to insert it into your template at the cursor position
+                  </Text>
+                </div>
+                <div
+                  className='variables-scroll-container'
+                  style={{
+                    maxHeight: '350px',
+                    overflowY: 'auto',
+                    border: `1px solid ${theme.colors.gray[3]}`,
+                    borderRadius: theme.radius.md,
+                    backgroundColor: theme.colors.gray[0],
+                  }}
+                >
+                  <Table
+                    striped
+                    highlightOnHover
+                    withTableBorder={false}
+                    withColumnBorders={false}
+                    style={{
+                      borderCollapse: 'collapse',
+                    }}
+                  >
+                    <Table.Thead
+                      style={{
+                        position: 'sticky',
+                        top: 0,
+                        backgroundColor: theme.colors.gray[1],
+                        zIndex: 1,
+                      }}
+                    >
+                      <Table.Tr>
+                        <Table.Th
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            color: theme.colors.gray[7],
+                            padding: '10px 12px',
+                          }}
+                        >
+                          Variable
+                        </Table.Th>
+                        <Table.Th
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            color: theme.colors.gray[7],
+                            padding: '10px 12px',
+                          }}
+                        >
+                          Description
+                        </Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {AVAILABLE_VARIABLES.map(variable => (
+                        <Table.Tr
+                          key={variable.value}
+                          style={{
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease',
+                          }}
                         onClick={() => insertVariable(variable.value)}
-                      >
-                        <Group>
-                          <Code>{variable.value}</Code>
-                          <Text size='sm'>{variable.label}</Text>
-                        </Group>
-                      </Card>
-                    </Grid.Col>
-                  ))}
-                </Grid>
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor =
+                              theme.colors[theme.primaryColor][0];
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <Table.Td
+                            style={{
+                              width: '45%',
+                              fontFamily: 'monospace',
+                              fontSize: '12px',
+                              padding: '10px 12px',
+                              borderBottom: `1px solid ${theme.colors.gray[2]}`,
+                            }}
+                          >
+                            <Code
+                              style={{
+                                backgroundColor: 'transparent',
+                                padding: 0,
+                                fontSize: '12px',
+                                color: theme.colors[theme.primaryColor][7],
+                                fontWeight: 600,
+                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                              }}
+                            >
+                              {variable.value}
+                            </Code>
+                          </Table.Td>
+                          <Table.Td
+                            style={{
+                              width: '55%',
+                              fontSize: '13px',
+                              padding: '10px 12px',
+                              color: theme.colors.gray[7],
+                              borderBottom: `1px solid ${theme.colors.gray[2]}`,
+                            }}
+                          >
+                            {variable.label}
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </div>
               </Stack>
             </Tabs.Panel>
           </Tabs>
@@ -678,14 +853,12 @@ export default function EmailTemplatesPage() {
               <Tabs.Tab value='html' leftSection={<IconCode size={16} />}>
                 HTML Content
               </Tabs.Tab>
-              <Tabs.Tab value='text' leftSection={<IconTemplate size={16} />}>
-                Text Content
-              </Tabs.Tab>
+           
             </Tabs.List>
 
             <Tabs.Panel value='html'>
               <Stack>
-                <Text size='sm' fw={500}>
+                <Text size='sm' fw={500} style={{marginTop: '1rem'}}>
                   HTML Content
                 </Text>
                 <Textarea
@@ -700,22 +873,8 @@ export default function EmailTemplatesPage() {
               </Stack>
             </Tabs.Panel>
 
-            <Tabs.Panel value='text'>
-              <Stack>
-                <Text size='sm' fw={500}>
-                  Text Content
-                </Text>
-                <Textarea
-                  placeholder='Enter plain text content...'
-                  value={formData.textContent}
-                  onChange={e =>
-                    setFormData({ ...formData, textContent: e.target.value })
-                  }
-                  minRows={10}
-                  autosize
-                />
-              </Stack>
-            </Tabs.Panel>
+           
+            
           </Tabs>
 
           <Switch
@@ -750,7 +909,7 @@ export default function EmailTemplatesPage() {
       >
         <Stack>
           <Text size='sm' fw={500}>
-            Subject: {selectedTemplate?.subject}
+            Subject: {selectedTemplate?.preview?.subject || selectedTemplate?.subject || ''}
           </Text>
           <Divider />
           <div

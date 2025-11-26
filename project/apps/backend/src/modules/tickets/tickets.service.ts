@@ -22,6 +22,7 @@ import { SystemConfigService } from '../../common/config/system-config.service';
 import { WorkflowExecutionService } from '../workflows/workflow-execution.service';
 import { WorkflowsService } from '../workflows/workflows.service';
 import { TicketResponseDto } from './dto/ticket-response.dto';
+import { EmailNotificationService } from '../../common/email/email-notification.service';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -104,7 +105,8 @@ export class TicketsService {
     private readonly websocketGateway: WebSocketGateway,
     private readonly systemConfigService: SystemConfigService,
     private readonly workflowExecutionService: WorkflowExecutionService,
-    private readonly workflowsService: WorkflowsService
+    private readonly workflowsService: WorkflowsService,
+    private readonly emailNotificationService: EmailNotificationService
   ) {}
 
   /**
@@ -1294,6 +1296,19 @@ export class TicketsService {
         }),
       ]);
       this.logger.log(`Notifications sent for ticket ${id}`, 'TicketsService');
+
+      // Send email notification (once for both assignee and requester)
+      const requester = await this.prisma.user.findUnique({
+        where: { id: ticket.requesterId },
+        select: { id: true, name: true, email: true },
+      });
+      if (requester) {
+        await this.emailNotificationService.sendTicketAssignedEmail(
+          updatedTicket,
+          assignee,
+          requester
+        );
+      }
     } catch (error) {
       this.logger.error(
         `Error sending notifications for ticket ${id}: ${error.message}`,

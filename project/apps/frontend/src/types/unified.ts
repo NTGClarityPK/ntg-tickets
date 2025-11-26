@@ -327,11 +327,9 @@ export interface SystemSettings {
 
 // Email Template types
 export enum EmailTemplateType {
-  TICKET_CREATED = 'TICKET_CREATED',
   TICKET_ASSIGNED = 'TICKET_ASSIGNED',
-  STATUS_CHANGED = 'STATUS_CHANGED',
   COMMENT_ADDED = 'COMMENT_ADDED',
-  AUTO_CLOSE_WARNING = 'AUTO_CLOSE_WARNING',
+  TICKET_UPDATE = 'TICKET_UPDATE',
 }
 
 // Email Template interfaces

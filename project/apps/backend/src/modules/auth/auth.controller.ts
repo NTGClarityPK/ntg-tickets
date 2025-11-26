@@ -273,7 +273,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid role' })
   async switchRole(
     @Request() req,
-    @Body() body: { activeRole: string }
+    @Body() body: { activeRole: string; refresh_token?: string }
   ): Promise<{
     data: {
       access_token: string;
@@ -289,15 +289,22 @@ export class AuthController {
     message: string;
   }> {
     try {
+      if (!body.refresh_token) {
+        this.logger.warn('Switch role called without refresh_token');
+        throw new BadRequestException('Refresh token is required for role switching');
+      }
+
       const ipAddress =
         req.ip ||
         req.connection?.remoteAddress ||
         req.headers['x-forwarded-for'];
       const userAgent = req.headers['user-agent'];
 
+      this.logger.log(`Switching role for user ${req.user.id} to ${body.activeRole}`);
       const result = await this.authService.switchActiveRole(
         req.user.id,
         body.activeRole,
+        body.refresh_token,
         ipAddress,
         userAgent
       );
@@ -311,7 +318,7 @@ export class AuthController {
         message: 'Role switched successfully',
       };
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
         throw error;
       }
       throw new BadRequestException('Invalid role');

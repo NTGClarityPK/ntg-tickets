@@ -66,11 +66,25 @@ import {
   UserRole,
   CreateCustomFieldInput,
   UpdateCustomFieldInput,
+  EmailTemplateType,
 } from '../../types/unified';
 import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 
 // Union type for editing items
 type EditingItem = User | CustomField | EmailTemplate;
+
+const getEmailTemplateRecipients = (type: string): string => {
+  switch (type) {
+    case EmailTemplateType.TICKET_ASSIGNED:
+      return 'Sent to: The person to whom the ticket is assigned';
+    case EmailTemplateType.COMMENT_ADDED:
+      return 'Sent to: Requestor and the person to whom the ticket is assigned (if any)';
+    case EmailTemplateType.TICKET_UPDATE:
+      return 'Sent to: Requester';
+    default:
+      return '';
+  }
+};
 
 export function AdminPanel() {
   const theme = useMantineTheme();
@@ -549,6 +563,9 @@ export function AdminPanel() {
                             <Text size='sm' color='dimmed'>
                               Type: {template.type}
                             </Text>
+                            <Text size='xs' color='blue' mt={4} mb={4}>
+                              {getEmailTemplateRecipients(template.type)}
+                            </Text>
                             <Text size='sm' color='dimmed' mt='xs'>
                               Subject: {template.subject}
                             </Text>
@@ -790,7 +807,8 @@ export function AdminPanel() {
           setEditingItem(null);
         }}
         title={editingItem ? 'Edit Email Template' : 'Add Email Template'}
-        size='lg'
+        size='xl'
+        styles={{ body: { maxHeight: '80vh', overflowY: 'auto' } }}
       >
         <EmailTemplateForm
           onSubmit={handleEmailTemplateSubmit}

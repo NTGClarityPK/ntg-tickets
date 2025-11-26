@@ -227,17 +227,8 @@ export default function TicketDetailPage() {
         userRole: user?.activeRole,
       });
 
-      // If a comment was provided, add it to the ticket comments
-      if (statusComment?.trim()) {
-        try {
-          await addCommentMutation.mutateAsync({
-            ticketId,
-            content: statusComment,
-          });
-        } catch {
-          // Don't block the status update if comment fails
-        }
-      }
+      // Note: Comment is already added by the backend during status transition
+      // No need to add it again here
 
       notifications.show({
         title: 'Success',

@@ -166,17 +166,6 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRES_IN=1h
-JWT_REFRESH_SECRET=your-refresh-secret-key-change-this-in-production
-JWT_REFRESH_EXPIRES_IN=7d
-
-# File Storage (AWS S3 or Local)
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
-AWS_S3_BUCKET=ntg-ticket-files
-AWS_REGION=us-east-1
 # For local development, you can use local file storage
 FILE_STORAGE_TYPE=local
 
