@@ -81,15 +81,27 @@ export function AppHeader({
       // Continue with logout even if backend call fails
     }
 
-    // Clear local auth store
-    logout();
-
-    // Sign out from Supabase
+    // Sign out from Supabase first (clears Supabase session)
     try {
       await supabaseSignOut();
     } catch (error) {
-      // Continue with redirect even if Supabase signout fails
+      // Continue with logout even if Supabase signout fails
     }
+
+    // Clear local auth store
+    logout();
+
+    // Clear all auth-related storage
+    localStorage.removeItem('auth-storage');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    
+    // Clear any Supabase storage keys (they start with 'sb-')
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
 
     // Use hard redirect to ensure navigation works
     window.location.href = '/auth/signin';

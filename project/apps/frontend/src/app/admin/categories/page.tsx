@@ -26,7 +26,6 @@ import {
   IconPlus,
   IconDots,
   IconEdit,
-  IconTrash,
   IconEye,
   IconClipboardList,
   IconAlertCircle,
@@ -37,7 +36,6 @@ import {
   useCategories,
   useCreateCategory,
   useUpdateCategory,
-  useDeleteCategory,
 } from '../../../hooks/useCategories';
 import { Category, TicketCategory } from '../../../types/unified';
 import { useDynamicTheme } from '../../../hooks/useDynamicTheme';
@@ -48,14 +46,12 @@ export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const { data: categories, isLoading, error } = useCategories();
   const createCategoryMutation = useCreateCategory();
   const updateCategoryMutation = useUpdateCategory();
-  const deleteCategoryMutation = useDeleteCategory();
 
   const createForm = useForm({
     initialValues: {
@@ -125,25 +121,6 @@ export default function CategoriesPage() {
       notifications.show({
         title: 'Error',
         message: 'Failed to update category',
-        color: primaryDark,
-      });
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId: string) => {
-    try {
-      await deleteCategoryMutation.mutateAsync(categoryId);
-      notifications.show({
-        title: 'Success',
-        message: 'Category deleted successfully',
-        color: primaryLight,
-      });
-      setDeleteModalOpen(false);
-      setSelectedCategory(null);
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to delete category',
         color: primaryDark,
       });
     }
@@ -273,17 +250,6 @@ export default function CategoriesPage() {
                       >
                         Edit
                       </Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item
-                        leftSection={<IconTrash size={14} />}
-                        color={theme.colors[theme.primaryColor][9]}
-                        onClick={() => {
-                          setSelectedCategory(category);
-                          setDeleteModalOpen(true);
-                        }}
-                      >
-                        Delete
-                      </Menu.Item>
                     </Menu.Dropdown>
                   </Menu>
                 </Table.Td>
@@ -399,35 +365,6 @@ export default function CategoriesPage() {
         </form>
       </Modal>
 
-      {/* Delete Category Modal */}
-      <Modal
-        opened={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        title='Delete Category'
-        centered
-      >
-        <Stack gap='md'>
-          <Text>
-            Are you sure you want to delete category "{selectedCategory?.name}"?
-            This action cannot be undone and may affect existing tickets.
-          </Text>
-          <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setDeleteModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              color={theme.colors[theme.primaryColor][9]}
-              onClick={() =>
-                selectedCategory?.id &&
-                handleDeleteCategory(selectedCategory.id)
-              }
-              loading={deleteCategoryMutation.isPending}
-            >
-              Delete
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Container>
   );
 }

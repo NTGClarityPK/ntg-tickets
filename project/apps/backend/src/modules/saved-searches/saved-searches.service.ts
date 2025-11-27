@@ -7,18 +7,24 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { CreateSavedSearchDto } from './dto/create-saved-search.dto';
 import { UpdateSavedSearchDto } from './dto/update-saved-search.dto';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class SavedSearchesService {
   private readonly logger = new Logger(SavedSearchesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   async create(createSavedSearchDto: CreateSavedSearchDto, userId: string) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const savedSearch = await this.prisma.savedSearch.create({
         data: {
           ...createSavedSearchDto,
+          tenantId,
           userId,
           searchCriteria: JSON.stringify(createSavedSearchDto.searchCriteria),
         },
@@ -254,10 +260,12 @@ export class SavedSearchesService {
 
   async duplicateSearch(id: string, userId: string, newName?: string) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const originalSearch = await this.findOne(id, userId);
 
       const duplicatedSearch = await this.prisma.savedSearch.create({
         data: {
+          tenantId,
           name: newName || `${originalSearch.name} (Copy)`,
           description: originalSearch.description,
           searchCriteria: JSON.stringify(originalSearch.searchCriteria),

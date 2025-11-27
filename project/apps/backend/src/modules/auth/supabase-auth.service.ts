@@ -8,6 +8,7 @@ import { SupabaseService } from '../../common/supabase/supabase.service';
 import { PrismaService } from '../../database/prisma.service';
 import { UserRole } from '@prisma/client';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class SupabaseAuthService {
@@ -16,8 +17,16 @@ export class SupabaseAuthService {
   constructor(
     private supabaseService: SupabaseService,
     private prisma: PrismaService,
-    private auditLogsService: AuditLogsService
+    private auditLogsService: AuditLogsService,
+    private tenantContext: TenantContextService
   ) {}
+
+  /**
+   * Get the Supabase admin client for direct operations
+   */
+  getAdminClient() {
+    return this.supabaseService.getAdminClient();
+  }
 
   /**
    * Sign up a new user with Supabase Auth
@@ -53,9 +62,11 @@ export class SupabaseAuthService {
 
     // Create user record in our database
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const user = await this.prisma.user.create({
         data: {
           id: supabaseUser.id, // Use Supabase user ID
+          tenantId,
           email: supabaseUser.email!,
           name,
           password: '', // No password stored - Supabase handles it

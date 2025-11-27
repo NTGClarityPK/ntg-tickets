@@ -55,38 +55,24 @@ export function RoleSelectionModal({
       color: primaryLight,
       title: 'End User',
       description: 'Submit and track your support tickets',
-      permissions: ['Create tickets', 'View own tickets', 'Add comments'],
     },
     [UserRole.SUPPORT_STAFF]: {
       icon: IconUsers,
       color: primaryDark,
       title: 'Support Staff',
       description: 'Handle assigned tickets and provide support',
-      permissions: ['View assigned tickets', 'Resolve tickets', 'Add comments'],
     },
     [UserRole.SUPPORT_MANAGER]: {
       icon: IconShield,
       color: primaryDark,
       title: 'Support Manager',
       description: 'Manage team and oversee ticket operations',
-      permissions: [
-        'Assign tickets',
-        'View all tickets',
-        'Manage team',
-        'Generate reports',
-      ],
     },
     [UserRole.ADMIN]: {
       icon: IconSettings,
       color: primaryDarkest,
       title: 'Administrator',
       description: 'Full system access and user management',
-      permissions: [
-        'Manage users',
-        'System settings',
-        'View all data',
-        'Admin functions',
-      ],
     },
   };
 
@@ -139,7 +125,7 @@ export function RoleSelectionModal({
 
         <Stack gap='md'>
           {availableRoles.map(
-            ({ role, icon: Icon, color, title, description, permissions }) => (
+            ({ role, icon: Icon, color, title, description }) => (
               <Card
                 key={role}
                 shadow='sm'
@@ -179,22 +165,6 @@ export function RoleSelectionModal({
                   >
                     {role.replace('_', ' ')}
                   </Badge>
-                </Group>
-
-                <Text size='xs' c='dimmed' mb='xs'>
-                  Permissions:
-                </Text>
-                <Group gap='xs'>
-                  {permissions.map(permission => (
-                    <Badge
-                      key={permission}
-                      size='xs'
-                      variant='outline'
-                      color={color}
-                    >
-                      {permission}
-                    </Badge>
-                  ))}
                 </Group>
               </Card>
             )

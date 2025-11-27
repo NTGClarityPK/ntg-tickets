@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { TenantContextService } from '../tenant/tenant-context.service';
 
 export interface SystemConfig {
   // General Settings
@@ -49,7 +50,8 @@ export class SystemConfigService implements OnModuleInit {
 
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private tenantContext: TenantContextService
   ) {}
 
   async onModuleInit() {
@@ -156,7 +158,7 @@ export class SystemConfigService implements OnModuleInit {
     }
 
     try {
-      const setting = await this.prisma.systemSettings.findUnique({
+      const setting = await this.prisma.systemSettings.findFirst({
         where: { key },
       });
 
@@ -171,11 +173,22 @@ export class SystemConfigService implements OnModuleInit {
 
   async updateSetting(key: string, value: string): Promise<void> {
     try {
-      await this.prisma.systemSettings.upsert({
+      // Find existing setting first
+      const existing = await this.prisma.systemSettings.findFirst({
         where: { key },
-        update: { value },
-        create: { key, value },
       });
+
+      if (existing) {
+        await this.prisma.systemSettings.update({
+          where: { id: existing.id },
+          data: { value },
+        });
+      } else {
+        const tenantId = this.tenantContext.requireTenantId();
+        await this.prisma.systemSettings.create({
+          data: { tenantId, key, value },
+        });
+      }
 
       // Clear cache to force reload
       this.configCache.clear();
@@ -228,11 +241,21 @@ export class SystemConfigService implements OnModuleInit {
       // Update each setting
       for (const setting of settingsToUpdate) {
         if (setting.value !== undefined) {
-          await this.prisma.systemSettings.upsert({
+          const existing = await this.prisma.systemSettings.findFirst({
             where: { key: setting.key },
-            update: { value: setting.value },
-            create: setting,
           });
+
+          if (existing) {
+            await this.prisma.systemSettings.update({
+              where: { id: existing.id },
+              data: { value: setting.value },
+            });
+          } else {
+            const tenantId = this.tenantContext.requireTenantId();
+            await this.prisma.systemSettings.create({
+              data: { tenantId, key: setting.key, value: setting.value },
+            });
+          }
         }
       }
 
@@ -268,11 +291,11 @@ export class SystemConfigService implements OnModuleInit {
       enableAuditLog: true,
       enableBackup: true,
       backupFrequency: 'daily',
-      smtpHost: this.configService.get('SMTP_HOST', 'smtp.gmail.com'),
-      smtpPort: parseInt(this.configService.get('SMTP_PORT', '587')),
-      smtpUsername: this.configService.get('SMTP_USER', ''),
-      smtpPassword: this.configService.get('SMTP_PASS', ''),
-      fromEmail: this.configService.get('SMTP_FROM', 'noreply@ntg-ticket.com'),
+      smtpHost: this.configService.get('smtp.host', 'smtp.gmail.com'),
+      smtpPort: this.configService.get('smtp.port', 587),
+      smtpUsername: this.configService.get('smtp.user', ''),
+      smtpPassword: this.configService.get('smtp.pass', ''),
+      fromEmail: this.configService.get('frontend.url', 'noreply@ntg-ticket.com'),
       fromName: 'NTG Ticket',
     };
   }
@@ -296,17 +319,11 @@ export class SystemConfigService implements OnModuleInit {
   getEmailConfig() {
     const config = this.getConfig();
     return {
-      host:
-        config?.smtpHost ||
-        this.configService.get('SMTP_HOST', 'smtp.gmail.com'),
-      port:
-        config?.smtpPort ||
-        parseInt(this.configService.get('SMTP_PORT', '587')),
-      username: config?.smtpUsername || this.configService.get('SMTP_USER', ''),
-      password: config?.smtpPassword || this.configService.get('SMTP_PASS', ''),
-      fromEmail:
-        config?.fromEmail ||
-        this.configService.get('SMTP_FROM', 'noreply@ntg-ticket.com'),
+      host: config?.smtpHost || this.configService.get('smtp.host', 'smtp.gmail.com'),
+      port: config?.smtpPort || this.configService.get('smtp.port', 587),
+      username: config?.smtpUsername || this.configService.get('smtp.user', ''),
+      password: config?.smtpPassword || this.configService.get('smtp.pass', ''),
+      fromEmail: config?.fromEmail || process.env.FROM_EMAIL || 'noreply@ntg-ticket.com',
       fromName: config?.fromName || 'NTG Ticket',
     };
   }

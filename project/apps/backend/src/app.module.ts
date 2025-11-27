@@ -24,6 +24,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
+import { TenantsModule } from './modules/tenants/tenants.module';
 
 // Common modules
 import { LoggerModule } from './common/logger/logger.module';
@@ -32,6 +33,7 @@ import { EmailModule } from './common/email/email.module';
 import { FileStorageModule } from './common/file-storage/file-storage.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
 import { SystemConfigModule } from './common/config/system-config.module';
+import { TenantModule } from './common/tenant/tenant.module';
 import { AppConfigModule } from './config/app-config.module';
 import { AppConfigService } from './config/app-config.service';
 
@@ -77,6 +79,7 @@ import { AppConfigService } from './config/app-config.service';
     SupabaseModule,
     FileStorageModule,
     SystemConfigModule,
+    TenantModule,
 
     // Feature modules
     AuthModule,
@@ -99,6 +102,7 @@ import { AppConfigService } from './config/app-config.service';
     CustomFieldsModule,
     AuditLogsModule,
     WorkflowsModule,
+    TenantsModule,
   ],
 })
 export class AppModule {}

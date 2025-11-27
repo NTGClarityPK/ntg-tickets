@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,6 +7,514 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tenant {
+  id             String             @id @default(uuid())
+  name           String
+  slug           String             @unique
+  domain         String?            @unique
+  isActive       Boolean            @default(true)
+  plan           String             @default("FREE")
+  maxUsers       Int                @default(10)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  auditLogs      AuditLog[]
+  categories     Category[]
+  customFields   CustomField[]
+  emailTemplates EmailTemplate[]
+  integrations   Integration[]
+  notifications  Notification[]
+  savedSearches  SavedSearch[]
+  systemSettings SystemSettings[]
+  invitations    TenantInvitation[]
+  themeSettings  ThemeSettings[]
+  tickets        Ticket[]
+  users          User[]
+  workflows      Workflow[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("tenants")
+}
+
+model TenantInvitation {
+  id         String     @id @default(uuid())
+  tenantId   String
+  email      String
+  name       String?
+  roles      UserRole[]
+  invitedBy  String
+  token      String     @unique @default(uuid())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime   @default(now())
+  inviter    User       @relation("InvitationSender", fields: [invitedBy], references: [id])
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([token])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("tenant_invitations")
+}
+
+model User {
+  id                   String              @id @default(uuid())
+  email                String              @unique
+  name                 String
+  password             String?
+  roles                UserRole[]          @default([END_USER])
+  isActive             Boolean             @default(true)
+  avatar               String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  tenantId             String
+  attachments          Attachment[]
+  auditLogs            AuditLog[]
+  createdCategories    Category[]          @relation("CategoryCreator")
+  comments             Comment[]
+  notifications        Notification[]
+  savedSearches        SavedSearch[]
+  createdSubcategories Subcategory[]       @relation("SubcategoryCreator")
+  sentInvitations      TenantInvitation[]  @relation("InvitationSender")
+  ticketHistory        TicketHistory[]
+  assignedTickets      Ticket[]            @relation("TicketAssignee")
+  requestedTickets     Ticket[]            @relation("TicketRequester")
+  tenant               Tenant              @relation(fields: [tenantId], references: [id])
+  workflowExecutions   WorkflowExecution[]
+  createdWorkflows     Workflow[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Category {
+  id            String         @id @default(uuid())
+  name          TicketCategory
+  customName    String?
+  description   String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     String
+  tenantId      String
+  creator       User           @relation("CategoryCreator", fields: [createdBy], references: [id])
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  subcategories Subcategory[]
+  tickets       Ticket[]
+
+  @@unique([tenantId, customName])
+  @@index([tenantId])
+  @@map("categories")
+}
+
+model Subcategory {
+  id          String   @id @default(uuid())
+  categoryId  String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  creator     User     @relation("SubcategoryCreator", fields: [createdBy], references: [id])
+  tickets     Ticket[]
+
+  @@unique([name, categoryId])
+  @@map("subcategories")
+}
+
+model Ticket {
+  id                 String              @id @default(uuid())
+  ticketNumber       String              @unique
+  title              String
+  description        String
+  categoryId         String
+  subcategoryId      String?
+  priority           TicketPriority      @default(MEDIUM)
+  impact             TicketImpact        @default(MODERATE)
+  urgency            TicketUrgency       @default(NORMAL)
+  requesterId        String
+  assignedToId       String?
+  dueDate            DateTime?
+  resolution         String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  closedAt           DateTime?
+  workflowId         String?
+  workflowSnapshot   Json?
+  workflowVersion    Int?
+  status             String              @default("NEW")
+  tenantId           String
+  attachments        Attachment[]
+  comments           Comment[]
+  notifications      Notification[]
+  customFields       TicketCustomField[]
+  history            TicketHistory[]
+  relatedToTickets   TicketRelation[]    @relation("RelatedTicketRelations")
+  relatedTickets     TicketRelation[]    @relation("TicketRelations")
+  assignedTo         User?               @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  category           Category            @relation(fields: [categoryId], references: [id])
+  requester          User                @relation("TicketRequester", fields: [requesterId], references: [id])
+  subcategory        Subcategory?        @relation(fields: [subcategoryId], references: [id])
+  tenant             Tenant              @relation(fields: [tenantId], references: [id])
+  workflow           Workflow?           @relation(fields: [workflowId], references: [id])
+  workflowExecutions WorkflowExecution[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([requesterId])
+  @@index([categoryId, subcategoryId])
+  @@index([createdAt])
+  @@map("tickets")
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  ticketId   String
+  userId     String
+  content    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  ticketId   String
+  filename   String
+  fileSize   Int
+  fileType   String
+  fileUrl    String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+
+  @@index([ticketId])
+  @@index([uploadedBy])
+  @@index([createdAt])
+  @@map("attachments")
+}
+
+model TicketHistory {
+  id        String   @id @default(uuid())
+  ticketId  String
+  userId    String
+  fieldName String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("ticket_history")
+}
+
+model TicketRelation {
+  id              String @id @default(uuid())
+  ticketId        String
+  relatedTicketId String
+  relationType    String
+  relatedTicket   Ticket @relation("RelatedTicketRelations", fields: [relatedTicketId], references: [id], onDelete: Cascade)
+  ticket          Ticket @relation("TicketRelations", fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, relatedTicketId])
+  @@index([ticketId])
+  @@index([relatedTicketId])
+  @@map("ticket_relations")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  ticketId  String?
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  tenantId  String
+  tenant    Tenant           @relation(fields: [tenantId], references: [id])
+  ticket    Ticket?          @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model CustomField {
+  id                 String              @id @default(uuid())
+  name               String
+  fieldType          CustomFieldType
+  options            Json?
+  isRequired         Boolean             @default(false)
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  category           String?
+  description        String?
+  tenantId           String
+  tenant             Tenant              @relation(fields: [tenantId], references: [id])
+  ticketCustomFields TicketCustomField[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("custom_fields")
+}
+
+model TicketCustomField {
+  id            String      @id @default(uuid())
+  ticketId      String
+  customFieldId String
+  value         String
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  ticket        Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, customFieldId])
+  @@index([ticketId])
+  @@index([customFieldId])
+  @@map("ticket_custom_fields")
+}
+
+model EmailTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  subject   String
+  html      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([tenantId, type, isActive])
+  @@map("email_templates")
+}
+
+model SavedSearch {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  searchCriteria String
+  userId         String
+  isPublic       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("saved_searches")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String
+  action     AuditAction
+  resource   String
+  resourceId String?
+  fieldName  String?
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+  tenantId   String
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSettings {
+  id        String   @id @default(uuid())
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+  @@map("system_settings")
+}
+
+model ThemeSettings {
+  id           String   @id @default(uuid())
+  primaryColor String?
+  logoUrl      String?
+  faviconUrl   String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  faviconData  String?
+  logoData     String?
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("theme_settings")
+}
+
+model Integration {
+  id           String   @id @default(uuid())
+  name         String
+  type         String
+  enabled      Boolean  @default(false)
+  config       Json     @default("{}")
+  credentials  Json     @default("{}")
+  webhookUrl   String?
+  apiKey       String?
+  clientId     String?
+  clientSecret String?
+  tenantId     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("integrations")
+}
+
+model Workflow {
+  id              String               @id @default(uuid())
+  name            String
+  description     String?
+  status          WorkflowStatus       @default(DRAFT)
+  isDefault       Boolean              @default(false)
+  version         Int                  @default(1)
+  definition      Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  createdBy       String
+  deletedAt       DateTime?
+  isSystemDefault Boolean              @default(false)
+  doneStatuses    String[]             @default([])
+  isActive        Boolean              @default(true)
+  workingStatuses String[]             @default([])
+  tenantId        String
+  tickets         Ticket[]
+  executions      WorkflowExecution[]
+  transitions     WorkflowTransition[]
+  createdByUser   User                 @relation(fields: [createdBy], references: [id])
+  tenant          Tenant               @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status, isActive])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("workflows")
+}
+
+model WorkflowTransition {
+  id          String               @id @default(uuid())
+  workflowId  String
+  fromState   String
+  toState     String
+  name        String
+  description String?
+  isActive    Boolean              @default(true)
+  order       Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  actions     WorkflowAction[]
+  conditions  WorkflowCondition[]
+  permissions WorkflowPermission[]
+  workflow    Workflow             @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, isActive])
+  @@index([fromState, toState])
+  @@map("workflow_transitions")
+}
+
+model WorkflowCondition {
+  id           String                @id @default(uuid())
+  transitionId String
+  type         WorkflowConditionType
+  value        String?
+  createdAt    DateTime              @default(now())
+  isActive     Boolean               @default(true)
+  transition   WorkflowTransition    @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_conditions")
+}
+
+model WorkflowAction {
+  id           String             @id @default(uuid())
+  transitionId String
+  type         WorkflowActionType
+  config       Json               @default("{}")
+  isActive     Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  transition   WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_actions")
+}
+
+model WorkflowPermission {
+  id           String             @id @default(uuid())
+  transitionId String
+  role         UserRole
+  canExecute   Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  isActive     Boolean            @default(true)
+  transition   WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_permissions")
+}
+
+model WorkflowExecution {
+  id           String   @id @default(uuid())
+  ticketId     String
+  workflowId   String
+  fromState    String?
+  toState      String?
+  transitionId String?
+  executedBy   String
+  executedAt   DateTime @default(now())
+  comment      String?
+  metadata     Json?
+  errorMessage String?
+  result       String?
+  user         User     @relation(fields: [executedBy], references: [id])
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  workflow     Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([workflowId])
+  @@index([executedBy])
+  @@index([executedAt])
+  @@map("workflow_executions")
+}
+
 enum UserRole {
   END_USER
   SUPPORT_STAFF
@@ -17,8 +522,6 @@ enum UserRole {
   ADMIN
 }
 
-// Note: TicketStatus enum kept for backward compatibility
-// The tickets.status field now uses String to support custom workflow statuses
 enum TicketStatus {
   NEW
   OPEN
@@ -91,341 +594,6 @@ enum AuditAction {
   CATEGORY_CHANGE
 }
 
-model User {
-  id        String   @id @default(uuid()) // This ID matches Supabase auth.users.id
-  email     String   @unique
-  name      String
-  password  String?  // Optional - Supabase handles password in auth.users
-  roles     UserRole[] @default([END_USER])
-  isActive  Boolean  @default(true)
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  requestedTickets    Ticket[]        @relation("TicketRequester")
-  assignedTickets     Ticket[]        @relation("TicketAssignee")
-  comments            Comment[]
-  attachments         Attachment[]
-  ticketHistory       TicketHistory[]
-  notifications       Notification[]
-  createdCategories   Category[]      @relation("CategoryCreator")
-  createdSubcategories Subcategory[]  @relation("SubcategoryCreator")
-  savedSearches       SavedSearch[]
-  auditLogs           AuditLog[]
-  createdWorkflows    Workflow[]
-  workflowExecutions  WorkflowExecution[]
-
-  @@map("users")
-}
-
-model Category {
-  id          String        @id @default(uuid())
-  name        TicketCategory
-  customName  String?       @unique
-  description String?
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  createdBy   String
-  creator     User          @relation("CategoryCreator", fields: [createdBy], references: [id])
-
-  // Relations
-  subcategories Subcategory[]
-  tickets       Ticket[]
-
-  @@map("categories")
-}
-
-model Subcategory {
-  id          String   @id @default(uuid())
-  categoryId  String
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  creator     User     @relation("SubcategoryCreator", fields: [createdBy], references: [id])
-
-  // Relations
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tickets  Ticket[]
-
-  @@unique([name, categoryId])
-  @@map("subcategories")
-}
-
-model Ticket {
-  id            String         @id @default(uuid())
-  ticketNumber  String         @unique
-  title         String
-  description   String
-  categoryId    String
-  subcategoryId String?
-  priority      TicketPriority @default(MEDIUM)
-  status        String         @default("NEW") // Changed from TicketStatus enum to String to support custom workflow statuses
-  impact        TicketImpact   @default(MODERATE)
-  urgency       TicketUrgency  @default(NORMAL)
-  requesterId   String
-  assignedToId  String?
-  dueDate       DateTime?
-  resolution    String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  closedAt      DateTime?
-
-  // Relations
-  requester     User            @relation("TicketRequester", fields: [requesterId], references: [id])
-  assignedTo    User?           @relation("TicketAssignee", fields: [assignedToId], references: [id])
-  category      Category        @relation(fields: [categoryId], references: [id])
-  subcategory   Subcategory?    @relation(fields: [subcategoryId], references: [id])
-  comments      Comment[]
-  attachments   Attachment[]
-  history       TicketHistory[]
-  notifications Notification[]
-  relatedTickets TicketRelation[] @relation("TicketRelations")
-  relatedToTickets TicketRelation[] @relation("RelatedTicketRelations")
-  customFields TicketCustomField[]
-  workflowId    String?
-  workflow      Workflow?       @relation(fields: [workflowId], references: [id])
-  workflowSnapshot Json?         // Snapshot of the workflow at ticket creation time
-  workflowVersion  Int?          // Version of the workflow when ticket was created
-  workflowExecutions WorkflowExecution[]
-
-  @@index([status])
-  @@index([assignedToId])
-  @@index([requesterId])
-  @@index([categoryId, subcategoryId])
-  @@index([createdAt])
-  @@map("tickets")
-}
-
-model Comment {
-  id        String   @id @default(uuid())
-  ticketId  String
-  userId    String
-  content   String
-  isInternal Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@index([ticketId])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("comments")
-}
-
-model Attachment {
-  id        String   @id @default(uuid())
-  ticketId  String
-  filename  String
-  fileSize  Int
-  fileType  String
-  fileUrl   String
-  uploadedBy String
-  createdAt DateTime @default(now())
-
-  // Relations
-  ticket     Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  uploader   User   @relation(fields: [uploadedBy], references: [id])
-
-  @@index([ticketId])
-  @@index([uploadedBy])
-  @@index([createdAt])
-  @@map("attachments")
-}
-
-model TicketHistory {
-  id        String   @id @default(uuid())
-  ticketId  String
-  userId    String
-  fieldName String
-  oldValue  String?
-  newValue  String?
-  createdAt DateTime @default(now())
-
-  // Relations
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@index([ticketId])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("ticket_history")
-}
-
-model TicketRelation {
-  id           String @id @default(uuid())
-  ticketId     String
-  relatedTicketId String
-  relationType String // 'duplicate', 'blocked_by', 'blocks', 'related'
-
-  // Relations
-  ticket        Ticket @relation("TicketRelations", fields: [ticketId], references: [id], onDelete: Cascade)
-  relatedTicket Ticket @relation("RelatedTicketRelations", fields: [relatedTicketId], references: [id], onDelete: Cascade)
-
-  @@unique([ticketId, relatedTicketId])
-  @@index([ticketId])
-  @@index([relatedTicketId])
-  @@map("ticket_relations")
-}
-
-model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  ticketId  String?
-  type      NotificationType
-  title     String
-  message   String
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-
-  // Relations
-  user   User    @relation(fields: [userId], references: [id])
-  ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isRead])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-model CustomField {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  fieldType   CustomFieldType
-  options     Json?    // For SELECT fields
-  isRequired  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  description String?
-  category    String?  // Category filter for ticket forms
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  ticketCustomFields TicketCustomField[]
-
-  @@map("custom_fields")
-}
-
-model TicketCustomField {
-  id            String @id @default(uuid())
-  ticketId      String
-  customFieldId String
-  value         String
-
-  // Relations
-  ticket      Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  customField CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
-
-  @@unique([ticketId, customFieldId])
-  @@index([ticketId])
-  @@index([customFieldId])
-  @@map("ticket_custom_fields")
-}
-
-model EmailTemplate {
-  id        String   @id @default(uuid())
-  name      String
-  type      String
-  subject   String
-  html      String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([type])
-  @@map("email_templates")
-}
-
-model SavedSearch {
-  id             String   @id @default(uuid())
-  name           String
-  description    String?
-  searchCriteria String   // JSON string containing search filters
-  userId         String
-  isPublic       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-  @@map("saved_searches")
-}
-
-model AuditLog {
-  id          String      @id @default(uuid())
-  userId      String
-  action      AuditAction
-  resource    String      // 'ticket', 'user', 'category', etc.
-  resourceId  String?     // ID of the affected resource
-  fieldName   String?     // Specific field that was changed
-  oldValue    String?     // Previous value
-  newValue    String?     // New value
-  ipAddress   String?     // User's IP address
-  userAgent   String?     // User's browser/client info
-  metadata    Json?       // Additional context data
-  createdAt   DateTime    @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([resource])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-model SystemSettings {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("system_settings")
-}
-
-model ThemeSettings {
-  id          String   @id @default(uuid())
-  primaryColor String?  // Custom primary color
-  logoUrl     String?  // Custom logo URL
-  faviconUrl  String?  // Custom favicon URL
-  logoData    String?  // Base64 encoded logo data
-  faviconData String?  // Base64 encoded favicon data
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("theme_settings")
-}
-
-model Integration {
-  id           String   @id @default(uuid())
-  name         String
-  type         String
-  enabled      Boolean  @default(false)
-  config       Json     @default("{}")
-  credentials  Json     @default("{}")
-  webhookUrl   String?
-  apiKey       String?
-  clientId     String?
-  clientSecret String?
-  tenantId     String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("integrations")
-}
-
-// Workflow Enums
 enum WorkflowStatus {
   DRAFT
   ACTIVE
@@ -445,125 +613,4 @@ enum WorkflowActionType {
   UPDATE_FIELD
   SEND_EMAIL
   CREATE_TASK
-}
-
-// Workflow Models
-model Workflow {
-  id          String         @id @default(uuid())
-  name        String
-  description String?
-  status      WorkflowStatus @default(DRAFT)
-  isDefault   Boolean        @default(false)
-  isActive    Boolean        @default(true)
-  isSystemDefault Boolean    @default(false) // System default workflow - cannot be edited or deleted
-  version     Int            @default(1)
-  definition  Json?          // The workflow definition JSON
-  workingStatuses String[]   @default([]) // Statuses that count as "Working" for dashboard stats
-  doneStatuses    String[]   @default([]) // Statuses that count as "Done" for dashboard stats
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  deletedAt   DateTime?      // Soft delete - for hiding from UI but keeping for old tickets
-  createdBy   String
-
-  // Relations
-  createdByUser User                @relation(fields: [createdBy], references: [id])
-  transitions   WorkflowTransition[]
-  executions    WorkflowExecution[]
-  tickets       Ticket[]
-
-  @@index([status, isActive])
-  @@index([createdBy])
-  @@index([createdAt])
-  @@map("workflows")
-}
-
-model WorkflowTransition {
-  id          String   @id @default(uuid())
-  workflowId  String
-  fromState   String
-  toState     String
-  name        String
-  description String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  workflow    Workflow             @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  conditions  WorkflowCondition[]
-  actions     WorkflowAction[]
-  permissions WorkflowPermission[]
-
-  @@index([workflowId, isActive])
-  @@index([fromState, toState])
-  @@map("workflow_transitions")
-}
-
-model WorkflowCondition {
-  id           String                @id @default(uuid())
-  transitionId String
-  type         WorkflowConditionType
-  value        String?
-  isActive     Boolean               @default(true)
-  createdAt    DateTime              @default(now())
-
-  // Relations
-  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_conditions")
-}
-
-model WorkflowAction {
-  id           String            @id @default(uuid())
-  transitionId String
-  type         WorkflowActionType
-  config       Json              @default("{}")
-  isActive     Boolean           @default(true)
-  createdAt    DateTime          @default(now())
-
-  // Relations
-  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_actions")
-}
-
-model WorkflowPermission {
-  id           String   @id @default(uuid())
-  transitionId String
-  role         UserRole
-  canExecute   Boolean  @default(true)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-
-  // Relations
-  transition WorkflowTransition @relation(fields: [transitionId], references: [id], onDelete: Cascade)
-
-  @@map("workflow_permissions")
-}
-
-model WorkflowExecution {
-  id           String   @id @default(uuid())
-  ticketId     String
-  workflowId   String
-  transitionId String?
-  fromState    String?
-  toState      String?
-  executedBy   String
-  comment      String?
-  executedAt   DateTime @default(now())
-  result       String?  // SUCCESS, FAILED, SKIPPED
-  errorMessage String?
-  metadata     Json?    // Additional execution data
-
-  // Relations
-  ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [executedBy], references: [id])
-
-  @@index([ticketId])
-  @@index([workflowId])
-  @@index([executedBy])
-  @@index([executedAt])
-  @@map("workflow_executions")
 }

@@ -2,19 +2,26 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class EmailTemplatesService {
   private readonly logger = new Logger(EmailTemplatesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   async create(createEmailTemplateDto: CreateEmailTemplateDto) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
+      
       // If creating an active template, deactivate other templates of the same type
       if (createEmailTemplateDto.isActive === true) {
         await this.prisma.emailTemplate.updateMany({
           where: {
+            tenantId,
             type: createEmailTemplateDto.type,
             isActive: true,
           },
@@ -23,7 +30,10 @@ export class EmailTemplatesService {
       }
 
       const emailTemplate = await this.prisma.emailTemplate.create({
-        data: createEmailTemplateDto,
+        data: {
+          ...createEmailTemplateDto,
+          tenantId,
+        },
       });
 
       this.logger.log(`Email template created: ${emailTemplate.name}`);
@@ -36,7 +46,9 @@ export class EmailTemplatesService {
 
   async findAll() {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const emailTemplates = await this.prisma.emailTemplate.findMany({
+        where: { tenantId },
         orderBy: { name: 'asc' },
       });
 
@@ -295,15 +307,16 @@ export class EmailTemplatesService {
         },
       ];
 
+      const tenantId = this.tenantContext.requireTenantId();
       for (const template of defaultTemplates) {
         // Check if any template of this type already exists
         const existing = await this.prisma.emailTemplate.findFirst({
-          where: { type: template.type },
+          where: { tenantId, type: template.type },
         });
 
         if (!existing) {
           await this.prisma.emailTemplate.create({
-            data: template,
+            data: { ...template, tenantId },
           });
         }
       }

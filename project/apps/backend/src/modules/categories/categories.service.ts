@@ -1,20 +1,27 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       this.logger.log('Creating category with data:', JSON.stringify(createCategoryDto, null, 2));
       
       const category = await this.prisma.category.create({
         data: {
+          tenantId,
           name: createCategoryDto.name,
           customName: createCategoryDto.customName,
           description: createCategoryDto.description,
@@ -29,6 +36,13 @@ export class CategoriesService {
       this.logger.log(`Category created successfully: ${category.name}`);
       return category;
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = (error.meta as any)?.target;
+        if (target?.includes('customName')) {
+          throw new ConflictException(`Category with custom name "${createCategoryDto.customName}" already exists`);
+        }
+        throw new ConflictException(`Category already exists`);
+      }
       this.logger.error('Error creating category:', error);
       this.logger.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
@@ -37,7 +51,9 @@ export class CategoriesService {
 
   async findAll() {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const categories = await this.prisma.category.findMany({
+        where: { tenantId },
         include: {
           subcategories: {
             orderBy: { name: 'asc' },
@@ -58,8 +74,9 @@ export class CategoriesService {
 
   async findActive() {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const categories = await this.prisma.category.findMany({
-        where: { isActive: true },
+        where: { tenantId, isActive: true },
         include: {
           subcategories: {
             where: { isActive: true },
@@ -138,6 +155,9 @@ export class CategoriesService {
       this.logger.log(`Category updated: ${category.name}`);
       return category;
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException(`Category with name "${updateCategoryDto.customName}" already exists`);
+      }
       this.logger.error('Error updating category:', error);
       throw error;
     }
@@ -145,15 +165,14 @@ export class CategoriesService {
 
   async remove(id: string) {
     try {
-      const category = await this.prisma.category.update({
+      const category = await this.prisma.category.delete({
         where: { id },
-        data: { isActive: false },
       });
 
-      this.logger.log(`Category deactivated: ${category.name}`);
+      this.logger.log(`Category deleted: ${category.name}`);
       return category;
     } catch (error) {
-      this.logger.error('Error deactivating category:', error);
+      this.logger.error('Error deleting category:', error);
       throw error;
     }
   }

@@ -3,6 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { NotificationType } from '@prisma/client';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
 import { WebSocketService } from '../websocket/websocket.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class NotificationsService {
@@ -11,7 +12,8 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     private emailNotificationService: EmailNotificationService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    private tenantContext: TenantContextService
   ) {}
 
   async create(notificationData: {
@@ -22,8 +24,12 @@ export class NotificationsService {
     message: string;
   }) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const notification = await this.prisma.notification.create({
-        data: notificationData,
+        data: {
+          ...notificationData,
+          tenantId,
+        },
         include: {
           user: true,
           ticket: {
@@ -130,6 +136,17 @@ export class NotificationsService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async delete(notificationId: string, userId: string) {
+    await this.prisma.notification.deleteMany({
+      where: {
+        id: notificationId,
+        userId,
+      },
+    });
+
+    return { message: 'Notification deleted' };
   }
 
   private async sendEmailNotification(notification: {
@@ -241,12 +258,14 @@ export class NotificationsService {
       });
 
       // Send notification to each ticket's requester
+      const tenantId = this.tenantContext.requireTenantId();
       for (const ticket of tickets) {
         try {
           if (ticket.requester) {
             // Create notification in database
             await this.prisma.notification.create({
               data: {
+                tenantId,
                 userId: ticket.requester.id,
                 ticketId: ticket.id,
                 type: 'TICKET_STATUS_CHANGED',

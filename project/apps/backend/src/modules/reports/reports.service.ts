@@ -6,6 +6,7 @@ import {
   Prisma,
 } from '@prisma/client';
 import { SystemMonitoringService } from '../../common/system-monitoring/system-monitoring.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 // Define proper types for report parameters
 interface ReportParameters {
@@ -176,8 +177,14 @@ export class ReportsService {
 
   constructor(
     private prisma: PrismaService,
-    private systemMonitoring: SystemMonitoringService
+    private systemMonitoring: SystemMonitoringService,
+    private tenantContext: TenantContextService
   ) {}
+
+  private getTenantFilter(): { tenantId?: string } {
+    const tenantId = this.tenantContext.getTenantId();
+    return tenantId ? { tenantId } : {};
+  }
 
   async generateReport(params: GenerateReportParams) {
     // Placeholder implementation
@@ -213,7 +220,7 @@ export class ReportsService {
     try {
       const { startDate, endDate, userId, status, priority, category } = params;
 
-      const where: Prisma.TicketWhereInput = {};
+      const where: Prisma.TicketWhereInput = { ...this.getTenantFilter() };
 
       if (startDate || endDate) {
         where.createdAt = {};
@@ -839,7 +846,7 @@ export class ReportsService {
     try {
       const { startDate, endDate, status, priority, category } = params;
 
-      const where: Prisma.TicketWhereInput = {};
+      const where: Prisma.TicketWhereInput = { ...this.getTenantFilter() };
 
       if (startDate || endDate) {
         where.createdAt = {};
@@ -921,7 +928,7 @@ export class ReportsService {
       this.logger.log('ExportTicketReport called with params:', params);
       const { startDate, endDate, userId, status, priority, category } = params;
 
-      const where: Prisma.TicketWhereInput = {};
+      const where: Prisma.TicketWhereInput = { ...this.getTenantFilter() };
 
       if (startDate || endDate) {
         where.createdAt = {};

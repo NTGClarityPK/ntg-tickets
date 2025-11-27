@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { FileStorageService } from '../../common/file-storage/file-storage.service';
 import { VirusScanService } from '../virus-scan/virus-scan.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 // import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { UpdateAttachmentDto } from './dto/update-attachment.dto';
 
@@ -17,7 +18,8 @@ export class AttachmentsService {
   constructor(
     private prisma: PrismaService,
     private fileStorage: FileStorageService,
-    private virusScan: VirusScanService
+    private virusScan: VirusScanService,
+    private tenantContext: TenantContextService
   ) {}
 
   async uploadAttachment(
@@ -31,9 +33,12 @@ export class AttachmentsService {
       'AttachmentsService'
     );
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Validate user has permission to upload attachments to this ticket
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id: ticketId },
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id: ticketId, ...(tenantId ? { tenantId } : {}) },
       select: { requesterId: true, assignedToId: true },
     });
 
@@ -79,9 +84,9 @@ export class AttachmentsService {
       throw new BadRequestException('File type not allowed');
     }
 
-    // Check if ticket exists
-    const existingTicket = await this.prisma.ticket.findUnique({
-      where: { id: ticketId },
+    // Check if ticket exists (already validated above with tenant filter)
+    const existingTicket = await this.prisma.ticket.findFirst({
+      where: { id: ticketId, ...(tenantId ? { tenantId } : {}) },
     });
 
     if (!existingTicket) {
@@ -180,9 +185,12 @@ export class AttachmentsService {
       'AttachmentsService'
     );
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Validate user has permission to view attachments for this ticket
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id: ticketId },
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id: ticketId, ...(tenantId ? { tenantId } : {}) },
       select: { requesterId: true, assignedToId: true },
     });
 

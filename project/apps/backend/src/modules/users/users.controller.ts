@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
+import { TenantsService } from '../tenants/tenants.service';
 import { UserRole } from '@prisma/client';
 
 @ApiTags('Users')
@@ -30,18 +32,37 @@ import { UserRole } from '@prisma/client';
 @UseGuards(SupabaseAuthGuard)
 @ApiBearerAuth()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly tenantsService: TenantsService,
+  ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
+  @ApiOperation({ summary: 'Invite a new user (sends invitation email)' })
+  @ApiResponse({ status: 201, description: 'Invitation sent successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto, @Request() req: any) {
+    // Use the invitation system instead of direct user creation
+    const invitation = await this.tenantsService.createInvitation(
+      req.user.tenantId,
+      req.user.id,
+      {
+        email: createUserDto.email,
+        name: createUserDto.name,
+        roles: createUserDto.roles || [UserRole.END_USER],
+      },
+    );
     return {
-      data: user,
-      message: 'User created successfully',
+      data: {
+        id: invitation.id,
+        email: invitation.email,
+        name: invitation.name,
+        roles: invitation.roles,
+        status: 'invited',
+        expiresAt: invitation.expiresAt,
+      },
+      message: 'Invitation sent successfully. User will receive an email to set up their account.',
     };
   }
 

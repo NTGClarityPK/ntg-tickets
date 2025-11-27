@@ -59,9 +59,38 @@ export enum CustomFieldType {
 
 // ===== CORE INTERFACES =====
 
+// Organization/Tenant interfaces
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  domain?: string;
+  plan: string;
+  maxUsers: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TenantInvitation {
+  id: string;
+  tenantId: string;
+  email: string;
+  name?: string;
+  roles: UserRole[];
+  invitedBy: string;
+  inviter?: { id: string; name: string; email: string };
+  token: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  createdAt: string;
+  status: 'pending' | 'accepted' | 'expired';
+}
+
 // User interfaces
 export interface User {
   id: string;
+  tenantId?: string;
   email: string;
   name: string;
   roles: UserRole[];
@@ -71,6 +100,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   openTicketCount?: number;
+  organization?: Organization;
 }
 
 export interface CreateUserInput {

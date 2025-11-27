@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Post,
+  Delete,
   Param,
   Query,
   Body,
@@ -89,5 +90,13 @@ export class NotificationsController {
       data: result,
       message: 'Bulk notifications sent successfully',
     };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a notification' })
+  @ApiResponse({ status: 200, description: 'Notification deleted' })
+  async delete(@Param('id') id: string, @Request() req) {
+    const result = await this.notificationsService.delete(id, req.user.id);
+    return result;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SystemConfigService } from '../../common/config/system-config.service';
 import { AppConfigService } from '../../config/app-config.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class AdminService {
@@ -10,7 +11,8 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private systemConfigService: SystemConfigService,
-    private readonly appConfig: AppConfigService
+    private readonly appConfig: AppConfigService,
+    private tenantContext: TenantContextService
   ) {}
 
   async getSystemStats() {
@@ -515,8 +517,10 @@ export class AdminService {
               },
             });
           } else {
+            const tenantId = this.tenantContext.requireTenantId();
             await this.prisma.category.create({
               data: {
+                tenantId,
                 name: category.name,
                 description: category.description,
                 isActive: category.isActive ?? true,
@@ -570,8 +574,10 @@ export class AdminService {
               },
             });
           } else {
+            const tenantId = this.tenantContext.requireTenantId();
             await this.prisma.customField.create({
               data: {
+                tenantId,
                 name: field.name,
                 fieldType: field.fieldType,
                 options: field.options,
@@ -593,8 +599,12 @@ export class AdminService {
 
   async getThemeSettings() {
     try {
+      const tenantId = this.tenantContext.getTenantId();
       const themeSettings = await (this.prisma as any).themeSettings.findFirst({
-        where: { isActive: true },
+        where: { 
+          isActive: true,
+          ...(tenantId && { tenantId }),
+        },
         orderBy: { updatedAt: 'desc' },
       });
 
@@ -628,15 +638,16 @@ export class AdminService {
         throw new Error('Favicon data too large. Please use a smaller image.');
       }
 
-      // Get current theme settings to preserve existing data
+      // Get current theme settings to preserve existing data (for this tenant only)
+      const tenantId = this.tenantContext.requireTenantId();
       const currentSettings = await (this.prisma as any).themeSettings.findFirst({
-        where: { isActive: true },
+        where: { isActive: true, tenantId },
         orderBy: { updatedAt: 'desc' },
       });
 
-      // Deactivate all existing theme settings
+      // Deactivate existing theme settings for this tenant only
       await (this.prisma as any).themeSettings.updateMany({
-        where: { isActive: true },
+        where: { isActive: true, tenantId },
         data: { isActive: false },
       });
 
@@ -738,7 +749,10 @@ export class AdminService {
 
       // Create new theme settings with merged data
       const newThemeSettings = await (this.prisma as any).themeSettings.create({
-        data: mergedData,
+        data: {
+          ...mergedData,
+          tenantId,
+        },
       });
 
       return {

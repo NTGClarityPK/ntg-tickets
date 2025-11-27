@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { Prisma, AuditAction } from '@prisma/client';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 export interface AuditLogFilters {
   page: number;
@@ -46,7 +47,10 @@ export interface PaginatedAuditLogs {
 export class AuditLogsService {
   private readonly logger = new Logger(AuditLogsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   /**
    * Get audit logs with pagination and filters
@@ -480,10 +484,31 @@ export class AuditLogsService {
     userId: string;
     ipAddress?: string;
     userAgent?: string;
+    tenantId?: string;
   }): Promise<AuditLog> {
     try {
+      const tenantId = data.tenantId || this.tenantContext.getTenantId();
+      if (!tenantId) {
+        this.logger.warn('No tenant context available for audit log, skipping');
+        return {
+          id: '',
+          action: data.action,
+          resource: data.resource,
+          resourceId: data.resourceId,
+          fieldName: data.fieldName,
+          oldValue: data.oldValue,
+          newValue: data.newValue,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          metadata: data.metadata,
+          userId: data.userId,
+          createdAt: new Date(),
+        };
+      }
+      
       const auditLog = await this.prisma.auditLog.create({
         data: {
+          tenantId,
           action: data.action as AuditAction,
           resource: data.resource,
           resourceId: data.resourceId,

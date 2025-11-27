@@ -9,6 +9,7 @@ import { SystemConfigService } from '../../common/config/system-config.service';
 import { ValidationService } from '../../common/validation/validation.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { SupabaseAuthService } from './supabase-auth.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { UserRole } from '@prisma/client';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
@@ -22,7 +23,8 @@ export class AuthService {
     private supabaseAuthService: SupabaseAuthService,
     private systemConfigService: SystemConfigService,
     private validationService: ValidationService,
-    private auditLogsService: AuditLogsService
+    private auditLogsService: AuditLogsService,
+    private tenantContext: TenantContextService
   ) {}
 
   async validateUser(
@@ -84,6 +86,16 @@ export class AuthService {
         ? await bcrypt.hash(userData.password, 12)
         : undefined;
 
+      // Get tenantId - for OAuth login, user must already exist with a tenant
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: userData.email },
+      });
+      
+      const tenantId = existingUser?.tenantId || this.tenantContext.getTenantId();
+      if (!tenantId) {
+        throw new BadRequestException('User must be associated with an organization. Please sign up first.');
+      }
+
       const user = await this.prisma.user.upsert({
         where: { email: userData.email },
         update: {
@@ -96,6 +108,7 @@ export class AuthService {
         },
         create: {
           id: userData.id,
+          tenantId,
           email: userData.email,
           name: userData.name,
           password:

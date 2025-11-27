@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '../types/unified';
+import { User, Organization } from '../types/unified';
 
 interface AuthState {
   user: User | null;
+  organization: Organization | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (user: User | null) => void;
+  setOrganization: (organization: Organization | null) => void;
   updateUser: (updates: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
@@ -18,9 +20,11 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      organization: null,
       isAuthenticated: false,
       isLoading: true,
       setUser: user => set({ user, isAuthenticated: !!user }),
+      setOrganization: organization => set({ organization }),
       updateUser: (updates: Partial<User>) => {
         const state = get();
         if (state.user) {
@@ -28,7 +32,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       setLoading: isLoading => set({ isLoading }),
-      logout: () => set({ user: null, isAuthenticated: false }),
+      logout: () => set({ user: null, organization: null, isAuthenticated: false }),
       hasRole: (role: string): boolean => {
         const state = get();
         return state.user?.activeRole === role;
@@ -42,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       partialize: state => ({
         user: state.user,
+        organization: state.organization,
         isAuthenticated: state.isAuthenticated,
       }),
     }
@@ -80,6 +85,12 @@ export const useAuthUserId = () => useAuthStore(state => state.user?.id);
  * @example const activeRole = useAuthActiveRole();
  */
 export const useAuthActiveRole = () => useAuthStore(state => state.user?.activeRole);
+
+/**
+ * Selector hook for organization. Only re-renders when organization changes.
+ * @example const organization = useAuthOrganization();
+ */
+export const useAuthOrganization = () => useAuthStore(state => state.organization);
 
 /**
  * Selector hook for multiple auth values. Use when you need multiple values.

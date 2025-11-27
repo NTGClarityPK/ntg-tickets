@@ -4,10 +4,14 @@ import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { CreateWorkflowTransitionDto } from './dto/create-workflow-transition.dto';
 import { WorkflowStatus, UserRole } from '@prisma/client';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class WorkflowsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   async create(createWorkflowDto: CreateWorkflowDto, userId: string) {
     try {
@@ -46,8 +50,10 @@ export class WorkflowsService {
       }
 
       console.log('💾 Creating workflow in database...');
+      const tenantId = this.tenantContext.requireTenantId();
       const workflow = await this.prisma.workflow.create({
         data: {
+          tenantId,
           ...workflowData,
           ...statusCategorization,
           definition: definition || {},
@@ -76,9 +82,11 @@ export class WorkflowsService {
   }
 
   async findAll() {
+    const tenantId = this.tenantContext.requireTenantId();
     // Only return workflows that haven't been soft-deleted
     return this.prisma.workflow.findMany({
       where: {
+        tenantId,
         deletedAt: null,
       },
       include: {
@@ -828,6 +836,13 @@ export class WorkflowsService {
 
       // Build base WHERE conditions for user role (for raw SQL)
       const baseConditions: string[] = [];
+      
+      // Always filter by tenant
+      const tenantId = this.tenantContext.getTenantId();
+      if (tenantId) {
+        baseConditions.push(`"tenantId" = '${tenantId.replace(/'/g, "''")}'`);
+      }
+      
       console.log('🔍 Checking user role:', { userRole, SUPPORT_STAFF: UserRole.SUPPORT_STAFF, END_USER: UserRole.END_USER, userId });
       if (userRole === UserRole.SUPPORT_STAFF && userId) {
         baseConditions.push(`"assignedToId" = '${userId.replace(/'/g, "''")}'`);
@@ -1019,6 +1034,10 @@ export class WorkflowsService {
       const workingStatusConditions = buildRawQueryConditions(workingStatusesByWorkflow);
       const doneStatusConditions = buildRawQueryConditions(doneStatusesByWorkflow);
 
+      // Filter by tenant
+      const tenantId = this.tenantContext.getTenantId();
+      const tenantCondition = tenantId ? `t."tenantId" = '${tenantId.replace(/'/g, "''")}'` : '1=1';
+
       // Get all tickets grouped by assignedToId using SQL
       const allTicketsQuery = `
         SELECT 
@@ -1027,6 +1046,7 @@ export class WorkflowsService {
           COUNT(*)::int as "all"
         FROM tickets t
         LEFT JOIN users u ON t."assignedToId" = u.id
+        WHERE ${tenantCondition}
         GROUP BY COALESCE("assignedToId", 'unassigned'), u.name
       `;
 
@@ -1043,7 +1063,7 @@ export class WorkflowsService {
             COALESCE("assignedToId", 'unassigned') as "staffId",
             COUNT(*)::int as "working"
           FROM tickets
-          WHERE (${workingStatusConditions})
+          WHERE ${tenantCondition} AND (${workingStatusConditions})
           GROUP BY COALESCE("assignedToId", 'unassigned')
         `
         : null;
@@ -1059,7 +1079,7 @@ export class WorkflowsService {
             COALESCE("assignedToId", 'unassigned') as "staffId",
             COUNT(*)::int as "done"
           FROM tickets
-          WHERE (${doneStatusConditions})
+          WHERE ${tenantCondition} AND (${doneStatusConditions})
           GROUP BY COALESCE("assignedToId", 'unassigned')
         `
         : null;

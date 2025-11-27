@@ -11,6 +11,7 @@ import { SupabaseService } from '../../common/supabase/supabase.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidationService } from '../../common/validation/validation.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { Prisma, UserRole } from '@prisma/client';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 
@@ -39,7 +40,8 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private validationService: ValidationService,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    private tenantContext: TenantContextService
   ) {}
 
   async create(
@@ -90,9 +92,11 @@ export class UsersService {
 
       // Create user record in our database with Supabase user ID
       try {
+        const tenantId = this.tenantContext.requireTenantId();
         const user = await this.prisma.user.create({
           data: {
             id: supabaseUser.id, // Use Supabase user ID
+            tenantId,
             email: supabaseUser.email!,
             name: createUserDto.name,
             password: null, // No password stored - Supabase handles it
@@ -136,10 +140,12 @@ export class UsersService {
     };
   }> {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const { page = 1, limit = 20, search, role, isActive } = params;
       const skip = (page - 1) * limit;
 
       const where: {
+        tenantId: string;
         OR?: Array<
           | { name: { contains: string; mode: 'insensitive' } }
           | { email: { contains: string; mode: 'insensitive' } }
@@ -148,7 +154,7 @@ export class UsersService {
           has: 'END_USER' | 'SUPPORT_STAFF' | 'SUPPORT_MANAGER' | 'ADMIN';
         };
         isActive?: boolean;
-      } = {};
+      } = { tenantId };
 
       if (search) {
         where.OR = [
@@ -346,6 +352,17 @@ export class UsersService {
     isActive: boolean;
   }> {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
+      
+      // Verify user exists and belongs to tenant
+      const existingUser = await this.prisma.user.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+
       const user = await this.prisma.user.update({
         where: { id },
         data: {
@@ -357,6 +374,9 @@ export class UsersService {
       this.logger.log(`User deactivated: ${user.email}`);
       return this.sanitizeUserSimple(user);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.handleServiceError(error, 'Failed to deactivate user');
     }
   }

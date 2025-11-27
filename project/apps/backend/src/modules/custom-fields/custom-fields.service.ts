@@ -5,19 +5,25 @@ import {
   CreateCustomFieldDto,
   UpdateCustomFieldDto,
 } from './dto/custom-field.dto';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 @Injectable()
 export class CustomFieldsService {
   private readonly logger = new Logger(CustomFieldsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService
+  ) {}
 
   async findAll(filters?: { category?: string; isActive?: boolean }) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const where: {
+        tenantId: string;
         category?: string;
         isActive?: boolean;
-      } = {};
+      } = { tenantId };
 
       if (filters?.category) {
         where.category = filters.category;
@@ -57,8 +63,10 @@ export class CustomFieldsService {
 
   async create(createCustomFieldDto: CreateCustomFieldDto) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const customField = await this.prisma.customField.create({
         data: {
+          tenantId,
           name: createCustomFieldDto.name,
           fieldType: createCustomFieldDto.fieldType as CustomFieldType,
           options: createCustomFieldDto.options,

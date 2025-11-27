@@ -155,7 +155,7 @@ export default function ReportsPage() {
     return () => {
       isMounted = false;
     };
-  }, [getActiveWorkflow, getDashboardStats]);
+  }, [getActiveWorkflow, getDashboardStats, user?.activeRole]);
 
   // Fetch staff performance for Support Manager
   useEffect(() => {

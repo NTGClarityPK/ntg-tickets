@@ -2,6 +2,7 @@ import { User as PrismaUser, UserRole } from '@prisma/client';
 
 export class User implements PrismaUser {
   id: string;
+  tenantId: string;
   email: string;
   name: string;
   password: string;

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, ForbiddenException, Logger } from '@ne
 import { PrismaService } from '../../database/prisma.service';
 import { WorkflowsService } from './workflows.service';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class WorkflowExecutionService {
     private prisma: PrismaService,
     private workflowsService: WorkflowsService,
     private emailNotificationService: EmailNotificationService,
+    private tenantContext: TenantContextService,
   ) {}
 
   async executeTicketTransition(
@@ -22,9 +24,12 @@ export class WorkflowExecutionService {
     comment?: string,
     resolution?: string,
   ) {
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Get the ticket with its current workflow
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id: ticketId },
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id: ticketId, ...(tenantId ? { tenantId } : {}) },
       include: {
         workflow: {
           include: {

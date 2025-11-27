@@ -23,6 +23,7 @@ import { WorkflowExecutionService } from '../workflows/workflow-execution.servic
 import { WorkflowsService } from '../workflows/workflows.service';
 import { TicketResponseDto } from './dto/ticket-response.dto';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -106,7 +107,8 @@ export class TicketsService {
     private readonly systemConfigService: SystemConfigService,
     private readonly workflowExecutionService: WorkflowExecutionService,
     private readonly workflowsService: WorkflowsService,
-    private readonly emailNotificationService: EmailNotificationService
+    private readonly emailNotificationService: EmailNotificationService,
+    private readonly tenantContext: TenantContextService
   ) {}
 
   /**
@@ -248,9 +250,13 @@ export class TicketsService {
       initialStatus,
     } = await this.resolveDefaultWorkflow();
 
+    // Get tenant context
+    const tenantId = this.tenantContext.requireTenantId();
+
     // Create ticket
     const ticket = await this.prisma.ticket.create({
       data: {
+        tenantId,
         ticketNumber,
         title: createTicketDto.title,
         description: createTicketDto.description,
@@ -382,7 +388,9 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const where: Prisma.TicketWhereInput = {};
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+    const where: Prisma.TicketWhereInput = tenantId ? { tenantId } : {};
 
     // Apply viewType filter
     const viewType = filters.viewType || 'all';
@@ -650,8 +658,10 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, ...(tenantId ? { tenantId } : {}) },
       include: {
         requester: true,
         assignedTo: true,
@@ -746,8 +756,10 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const existingTicket = await this.prisma.ticket.findUnique({
-      where: { id },
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+    const existingTicket = await this.prisma.ticket.findFirst({
+      where: { id, ...(tenantId ? { tenantId } : {}) },
     });
 
     if (!existingTicket) {
@@ -899,8 +911,10 @@ export class TicketsService {
       'TicketsService'
     );
 
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, ...(tenantId ? { tenantId } : {}) },
     });
 
     if (!ticket) {
@@ -950,9 +964,12 @@ export class TicketsService {
       throw new BadRequestException('No ticket IDs provided');
     }
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Fetch all tickets to check permissions
     const tickets = await this.prisma.ticket.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) },
       select: { id: true, requesterId: true, ticketNumber: true },
     });
 
@@ -1030,9 +1047,12 @@ export class TicketsService {
       'TicketsService'
     );
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Get the current ticket to check permissions
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, ...(tenantId ? { tenantId } : {}) },
     });
 
     if (!ticket) {
@@ -1190,8 +1210,10 @@ export class TicketsService {
       throw new BadRequestException('Assignee ID is required');
     }
 
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { id },
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, ...(tenantId ? { tenantId } : {}) },
     });
 
     if (!ticket) {
@@ -1555,9 +1577,13 @@ export class TicketsService {
       'TicketsService'
     );
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
+
     // Show tickets created by OR assigned to the user
     const tickets = await this.prisma.ticket.findMany({
       where: {
+        ...(tenantId ? { tenantId } : {}),
         OR: [
           { requesterId: userId },
           { assignedToId: userId },
@@ -1586,7 +1612,10 @@ export class TicketsService {
   async getMyTickets(userId: string, filters: TicketFilters) {
     this.logger.log(`Getting tickets for user ${userId}`, 'TicketsService');
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
     const where: Prisma.TicketWhereInput = {
+      ...(tenantId ? { tenantId } : {}),
       requesterId: userId,
     };
 
@@ -1678,9 +1707,10 @@ export class TicketsService {
       'TicketsService'
     );
 
-    // Debug logging removed for production
-
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
     const where: Prisma.TicketWhereInput = {
+      ...(tenantId ? { tenantId } : {}),
       assignedToId: userId,
     };
 
@@ -1771,9 +1801,12 @@ export class TicketsService {
   async getOverdueTickets() {
     this.logger.log('Getting overdue tickets', 'TicketsService');
 
+    // Filter by tenant
+    const tenantId = this.tenantContext.getTenantId();
     const now = new Date();
     const tickets = await this.prisma.ticket.findMany({
       where: {
+        ...(tenantId ? { tenantId } : {}),
         dueDate: {
           lt: now,
         },

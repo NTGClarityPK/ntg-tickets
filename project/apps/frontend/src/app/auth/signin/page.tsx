@@ -343,6 +343,19 @@ export default function SignInPage() {
               >
                 Sign In
               </Button>
+
+              <Text ta='center' size='sm' c='dimmed'>
+                Don&apos;t have an account?{' '}
+                <Text
+                  component='a'
+                  href='/auth/signup'
+                  c={primary}
+                  fw={600}
+                  style={{ cursor: 'pointer' }}
+                >
+                  Sign up
+                </Text>
+              </Text>
             </Stack>
           </form>
         );

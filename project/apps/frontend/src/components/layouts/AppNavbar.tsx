@@ -149,6 +149,12 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
       href: '/admin/users',
       show: hasRole('ADMIN'), // Only show for ADMIN, not SUPPORT_MANAGER
     },
+    {
+      label: 'Invitations',
+      icon: IconMail,
+      href: '/admin/invitations',
+      show: hasRole('ADMIN'),
+    },
   ];
 
   // Additional admin items (only show on desktop or when expanded) - sorted by logical grouping

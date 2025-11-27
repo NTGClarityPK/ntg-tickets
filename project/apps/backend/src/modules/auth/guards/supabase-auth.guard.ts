@@ -5,19 +5,34 @@ import {
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { SupabaseService } from '../../../common/supabase/supabase.service';
 import { PrismaService } from '../../../database/prisma.service';
+import { TenantContextService } from '../../../common/tenant/tenant-context.service';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
   private readonly logger = new Logger(SupabaseAuthGuard.name);
 
   constructor(
+    private reflector: Reflector,
     private supabaseService: SupabaseService,
     private prisma: PrismaService,
+    private tenantContext: TenantContextService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Check if route is marked as public
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
@@ -63,7 +78,7 @@ export class SupabaseAuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid token: user not found');
       }
 
-      // Fetch user from database to get roles
+      // Fetch user from database to get roles and tenantId
       const dbUser = await this.prisma.user.findUnique({
         where: { id: user.id },
         select: {
@@ -71,6 +86,7 @@ export class SupabaseAuthGuard implements CanActivate {
           email: true,
           roles: true,
           isActive: true,
+          tenantId: true,
         },
       });
 
@@ -91,16 +107,20 @@ export class SupabaseAuthGuard implements CanActivate {
         ? metadataActiveRole
         : dbUser.roles[0] || 'END_USER';
 
-      // Attach user to request with role information
+      // Attach user to request with role information and tenantId
       request.user = {
         id: dbUser.id,
         email: dbUser.email,
         roles: dbUser.roles,
         activeRole: activeRole,
+        tenantId: dbUser.tenantId,
         supabaseUser: user,
       };
 
-      this.logger.debug(`Token verified successfully for user: ${user.email} with role: ${activeRole}`);
+      // Set tenant context for the request
+      this.tenantContext.setTenantId(dbUser.tenantId);
+
+      this.logger.debug(`Token verified successfully for user: ${user.email} with role: ${activeRole} in tenant: ${dbUser.tenantId}`);
       return true;
     } catch (error) {
       if (error instanceof UnauthorizedException) {

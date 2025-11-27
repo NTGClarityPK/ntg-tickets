@@ -191,11 +191,7 @@ export function UsersListPresenter({
                           <Menu.Item
                             leftSection={<IconTrash size={14} />}
                             color={theme.colors[theme.primaryColor][9]}
-                            onClick={() => {
-                              onSetSelectedUser(user);
-                              handlers.onDeleteModalClose();
-                              // Modal will be opened by container
-                            }}
+                            onClick={() => onSetSelectedUser(user)}
                           >
                             Delete
                           </Menu.Item>

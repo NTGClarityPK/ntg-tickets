@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { UserRole } from '@prisma/client';
@@ -16,7 +17,8 @@ export class CommentsService {
 
   constructor(
     private prisma: PrismaService,
-    private emailNotificationService: EmailNotificationService
+    private emailNotificationService: EmailNotificationService,
+    private tenantContext: TenantContextService
   ) {}
 
   async create(
@@ -25,9 +27,12 @@ export class CommentsService {
     userRole: UserRole
   ) {
     try {
+      // Filter by tenant
+      const tenantId = this.tenantContext.getTenantId();
+      
       // Verify ticket exists and user has access
-      const ticket = await this.prisma.ticket.findUnique({
-        where: { id: createCommentDto.ticketId },
+      const ticket = await this.prisma.ticket.findFirst({
+        where: { id: createCommentDto.ticketId, ...(tenantId ? { tenantId } : {}) },
         include: { requester: true, assignedTo: true },
       });
 
@@ -77,9 +82,12 @@ export class CommentsService {
 
   async findAll(ticketId: string, userId: string, userRole: UserRole) {
     try {
+      // Filter by tenant
+      const tenantId = this.tenantContext.getTenantId();
+      
       // Verify ticket exists and user has access
-      const ticket = await this.prisma.ticket.findUnique({
-        where: { id: ticketId },
+      const ticket = await this.prisma.ticket.findFirst({
+        where: { id: ticketId, ...(tenantId ? { tenantId } : {}) },
         include: { requester: true, assignedTo: true },
       });
 

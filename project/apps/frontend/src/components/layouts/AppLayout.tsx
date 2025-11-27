@@ -83,6 +83,13 @@ export function AppLayout({ children }: AppLayoutProps) {
     checkAuth();
   }, [router]);
 
+  // Redirect to signin when user logs out
+  useEffect(() => {
+    if (!isCheckingAuth && !user) {
+      router.push('/auth/signin');
+    }
+  }, [user, isCheckingAuth, router]);
+
   // Show loading state while checking authentication
   if (isCheckingAuth || isLoading) {
     return <LoadingOverlay visible />;

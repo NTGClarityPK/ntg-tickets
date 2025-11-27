@@ -12,9 +12,10 @@ interface AuthLayoutProps {
   title: string;
   subtitle: string;
   type: 'signin' | 'signup';
+  maxWidth?: number;
 }
 
-export function AuthLayout({ children }: AuthLayoutProps) {
+export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
   const { primary, primaryDark } = useDynamicTheme();
 
   return (
@@ -110,7 +111,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           withBorder
           style={{
             backdropFilter: 'blur(20px)',
-            maxWidth: '480px',
+            maxWidth: `${maxWidth}px`,
             width: '100%',
             minHeight: '500px',
             display: 'flex',
