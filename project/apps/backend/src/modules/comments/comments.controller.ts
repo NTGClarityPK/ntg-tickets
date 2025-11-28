@@ -41,8 +41,8 @@ export class CommentsController {
       req.user.activeRole
     );
     return {
-      data: comment,
       message: 'Comment created successfully',
+      ticketId: comment.ticketId,
     };
   }
 

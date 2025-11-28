@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketApi, Comment, CreateCommentInput } from '../lib/apiClient';
+import { normalizeItemResponse } from '../services/api/response-normalizer';
 
 export interface UpdateCommentInput {
   content: string;
@@ -34,13 +35,20 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: async (data: CreateCommentInput) => {
       const response = await ticketApi.addComment(data);
-      return response.data.data as Comment;
+      const result = normalizeItemResponse<{ message: string; ticketId: string }>(response.data);
+      
+      if (!result || !result.ticketId) {
+        throw new Error('Comment creation response payload is malformed.');
+      }
+
+      return result;
     },
-    onSuccess: comment => {
+    onSuccess: (result, variables) => {
+      const ticketId = result.ticketId || variables.ticketId;
       queryClient.invalidateQueries({
-        queryKey: ['comments', comment.ticketId],
+        queryKey: ['comments', ticketId],
       });
-      queryClient.invalidateQueries({ queryKey: ['ticket', comment.ticketId] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
     },
   });
 }

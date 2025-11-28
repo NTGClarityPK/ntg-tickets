@@ -256,17 +256,17 @@ export function useAssignTicket() {
       assignedToId: string;
     }) => {
       const response = await ticketApi.assignTicket(id, assignedToId);
-      const ticket = normalizeItemResponse<Ticket>(response.data);
+      const result = normalizeItemResponse<{ message: string; ticketId: string; assignedToId: string }>(response.data);
 
-      if (!ticket) {
+      if (!result) {
         throw new Error('Ticket assignment response payload is malformed.');
       }
 
-      return ticket;
+      return result;
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (result, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', result.ticketId || id] });
     },
   });
 }
@@ -292,17 +292,17 @@ export function useUpdateTicketStatus() {
       // The frontend checks workflow permissions before allowing transitions
       
       const response = await ticketApi.updateStatus(id, status, resolution, comment);
-      const ticket = normalizeItemResponse<Ticket>(response.data);
+      const result = normalizeItemResponse<{ message: string; ticketId: string; status: string }>(response.data);
 
-      if (!ticket) {
+      if (!result) {
         throw new Error('Ticket status update response payload is malformed.');
       }
 
-      return ticket;
+      return result;
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (result, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', result.ticketId || id] });
     },
   });
 }

@@ -45,7 +45,7 @@ export const ticketsClient = {
     ),
 
   assignTicket: (id: string, assignedToId: string) =>
-    httpClient.patch<ApiResponse<Ticket>>(`/tickets/${id}/assign`, {
+    httpClient.patch<ApiResponse<{ message: string; ticketId: string; assignedToId: string }>>(`/tickets/${id}/assign`, {
       assignedToId,
     }),
 
@@ -56,7 +56,7 @@ export const ticketsClient = {
     comment?: string
   ) => {
     const requestData = { status, resolution, comment };
-    return httpClient.patch<ApiResponse<Ticket>>(
+    return httpClient.patch<ApiResponse<{ message: string; ticketId: string; status: string }>>(
       `/tickets/${id}/status`,
       requestData
     );
@@ -64,7 +64,7 @@ export const ticketsClient = {
 
   // Comments
   addComment: (data: CreateCommentInput) =>
-    httpClient.post<ApiResponse<Comment>>('/comments', data),
+    httpClient.post<ApiResponse<{ message: string; ticketId: string }>>('/comments', data),
 
   getComments: (ticketId: string) =>
     httpClient.get<ApiResponse<Comment[]>>(`/comments/ticket/${ticketId}`),

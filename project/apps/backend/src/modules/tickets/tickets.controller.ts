@@ -121,8 +121,9 @@ export class TicketsController {
       body.comment,
     );
     return {
-      data: ticket,
       message: 'Ticket status updated successfully',
+      ticketId: ticket.id,
+      status: ticket.status,
     };
   }
 
@@ -144,8 +145,9 @@ export class TicketsController {
       req.user.activeRole
     );
     return {
-      data: ticket,
       message: 'Ticket assigned successfully',
+      ticketId: ticket.id,
+      assignedToId: ticket.assignedTo?.id || assignTicketDto.assignedToId,
     };
   }
 
