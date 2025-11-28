@@ -29,7 +29,6 @@ import { useActiveCategories, useSubcategories } from '../../hooks/useCategories
 import { useCustomFields } from '../../hooks/useCustomFields';
 import { CustomFieldsSection } from './CustomFieldsSection';
 import {
-  URGENCY_OPTIONS,
   IMPACT_OPTIONS,
   PRIORITY_OPTIONS,
   SLA_LEVEL_OPTIONS,
@@ -49,7 +48,6 @@ export interface TicketFormData {
   subcategory: string;
   priority: string;
   impact: string;
-  urgency: string;
   slaLevel: string;
   relatedTickets: string[];
   customFields: Record<string, string | number | boolean | string[]>;
@@ -66,7 +64,6 @@ interface TicketFormProps {
 
 const priorities = PRIORITY_OPTIONS;
 const impacts = IMPACT_OPTIONS;
-const urgencies = URGENCY_OPTIONS;
 const slaLevels = SLA_LEVEL_OPTIONS;
 
 export function TicketForm({
@@ -118,7 +115,6 @@ export function TicketForm({
             '',
       priority: initialData?.priority || 'MEDIUM',
       impact: initialData?.impact || 'MODERATE',
-      urgency: initialData?.urgency || 'NORMAL',
       slaLevel: initialData?.slaLevel || 'STANDARD',
       relatedTickets: initialData?.relatedTickets || [],
       customFields: initialData?.customFields || {},
@@ -254,13 +250,6 @@ export function TicketForm({
               label={tTickets('impact')}
               data={impacts}
               {...form.getInputProps('impact')}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Select
-              label={tTickets('urgency')}
-              data={urgencies}
-              {...form.getInputProps('urgency')}
             />
           </Grid.Col>
         </Grid>

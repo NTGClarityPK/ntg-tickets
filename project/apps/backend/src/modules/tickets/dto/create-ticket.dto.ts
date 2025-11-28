@@ -13,7 +13,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   TicketPriority,
   TicketImpact,
-  TicketUrgency,
 } from '@prisma/client';
 
 export class CreateTicketDto {
@@ -77,16 +76,6 @@ export class CreateTicketDto {
   @IsEnum(TicketImpact)
   @IsOptional()
   impact?: TicketImpact = TicketImpact.MODERATE;
-
-  @ApiProperty({
-    description: 'Urgency level',
-    enum: TicketUrgency,
-    example: TicketUrgency.NORMAL,
-    default: TicketUrgency.NORMAL,
-  })
-  @IsEnum(TicketUrgency)
-  @IsOptional()
-  urgency?: TicketUrgency = TicketUrgency.NORMAL;
 
   @ApiProperty({
     description: 'ID of the user assigned to this ticket',

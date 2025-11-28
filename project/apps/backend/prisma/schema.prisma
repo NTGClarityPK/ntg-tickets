@@ -134,7 +134,6 @@ model Ticket {
   subcategoryId      String?
   priority           TicketPriority      @default(MEDIUM)
   impact             TicketImpact        @default(MODERATE)
-  urgency            TicketUrgency       @default(NORMAL)
   requesterId        String
   assignedToId       String?
   dueDate            DateTime?
@@ -553,13 +552,6 @@ enum TicketImpact {
   MODERATE
   MAJOR
   CRITICAL
-}
-
-enum TicketUrgency {
-  LOW
-  NORMAL
-  HIGH
-  IMMEDIATE
 }
 
 enum NotificationType {

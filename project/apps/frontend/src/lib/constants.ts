@@ -61,13 +61,6 @@ export const IMPACT_OPTIONS = [
   { value: 'CRITICAL', label: 'Critical' },
 ] as const;
 
-export const URGENCY_OPTIONS = [
-  { value: 'LOW', label: 'Low' },
-  { value: 'NORMAL', label: 'Normal' },
-  { value: 'HIGH', label: 'High' },
-  { value: 'IMMEDIATE', label: 'Immediate' },
-] as const;
-
 export const SLA_LEVEL_OPTIONS = [
   { value: 'STANDARD', label: 'Standard' },
   { value: 'PREMIUM', label: 'Premium' },

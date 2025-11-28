@@ -160,29 +160,6 @@ export function SupportStaffDashboardPresenter({
             </Paper>
           </Grid.Col>
 
-          <Grid.Col span={4}>
-            <Paper withBorder p='md'>
-              <Title order={3} mb='md'>Tickets by Urgency</Title>
-              <ScrollArea h={300}>
-                <Table>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Urgency</Table.Th>
-                      <Table.Th>Count</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {metrics.ticketsByUrgency.map((item) => (
-                      <Table.Tr key={`urgency-${item.urgency}`}>
-                        <Table.Td>{item.urgency}</Table.Td>
-                        <Table.Td>{item.count}</Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
-            </Paper>
-          </Grid.Col>
 
           <Grid.Col span={4}>
             <Paper withBorder p='md'>

@@ -283,18 +283,6 @@ export class CategoriesService {
           { value: 'CRITICAL', label: 'Critical' },
         ],
       },
-      {
-        name: 'urgency',
-        type: 'select',
-        label: 'Urgency',
-        required: true,
-        options: [
-          { value: 'LOW', label: 'Low' },
-          { value: 'NORMAL', label: 'Normal' },
-          { value: 'HIGH', label: 'High' },
-          { value: 'IMMEDIATE', label: 'Immediate' },
-        ],
-      },
     ];
 
     // Add category-specific fields

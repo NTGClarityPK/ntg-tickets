@@ -57,7 +57,6 @@ export default function CreateTicketPage() {
         subcategory: values.subcategory, // Now sending subcategory ID
         priority: values.priority as CreateTicketInput['priority'],
         impact: values.impact as CreateTicketInput['impact'],
-        urgency: values.urgency as CreateTicketInput['urgency'],
         customFields: (values.customFields || {}) as Record<string, string | number | boolean>,
       };
 

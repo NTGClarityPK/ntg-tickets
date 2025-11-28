@@ -326,7 +326,6 @@ export class BackupService {
               createdAt: Date;
               updatedAt: Date;
               impact?: string;
-              urgency?: string;
               slaLevel?: string;
               resolution?: string;
               closedAt?: Date;
@@ -340,7 +339,6 @@ export class BackupService {
               priority: ticket.priority,
               status: ticket.status,
               impact: ticket.impact,
-              urgency: ticket.urgency,
               slaLevel: ticket.slaLevel,
               requesterId: ticket.requesterId,
               assignedToId: ticket.assignedToId,

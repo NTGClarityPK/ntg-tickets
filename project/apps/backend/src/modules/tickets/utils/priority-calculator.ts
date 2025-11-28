@@ -1,47 +1,22 @@
-import { TicketImpact, TicketUrgency, TicketPriority } from '@prisma/client';
+import { TicketImpact, TicketPriority } from '@prisma/client';
 
 /**
- * Calculates ticket priority based on impact and urgency
+ * Calculates ticket priority based on impact
  * @param impact - The impact level of the ticket
- * @param urgency - The urgency level of the ticket
  * @returns The calculated priority level
  */
 export function calculatePriority(
-  impact: TicketImpact,
-  urgency: TicketUrgency
+  impact: TicketImpact
 ): TicketPriority {
-  // Priority matrix based on impact and urgency
-  const priorityMatrix: Record<
-    TicketImpact,
-    Record<TicketUrgency, TicketPriority>
-  > = {
-    [TicketImpact.MINOR]: {
-      [TicketUrgency.LOW]: TicketPriority.LOW,
-      [TicketUrgency.NORMAL]: TicketPriority.LOW,
-      [TicketUrgency.HIGH]: TicketPriority.MEDIUM,
-      [TicketUrgency.IMMEDIATE]: TicketPriority.MEDIUM,
-    },
-    [TicketImpact.MODERATE]: {
-      [TicketUrgency.LOW]: TicketPriority.LOW,
-      [TicketUrgency.NORMAL]: TicketPriority.MEDIUM,
-      [TicketUrgency.HIGH]: TicketPriority.HIGH,
-      [TicketUrgency.IMMEDIATE]: TicketPriority.HIGH,
-    },
-    [TicketImpact.MAJOR]: {
-      [TicketUrgency.LOW]: TicketPriority.MEDIUM,
-      [TicketUrgency.NORMAL]: TicketPriority.HIGH,
-      [TicketUrgency.HIGH]: TicketPriority.HIGH,
-      [TicketUrgency.IMMEDIATE]: TicketPriority.CRITICAL,
-    },
-    [TicketImpact.CRITICAL]: {
-      [TicketUrgency.LOW]: TicketPriority.HIGH,
-      [TicketUrgency.NORMAL]: TicketPriority.HIGH,
-      [TicketUrgency.HIGH]: TicketPriority.CRITICAL,
-      [TicketUrgency.IMMEDIATE]: TicketPriority.CRITICAL,
-    },
+  // Priority based on impact only
+  const priorityMap: Record<TicketImpact, TicketPriority> = {
+    [TicketImpact.MINOR]: TicketPriority.LOW,
+    [TicketImpact.MODERATE]: TicketPriority.MEDIUM,
+    [TicketImpact.MAJOR]: TicketPriority.HIGH,
+    [TicketImpact.CRITICAL]: TicketPriority.CRITICAL,
   };
 
-  return priorityMatrix[impact][urgency];
+  return priorityMap[impact];
 }
 
 /**

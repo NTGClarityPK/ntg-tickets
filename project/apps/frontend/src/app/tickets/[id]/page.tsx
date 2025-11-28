@@ -8,7 +8,6 @@ import {
   TicketStatus,
   TicketPriority,
   TicketImpact,
-  TicketUrgency,
   Comment,
   Attachment,
 } from '../../../types/unified';
@@ -118,12 +117,6 @@ export default function TicketDetailPage() {
     CRITICAL: primaryDarkest,
   };
 
-  const urgencyColors: Record<TicketUrgency, string> = {
-    LOW: primaryLightest,
-    NORMAL: primaryLight,
-    HIGH: primaryDark,
-    IMMEDIATE: primaryDarkest,
-  };
   const params = useParams();
   const router = useRouter();
   const { user } = useAuthStore();
@@ -1018,17 +1011,6 @@ export default function TicketDetailPage() {
                     variant='outline'
                   >
                     {ticket.impact}
-                  </Badge>
-                </Group>
-                <Group justify='space-between'>
-                  <Text size='sm' fw={500}>
-                    Urgency
-                  </Text>
-                  <Badge
-                    color={urgencyColors[ticket.urgency as TicketUrgency]}
-                    variant='outline'
-                  >
-                    {ticket.urgency}
                   </Badge>
                 </Group>
                 

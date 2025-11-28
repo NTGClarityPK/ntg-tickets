@@ -36,11 +36,6 @@ export interface TicketsByImpact {
   count: number;
 }
 
-export interface TicketsByUrgency {
-  urgency: string;
-  count: number;
-}
-
 export interface TicketsByPriority {
   priority: string;
   count: number;
@@ -52,7 +47,6 @@ export interface ManagerDashboardMetrics {
   ticketsByCategory: TicketsByCategory[];
   ticketsByStatus: TicketsByStatus[];
   ticketsByImpact: TicketsByImpact[];
-  ticketsByUrgency: TicketsByUrgency[];
   ticketsByPriority: TicketsByPriority[];
   staffPerformance?: Array<{
     staffName: string;
@@ -68,7 +62,6 @@ export interface SupportStaffDashboardMetrics {
   ticketsByCategory: TicketsByCategory[];
   ticketsByStatus: TicketsByStatus[];
   ticketsByImpact: TicketsByImpact[];
-  ticketsByUrgency: TicketsByUrgency[];
   ticketsByPriority: TicketsByPriority[];
 }
 

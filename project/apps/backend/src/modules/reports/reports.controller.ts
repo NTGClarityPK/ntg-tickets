@@ -344,16 +344,6 @@ export class ReportsController {
               {}
             );
 
-            const urgencyBreakdown = report.data.reduce(
-              (acc: Record<string, number>, ticket: Record<string, unknown>) => {
-                const urgency =
-                  (ticket as { urgency?: string }).urgency || 'UNKNOWN';
-                acc[urgency] = (acc[urgency] || 0) + 1;
-                return acc;
-              },
-              {}
-            );
-
             // Calculate SLA metrics
             const openTickets = statusBreakdown['OPEN'] || 0;
             const inProgressTickets = statusBreakdown['IN_PROGRESS'] || 0;
@@ -398,7 +388,6 @@ export class ReportsController {
               },
               { Metric: 'Low Priority', Value: priorityBreakdown['LOW'] || 0 },
               { Metric: 'Major Impact', Value: impactBreakdown['MAJOR'] || 0 },
-              { Metric: 'High Urgency', Value: urgencyBreakdown['HIGH'] || 0 },
             ];
 
             const summaryCardsSheet = XLSX.utils.json_to_sheet(summaryCardsData);
@@ -476,22 +465,7 @@ export class ReportsController {
               'Tickets by Impact'
             );
 
-            // Sheet 6: Tickets by Urgency
-            const urgencyData = Object.entries(urgencyBreakdown).map(
-              ([urgency, count]) => ({
-                Urgency: urgency,
-                Count: count,
-                Percentage: `${((count / totalTickets) * 100).toFixed(1)}%`,
-              })
-            );
-            const urgencySheet = XLSX.utils.json_to_sheet(urgencyData);
-            XLSX.utils.book_append_sheet(
-              workbook,
-              urgencySheet,
-              'Tickets by Urgency'
-            );
-
-            // Sheet 7: Tickets by Priority
+            // Sheet 6: Tickets by Priority
             const priorityData = Object.entries(priorityBreakdown).map(
               ([priority, count]) => ({
                 Priority: priority,

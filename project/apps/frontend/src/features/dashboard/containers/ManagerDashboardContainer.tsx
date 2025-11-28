@@ -115,17 +115,6 @@ export function ManagerDashboardContainer() {
       count,
     }));
 
-    // Calculate tickets by urgency
-    const urgencyMap = new Map<string, number>();
-    allTickets.forEach((ticket: Ticket) => {
-      const urgency = String(ticket.urgency);
-      urgencyMap.set(urgency, (urgencyMap.get(urgency) || 0) + 1);
-    });
-    const ticketsByUrgency = Array.from(urgencyMap.entries()).map(([urgency, count]) => ({
-      urgency,
-      count,
-    }));
-
     // Calculate tickets by priority
     const priorityMap = new Map<string, number>();
     allTickets.forEach((ticket: Ticket) => {
@@ -185,7 +174,6 @@ export function ManagerDashboardContainer() {
       ticketsByCategory,
       ticketsByStatus,
       ticketsByImpact,
-      ticketsByUrgency,
       ticketsByPriority,
       staffPerformance,
     };

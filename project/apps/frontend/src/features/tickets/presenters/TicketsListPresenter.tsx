@@ -331,7 +331,6 @@ export function TicketsListPresenter({
           priority: (searchFilters.priority as string[]) || [],
           category: (searchFilters.category as string[]) || [],
           impact: (searchFilters.impact as string[]) || [],
-          urgency: (searchFilters.urgency as string[]) || [],
           assignedTo: searchFilters.assignedTo || [],
           requester: searchFilters.requester || [],
           createdFrom:
@@ -358,7 +357,6 @@ export function TicketsListPresenter({
             priority: advancedFilters.priority || [],
             category: advancedFilters.category || [],
             impact: advancedFilters.impact || [],
-            urgency: advancedFilters.urgency || [],
             slaLevel: advancedFilters.slaLevel || [],
             assignedTo: advancedFilters.assignedTo || [],
             requester: advancedFilters.requester || [],

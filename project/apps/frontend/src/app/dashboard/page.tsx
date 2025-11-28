@@ -675,17 +675,6 @@ export default function ReportsPage() {
     return breakdown;
   }, [ticketsForBreakdown]);
 
-  const urgencyBreakdown = useMemo(() => {
-    const breakdown = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, UNKNOWN: 0 };
-    ticketsForBreakdown.forEach((ticket: Ticket) => {
-      if (ticket.urgency && ticket.urgency in breakdown) {
-        breakdown[ticket.urgency as keyof typeof breakdown]++;
-      } else {
-        breakdown.UNKNOWN++;
-      }
-    });
-    return breakdown;
-  }, [ticketsForBreakdown]);
 
 
   const handlePDFExport = async () => {
@@ -1334,7 +1323,7 @@ export default function ReportsPage() {
                 </Stack>
               </Grid.Col>
 
-              {/* Right Column - Status and Urgency stacked */}
+              {/* Right Column - Status */}
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack gap='md'>
                   <Paper withBorder p='md'>
@@ -1361,40 +1350,6 @@ export default function ReportsPage() {
                             <Group justify='space-between' align='center'>
                               <Text size='sm'>{status.replace('_', ' ')}</Text>
                               <Badge variant='light' color='dynamic'>
-                                {count}
-                              </Badge>
-                            </Group>
-                          </div>
-                        )
-                      )}
-                    </Stack>
-                  </Paper>
-                  
-                  <Paper withBorder p='md'>
-                    <Title order={4} mb='md'>
-                      Tickets by Urgency
-                    </Title>
-                    <Stack gap={0}>
-                      {Object.entries(urgencyBreakdown).map(
-                        ([urgency, count]: [string, number], index: number) => (
-                          <div
-                            key={urgency}
-                            style={{
-                              padding: '12px 16px',
-                              borderBottom:
-                                index <
-                                Object.entries(urgencyBreakdown).length - 1
-                                  ? '1px solid var(--mantine-color-gray-2)'
-                                  : 'none',
-                              backgroundColor:
-                                index % 2 === 0
-                                  ? 'var(--mantine-color-gray-0)'
-                                  : 'transparent',
-                            }}
-                          >
-                            <Group justify='space-between' align='center'>
-                              <Text size='sm'>{urgency}</Text>
-                              <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }}>
                                 {count}
                               </Badge>
                             </Group>

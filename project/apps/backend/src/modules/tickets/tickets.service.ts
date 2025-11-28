@@ -10,7 +10,6 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import {
   TicketPriority,
   TicketImpact,
-  TicketUrgency,
   Prisma,
 } from '@prisma/client';
 import { LoggerService } from '../../common/logger/logger.service';
@@ -50,7 +49,6 @@ interface TicketUpdateData {
   description?: string;
   priority?: TicketPriority;
   impact?: TicketImpact;
-  urgency?: TicketUrgency;
   categoryId?: string;
   subcategoryId?: string;
   assignedToId?: string;
@@ -264,7 +262,6 @@ export class TicketsService {
         subcategoryId: subcategory?.id || null,
         priority: createTicketDto.priority,
         impact: createTicketDto.impact,
-        urgency: createTicketDto.urgency,
         requesterId: userId,
         assignedToId: assignedToId,
         dueDate,
@@ -1852,7 +1849,6 @@ export class TicketsService {
       'assignedToId',
       'resolution',
       'impact',
-      'urgency',
       'categoryId',
       'subcategoryId',
       'slaLevel',
@@ -2218,7 +2214,6 @@ export class TicketsService {
       priority: ticket.priority,
       status: ticket.status,
       impact: ticket.impact,
-      urgency: ticket.urgency,
       requester: this.transformUser(ticket.requester),
       assignedTo: ticket.assignedTo ? this.transformUser(ticket.assignedTo) : null,
       dueDate: ticket.dueDate,

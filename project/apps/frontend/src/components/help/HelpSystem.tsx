@@ -171,7 +171,7 @@ const getHelpSections = (t: (key: string) => string, primaryLight: string, prima
           level: t('premiumLevel'),
           responseTime: '4 business hours',
           resolutionTime: '2 business days',
-          description: t('higherUrgency'),
+          description: t('higherPriority'),
         },
         {
           level: t('criticalSupportLevel'),

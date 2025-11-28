@@ -26,7 +26,6 @@ import { IconAlertCircle, IconPlus } from '@tabler/icons-react';
 import {
   TicketPriority,
   TicketImpact,
-  TicketUrgency,
   DynamicFieldType,
   DynamicField,
   DynamicTicketFormValues,
@@ -83,7 +82,6 @@ export function DynamicTicketForm({
       subcategory: '',
       priority: TicketPriority.MEDIUM,
       impact: TicketImpact.MODERATE,
-      urgency: TicketUrgency.NORMAL,
       attachments: [],
       customFields: {},
       ...initialValues,
@@ -289,7 +287,7 @@ export function DynamicTicketForm({
                 />
               </Grid.Col>
 
-              <Grid.Col span={4}>
+              <Grid.Col span={6}>
                 <Select
                   label='Priority'
                   placeholder='Select priority'
@@ -302,7 +300,7 @@ export function DynamicTicketForm({
                 />
               </Grid.Col>
 
-              <Grid.Col span={4}>
+              <Grid.Col span={6}>
                 <Select
                   label='Impact'
                   placeholder='Select impact'
@@ -312,19 +310,6 @@ export function DynamicTicketForm({
                     label: imp,
                   }))}
                   {...form.getInputProps('impact')}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={4}>
-                <Select
-                  label='Urgency'
-                  placeholder='Select urgency'
-                  required
-                  data={Object.values(TicketUrgency).map(urg => ({
-                    value: urg,
-                    label: urg,
-                  }))}
-                  {...form.getInputProps('urgency')}
                 />
               </Grid.Col>
             </Grid>

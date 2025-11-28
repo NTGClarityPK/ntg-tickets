@@ -29,7 +29,6 @@ import {
   TicketPriority,
   TicketCategory,
   TicketImpact,
-  TicketUrgency,
 } from '../../../../types/unified';
 import { useDynamicTheme } from '../../../../hooks/useDynamicTheme';
 
@@ -54,7 +53,6 @@ export default function EditTicketPage() {
         (ticket?.category?.name as TicketCategory) || TicketCategory.SOFTWARE,
       priority: ticket?.priority || TicketPriority.MEDIUM,
       impact: ticket?.impact || TicketImpact.MODERATE,
-      urgency: ticket?.urgency || TicketUrgency.NORMAL,
       status: ticket?.status || TicketStatus.NEW,
       resolution: ticket?.resolution || '',
     }),
@@ -269,18 +267,6 @@ export default function EditTicketPage() {
                         label: (imp as string).replace('_', ' '),
                       }))}
                       {...form.getInputProps('impact')}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={4}>
-                    <Select
-                      label='Urgency'
-                      placeholder='Select urgency'
-                      required
-                      data={Object.values(TicketUrgency).map(urg => ({
-                        value: urg as string,
-                        label: (urg as string).replace('_', ' '),
-                      }))}
-                      {...form.getInputProps('urgency')}
                     />
                   </Grid.Col>
                 </Grid>

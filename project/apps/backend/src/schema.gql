@@ -30,7 +30,6 @@ input CreateTicketInput {
   slaLevel: String! = "STANDARD"
   subcategory: String!
   title: String!
-  urgency: String! = "NORMAL"
 }
 
 """
@@ -98,7 +97,6 @@ type Ticket {
   ticketNumber: String!
   title: String!
   updatedAt: DateTime!
-  urgency: String!
 }
 
 type TicketConnection {
@@ -137,7 +135,6 @@ input UpdateTicketInput {
   status: String
   subcategoryId: String
   title: String
-  urgency: String
 }
 
 type User {

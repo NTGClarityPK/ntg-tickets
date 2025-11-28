@@ -34,7 +34,6 @@ import {
   PRIORITY_OPTIONS,
   SLA_LEVEL_OPTIONS,
   STATUS_OPTIONS,
-  URGENCY_OPTIONS,
 } from '@/lib/constants';
 
 export interface AdvancedSearchCriteria {
@@ -47,7 +46,6 @@ export interface AdvancedSearchCriteria {
   category?: string[];
   subcategory?: string[];
   impact?: string[];
-  urgency?: string[];
   slaLevel?: string[];
 
   // User fields
@@ -101,7 +99,6 @@ export function AdvancedSearchModal({
       category: initialCriteria.category || [],
       subcategory: initialCriteria.subcategory || [],
       impact: initialCriteria.impact || [],
-      urgency: initialCriteria.urgency || [],
       slaLevel: initialCriteria.slaLevel || [],
       requester: initialCriteria.requester || [],
       assignedTo: initialCriteria.assignedTo || [],
@@ -141,7 +138,6 @@ export function AdvancedSearchModal({
           category: initialCriteria.category || [],
           subcategory: initialCriteria.subcategory || [],
           impact: initialCriteria.impact || [],
-          urgency: initialCriteria.urgency || [],
           slaLevel: initialCriteria.slaLevel || [],
           requester: initialCriteria.requester || [],
           assignedTo: initialCriteria.assignedTo || [],
@@ -188,11 +184,6 @@ export function AdvancedSearchModal({
       });
     if (values.impact?.length)
       filters.push({ id: 'impact', label: `${values.impact.length} Impact` });
-    if (values.urgency?.length)
-      filters.push({
-        id: 'urgency',
-        label: `${values.urgency.length} Urgency`,
-      });
     if (values.slaLevel?.length)
       filters.push({
         id: 'slaLevel',
@@ -259,9 +250,6 @@ export function AdvancedSearchModal({
       case 'impact':
         next.impact = [];
         break;
-      case 'urgency':
-        next.urgency = [];
-        break;
       case 'slaLevel':
         next.slaLevel = [];
         break;
@@ -319,11 +307,6 @@ export function AdvancedSearchModal({
   }));
 
   const impactOptions = IMPACT_OPTIONS.map(option => ({
-    ...option,
-    label: t(option.value.toLowerCase()),
-  }));
-
-  const urgencyOptions = URGENCY_OPTIONS.map(option => ({
     ...option,
     label: t(option.value.toLowerCase()),
   }));
@@ -475,14 +458,6 @@ export function AdvancedSearchModal({
                   placeholder={t('selectImpact')}
                   data={impactOptions}
                   {...form.getInputProps('impact')}
-                />
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <MultiSelect
-                  label={tTickets('urgency')}
-                  placeholder={t('selectUrgency')}
-                  data={urgencyOptions}
-                  {...form.getInputProps('urgency')}
                 />
               </Grid.Col>
               <Grid.Col span={12}>

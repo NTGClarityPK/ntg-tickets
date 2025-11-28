@@ -41,14 +41,6 @@ export enum TicketImpact {
   CRITICAL = 'CRITICAL',
 }
 
-export enum TicketUrgency {
-  LOW = 'LOW',
-  NORMAL = 'NORMAL',
-  HIGH = 'HIGH',
-  IMMEDIATE = 'IMMEDIATE',
-}
-
-
 export enum CustomFieldType {
   TEXT = 'TEXT',
   NUMBER = 'NUMBER',
@@ -155,7 +147,6 @@ export interface Ticket {
   priority: TicketPriority;
   status: TicketStatus;
   impact: TicketImpact;
-  urgency: TicketUrgency;
   requester: User;
   assignedTo?: User;
   dueDate?: string;
@@ -201,7 +192,6 @@ export interface CreateTicketInput {
   subcategory?: string; // Subcategory ID (optional)
   priority?: TicketPriority;
   impact?: TicketImpact;
-  urgency?: TicketUrgency;
   assignedToId?: string;
   relatedTickets?: string[];
   customFields?: Record<string, string | number | boolean>;
@@ -498,7 +488,6 @@ export interface TicketFormData {
   subcategory?: string;
   priority: TicketPriority;
   impact: TicketImpact;
-  urgency: TicketUrgency;
   relatedTickets: string[];
   customFields: Record<string, string | number | boolean | string[]>;
 }
@@ -510,7 +499,6 @@ export interface DynamicTicketFormValues {
   subcategory?: string; // Subcategory ID (optional)
   priority: TicketPriority;
   impact: TicketImpact;
-  urgency: TicketUrgency;
   attachments: FileWithPath[];
   customFields?: Record<string, string | number | boolean | string[]>;
   [key: string]: unknown; // For dynamic fields
@@ -604,7 +592,6 @@ export interface SearchCriteria {
   priority: string[];
   category: string[];
   impact: string[];
-  urgency: string[];
   assignedTo: string[];
   requester: string[];
   dateFrom: Date | null;

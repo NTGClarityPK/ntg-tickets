@@ -155,9 +155,6 @@ export class TicketResponseDto {
   @ApiProperty()
   impact: string;
 
-  @ApiProperty()
-  urgency: string;
-
   @ApiProperty({ type: () => TicketUserDto })
   requester: TicketUserDto;
 

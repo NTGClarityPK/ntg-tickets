@@ -112,17 +112,6 @@ export function SupportStaffDashboardContainer() {
       count,
     }));
 
-    // Calculate tickets by urgency
-    const urgencyMap = new Map<string, number>();
-    assignedTickets.forEach((ticket: Ticket) => {
-      const urgency = String(ticket.urgency);
-      urgencyMap.set(urgency, (urgencyMap.get(urgency) || 0) + 1);
-    });
-    const ticketsByUrgency = Array.from(urgencyMap.entries()).map(([urgency, count]) => ({
-      urgency,
-      count,
-    }));
-
     // Calculate tickets by priority
     const priorityMap = new Map<string, number>();
     assignedTickets.forEach((ticket: Ticket) => {
@@ -139,7 +128,6 @@ export function SupportStaffDashboardContainer() {
       ticketsByCategory,
       ticketsByStatus,
       ticketsByImpact,
-      ticketsByUrgency,
       ticketsByPriority,
     };
   }, [tickets, user?.id, primaryLight, dashboardStats, t]);
