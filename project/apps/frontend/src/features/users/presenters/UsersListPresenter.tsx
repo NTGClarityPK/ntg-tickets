@@ -19,6 +19,7 @@ import {
   Modal,
   Avatar,
   useMantineTheme,
+  Skeleton,
 } from '@mantine/core';
 import {
   IconPlus,
@@ -34,7 +35,7 @@ import { UsersListPresenterProps } from '../types/users.types';
 import { getUserInitials } from '../utils/user.utils';
 import { formatShortDate } from '../../../lib/utils';
 
-interface ExtendedUsersListPresenterProps extends Omit<UsersListPresenterProps, 'isLoading' | 'error'> {
+interface ExtendedUsersListPresenterProps extends Omit<UsersListPresenterProps, 'error'> {
   onSetSelectedUser: (user: User | null) => void;
   getRoleColor: (role: UserRole) => string;
 }
@@ -44,6 +45,7 @@ export function UsersListPresenter({
   state,
   colors,
   handlers,
+  isLoading,
   onSetSelectedUser,
   getRoleColor,
 }: ExtendedUsersListPresenterProps) {
@@ -113,7 +115,36 @@ export function UsersListPresenter({
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {metrics.users && Array.isArray(metrics.users)
+            {isLoading ? (
+              [...Array(5)].map((_, index) => (
+                <Table.Tr key={index}>
+                  <Table.Td>
+                    <Group gap='sm'>
+                      <Skeleton height={32} width={32} circle />
+                      <div>
+                        <Skeleton height={16} width={150} mb={4} />
+                        <Skeleton height={14} width={200} />
+                      </div>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton height={24} width={100} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton height={24} width={70} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton height={16} width={100} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton height={16} width={100} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton height={28} width={28} circle />
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            ) : metrics.users && Array.isArray(metrics.users)
               ? metrics.users.map((user: User) => (
                   <Table.Tr key={user.id}>
                     <Table.Td>
@@ -205,7 +236,8 @@ export function UsersListPresenter({
         </Table>
       </Card>
 
-      {metrics.users &&
+      {!isLoading &&
+        metrics.users &&
         Array.isArray(metrics.users) &&
         metrics.users.length === 0 && (
           <Card shadow='sm' padding='xl' radius='md' withBorder mt='md'>

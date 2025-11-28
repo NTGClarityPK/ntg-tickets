@@ -16,6 +16,7 @@ import {
   Menu,
   Modal,
   useMantineTheme,
+  Skeleton,
 } from '@mantine/core';
 import {
   IconFilter,
@@ -47,6 +48,7 @@ export function TicketsListPresenter({
   search,
   bulk,
   searchFilters,
+  isLoading = false,
   onSetSelectedTicket,
   onUpdateFilters,
   onAddRecentSearch,
@@ -144,8 +146,34 @@ export function TicketsListPresenter({
       )}
 
       <Stack gap='md'>
-        {metrics.tickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
+        {(isLoading || (search.isLoading && search.searchQuery)) ? (
+          [...Array(5)].map((_, index) => (
+            <Card key={index} shadow='sm' padding='lg' radius='md' withBorder>
+              <Group justify='space-between' mb='sm'>
+                <Group gap='sm'>
+                  <Skeleton height={20} width={20} circle />
+                  <Skeleton height={24} width={80} />
+                  <Skeleton height={24} width={70} />
+                  <Skeleton height={20} width={100} />
+                </Group>
+                <Skeleton height={28} width={28} circle />
+              </Group>
+              <Skeleton height={24} width='80%' mb='xs' />
+              <Skeleton height={16} width='100%' mb={4} />
+              <Skeleton height={16} width='90%' mb='sm' />
+              <Group justify='space-between'>
+                <Group gap='md'>
+                  <Skeleton height={20} width={120} />
+                  <Skeleton height={20} width={100} />
+                  <Skeleton height={20} width={150} />
+                </Group>
+                <Skeleton height={24} width={80} />
+              </Group>
+            </Card>
+          ))
+        ) : (
+          metrics.tickets.map((ticket: Ticket) => (
+            <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
             <Group justify='space-between' mb='sm'>
               <Group gap='sm'>
                 <BulkSelectCheckbox
@@ -239,22 +267,25 @@ export function TicketsListPresenter({
               </Badge>
             </Group>
           </Card>
-        ))}
+          ))
+        )}
       </Stack>
 
-      {metrics.tickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <IconTicket size={48} color='var(--mantine-color-dimmed)' />
-            <Text size='lg' fw={500}>
-              No tickets found
-            </Text>
-            <Text c='dimmed' ta='center'>
-              No tickets match your current filters.
-            </Text>
-          </Stack>
-        </Card>
-      )}
+      {!isLoading &&
+        !(search.isLoading && search.searchQuery) &&
+        metrics.tickets.length === 0 && (
+          <Card shadow='sm' padding='xl' radius='md' withBorder>
+            <Stack align='center' gap='md'>
+              <IconTicket size={48} color='var(--mantine-color-dimmed)' />
+              <Text size='lg' fw={500}>
+                No tickets found
+              </Text>
+              <Text c='dimmed' ta='center'>
+                No tickets match your current filters.
+              </Text>
+            </Stack>
+          </Card>
+        )}
 
       {pagination && pagination.totalPages > 1 && (
         <Group justify='center' mt='xl'>

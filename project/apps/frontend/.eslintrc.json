@@ -23,7 +23,7 @@
     "react/jsx-key": "error",
     "react/jsx-no-duplicate-props": "error",
     "react/jsx-no-undef": "error",
-    "react/no-array-index-key": "warn",
+    "react/no-array-index-key": "off",
     "react/no-unescaped-entities": "off",
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off"

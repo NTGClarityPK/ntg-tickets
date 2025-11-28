@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Container, Group, Loader, Text, Alert, useMantineTheme } from '@mantine/core';
+import { Container, Alert, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useUsers, useDeleteUser } from '../../../hooks/useUsers';
@@ -137,16 +137,6 @@ export function UsersListContainer() {
     onDeleteModalClose: () => setDeleteModalOpen(false),
   };
 
-  if (isLoading) {
-    return (
-      <Container size='xl' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading users...</Text>
-        </Group>
-      </Container>
-    );
-  }
 
   if (error) {
     return (
@@ -164,6 +154,7 @@ export function UsersListContainer() {
       state={state}
       colors={colors}
       handlers={handlers}
+      isLoading={isLoading}
       onSetSelectedUser={(user) => {
         setSelectedUser(user);
         setDeleteModalOpen(true);

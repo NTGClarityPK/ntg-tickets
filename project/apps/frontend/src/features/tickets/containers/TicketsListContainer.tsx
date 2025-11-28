@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Container, Group, Loader, Text, Alert, useMantineTheme } from '@mantine/core';
+import { Container, Alert, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import {
   useTicketsWithPagination,
@@ -274,16 +274,6 @@ export function TicketsListContainer() {
       })),
   };
 
-  if (isLoading) {
-    return (
-      <Container size='xl' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading tickets...</Text>
-        </Group>
-      </Container>
-    );
-  }
 
   if (error) {
     return (
@@ -305,6 +295,7 @@ export function TicketsListContainer() {
       search={search}
       bulk={bulk}
       searchFilters={searchFilters}
+      isLoading={isLoading}
       onSetSelectedTicket={(ticket) => {
         setSelectedTicket(ticket);
         setDeleteModalOpen(true);

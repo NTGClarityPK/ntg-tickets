@@ -77,6 +77,7 @@ export interface TicketsListPresenterProps {
   search: TicketsListSearch;
   bulk: TicketsListBulk;
   searchFilters: SearchFilters;
+  isLoading?: boolean;
   onSetSelectedTicket: (ticket: Ticket | null) => void;
   onUpdateFilters: (filters: Partial<SearchFilters> | Record<string, unknown>) => void;
   onAddRecentSearch: (search: string) => void;

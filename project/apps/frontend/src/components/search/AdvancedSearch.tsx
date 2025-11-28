@@ -20,8 +20,8 @@ import {
   Code,
   Divider,
   Loader,
-  Center,
   useMantineTheme,
+  Skeleton,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -315,7 +315,54 @@ export function AdvancedSearch() {
               )}
 
               {/* Search Results */}
-              {searchResults.length > 0 && (
+              {search.isPending ? (
+                <Stack gap='md' mt='md'>
+                  <Skeleton height={20} width={150} />
+                  <Table>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Title</Table.Th>
+                        <Table.Th>Status</Table.Th>
+                        <Table.Th>Priority</Table.Th>
+                        <Table.Th>Category</Table.Th>
+                        <Table.Th>Assigned To</Table.Th>
+                        <Table.Th>Score</Table.Th>
+                        <Table.Th>Actions</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {[...Array(5)].map((_, index) => (
+                        <Table.Tr key={index}>
+                          <Table.Td>
+                            <Stack gap='xs'>
+                              <Skeleton height={16} width='80%' />
+                              <Skeleton height={14} width='100%' />
+                            </Stack>
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={24} width={70} />
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={24} width={70} />
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={16} width={100} />
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={16} width={120} />
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={24} width={60} />
+                          </Table.Td>
+                          <Table.Td>
+                            <Skeleton height={28} width={28} circle />
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </Stack>
+              ) : searchResults.length > 0 ? (
                 <Stack>
                   <Group justify='space-between'>
                     <Text size='sm' c='dimmed'>
@@ -413,13 +460,7 @@ export function AdvancedSearch() {
                     </Table.Tbody>
                   </Table>
                 </Stack>
-              )}
-
-              {search.isPending && (
-                <Center py='xl'>
-                  <Loader size='lg' />
-                </Center>
-              )}
+              ) : null}
             </Stack>
           </Card>
         </Tabs.Panel>
