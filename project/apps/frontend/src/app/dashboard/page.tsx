@@ -33,6 +33,7 @@ import {
   IconInfoCircle,
   IconKey,
   IconPlayerPause,
+  IconCalendar,
 } from '@tabler/icons-react';
 import { useExportReport } from '../../hooks/useReports';
 import { useMediaQuery } from '@mantine/hooks';
@@ -121,23 +122,24 @@ export default function ReportsPage() {
   const [filters, setFilters] = useState<ReportFilters>({});
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState('excel');
+  const [selectedQuickFilter, setSelectedQuickFilter] = useState<string>('custom');
 
   // Fetch active workflow and dashboard stats on mount
   useEffect(() => {
-    
+
     let isMounted = true;
-    
+
     const fetchData = async () => {
       try {
         const workflow = await getActiveWorkflow();
         if (isMounted) {
-          setActiveWorkflow(workflow ? { 
-            id: workflow.id, 
-            workingStatuses: workflow.workingStatuses, 
-            doneStatuses: workflow.doneStatuses 
+          setActiveWorkflow(workflow ? {
+            id: workflow.id,
+            workingStatuses: workflow.workingStatuses,
+            doneStatuses: workflow.doneStatuses
           } : null);
         }
-        
+
         const stats = await getDashboardStats();
         if (isMounted) {
           setDashboardStats(stats);
@@ -149,10 +151,10 @@ export default function ReportsPage() {
         }
       }
     };
-    
+
     setStatsLoading(true);
     fetchData();
-    
+
     return () => {
       isMounted = false;
     };
@@ -166,7 +168,7 @@ export default function ReportsPage() {
     }
 
     let isMounted = true;
-    
+
     const fetchStaffPerformance = async () => {
       try {
         setStaffPerformanceLoading(true);
@@ -181,9 +183,9 @@ export default function ReportsPage() {
         }
       }
     };
-    
+
     fetchStaffPerformance();
-    
+
     return () => {
       isMounted = false;
     };
@@ -196,7 +198,7 @@ export default function ReportsPage() {
   const { data: allTicketsForStats } = useAllTicketsForCounting();
   // Load active categories for filtering
   const { data: categories = [] } = useActiveCategories();
-  
+
   // Create category options from the loaded categories
   const categoryOptions = categories.map(cat => ({
     value: cat.id, // Use category ID instead of name
@@ -240,43 +242,6 @@ export default function ReportsPage() {
     }
   }, [tickets, allTicketsForStats, user]);
 
-  // Generate available month-year options from user's tickets with counts
-  const availableMonthYears = useMemo(() => {
-    if (!myTickets || myTickets.length === 0) return [];
-
-    const monthYearCounts = new Map<string, number>();
-    myTickets.forEach((ticket: Ticket) => {
-      const ticketDate = new Date(ticket.createdAt);
-      const monthYear = `${ticketDate.getFullYear()}-${String(ticketDate.getMonth() + 1).padStart(2, '0')}`;
-      monthYearCounts.set(monthYear, (monthYearCounts.get(monthYear) || 0) + 1);
-    });
-
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    return Array.from(monthYearCounts.entries())
-      .map(([monthYear, count]) => {
-        const [year, month] = monthYear.split('-');
-        const displayFormat = `${monthNames[parseInt(month) - 1]}-${year}`;
-        return {
-          value: monthYear,
-          label: `${displayFormat} (${count} tickets)`,
-        };
-      })
-      .sort((a, b) => b.value.localeCompare(a.value)); // Sort newest first
-  }, [myTickets]);
 
   // Apply additional filters for all roles
   const filteredTickets = myTickets.filter((ticket: Ticket) => {
@@ -312,14 +277,6 @@ export default function ReportsPage() {
       new Date(ticket.createdAt) > new Date(filters.dateTo)
     ) {
       return false;
-    }
-    // Month-Year filter (multiple selection)
-    if (filters.monthYear && filters.monthYear.length > 0) {
-      const ticketDate = new Date(ticket.createdAt);
-      const ticketMonthYear = `${ticketDate.getFullYear()}-${String(ticketDate.getMonth() + 1).padStart(2, '0')}`;
-      if (!filters.monthYear.includes(ticketMonthYear)) {
-        return false;
-      }
     }
     return true;
   });
@@ -413,8 +370,8 @@ export default function ReportsPage() {
       }
 
       // Map null to active workflow ID (like backend does when building the map)
-      const mappedCategorizedWorkflowId = categorizedWorkflowId === null && activeWorkflow?.id 
-        ? activeWorkflow.id 
+      const mappedCategorizedWorkflowId = categorizedWorkflowId === null && activeWorkflow?.id
+        ? activeWorkflow.id
         : categorizedWorkflowId;
 
       // Backend logic: check if ticket's workflowId matches the categorized workflowId
@@ -424,10 +381,10 @@ export default function ReportsPage() {
 
       // Backend fallback: if categorized workflowId !== activeWorkflow.id,
       // also check if ticket's workflowId === activeWorkflow.id (for the same status)
-      if (activeWorkflow?.id && 
-          mappedCategorizedWorkflowId !== null &&
-          mappedCategorizedWorkflowId !== activeWorkflow.id && 
-          ticketWorkflowId === activeWorkflow.id) {
+      if (activeWorkflow?.id &&
+        mappedCategorizedWorkflowId !== null &&
+        mappedCategorizedWorkflowId !== activeWorkflow.id &&
+        ticketWorkflowId === activeWorkflow.id) {
         return true;
       }
 
@@ -443,33 +400,33 @@ export default function ReportsPage() {
   // Use backend stats if available (for consistency), otherwise calculate locally
   // When filters are applied, we need to calculate locally based on filtered tickets
   const hasFilters = Object.keys(filters).length > 0;
-  
+
   const allTickets = filteredTickets;
-  const workingTickets = hasFilters 
+  const workingTickets = hasFilters
     ? filteredTickets.filter((ticket: Ticket) =>
-        matchesWorkflowStatus(ticket, workingStatusesByWorkflow)
-      )
+      matchesWorkflowStatus(ticket, workingStatusesByWorkflow)
+    )
     : [];
   const doneTickets = hasFilters
     ? filteredTickets.filter((ticket: Ticket) =>
-        matchesWorkflowStatus(ticket, doneStatusesByWorkflow)
-      )
+      matchesWorkflowStatus(ticket, doneStatusesByWorkflow)
+    )
     : [];
   const holdTickets = hasFilters
     ? filteredTickets.filter(
-        (ticket: Ticket) =>
-          !matchesWorkflowStatus(ticket, workingStatusesByWorkflow) &&
-          !matchesWorkflowStatus(ticket, doneStatusesByWorkflow))
+      (ticket: Ticket) =>
+        !matchesWorkflowStatus(ticket, workingStatusesByWorkflow) &&
+        !matchesWorkflowStatus(ticket, doneStatusesByWorkflow))
     : [];
-  
+
   // Use backend stats when no filters are applied
   const finalStats = hasFilters
     ? {
-        all: allTickets.length,
-        working: workingTickets.length,
-        done: doneTickets.length,
-        hold: holdTickets.length,
-      }
+      all: allTickets.length,
+      working: workingTickets.length,
+      done: doneTickets.length,
+      hold: holdTickets.length,
+    }
     : (dashboardStats || { all: 0, working: 0, done: 0, hold: 0 });
 
   // Additional breakdown calculations for Support Staff and Manager
@@ -501,15 +458,6 @@ export default function ReportsPage() {
         }
       }
 
-      // Month-Year filter (multiple selection)
-      if (filters.monthYear && filters.monthYear.length > 0) {
-        const userDate = new Date(user.createdAt);
-        const userMonthYear = `${userDate.getFullYear()}-${String(userDate.getMonth() + 1).padStart(2, '0')}`;
-        if (!filters.monthYear.includes(userMonthYear)) {
-          return false;
-        }
-      }
-
       return true;
     });
   }, [users, filters]);
@@ -529,18 +477,9 @@ export default function ReportsPage() {
         }
       }
 
-      // Month-Year filter (multiple selection)
-      if (filters.monthYear && filters.monthYear.length > 0) {
-        const ticketDate = new Date(ticket.createdAt);
-        const ticketMonthYear = `${ticketDate.getFullYear()}-${String(ticketDate.getMonth() + 1).padStart(2, '0')}`;
-        if (!filters.monthYear.includes(ticketMonthYear)) {
-          return false;
-        }
-      }
-
       // Filter by category
       if (filters.category && filters.category.length > 0) {
-        if (!filters.category.includes(ticket.category?.customName || ticket.category?.name || '')) {
+        if (!filters.category.includes(ticket.category?.id || '')) {
           return false;
         }
       }
@@ -566,8 +505,8 @@ export default function ReportsPage() {
     // Calculate Failed Logins from audit logs
     const auditLogItems = recentAuditLogs?.items || [];
     const failedLogins = auditLogItems.filter(
-      log => log.action === 'LOGIN' && log.metadata && 
-      (log.metadata as { success?: boolean })?.success === false
+      log => log.action === 'LOGIN' && log.metadata &&
+        (log.metadata as { success?: boolean })?.success === false
     ).length;
 
     // Calculate New Tickets (tickets created in current month)
@@ -581,8 +520,8 @@ export default function ReportsPage() {
 
     // Calculate Password Resets from audit logs
     const passwordResets = auditLogItems.filter(
-      log => log.action === 'UPDATE' && log.resource === 'user' && 
-      log.fieldName === 'password'
+      log => log.action === 'UPDATE' && log.resource === 'user' &&
+        log.fieldName === 'password'
     ).length;
 
     return [
@@ -681,7 +620,7 @@ export default function ReportsPage() {
   const handlePDFExport = async () => {
     try {
       const filename = `${user?.activeRole || 'USER'}-report-${new Date().toISOString().split('T')[0]}.pdf`;
-      
+
       // Use the new function that captures dashboard as second page (if not end user)
       await exportReportWithDashboardToPDF('reports-page-container', {
         filename,
@@ -799,6 +738,54 @@ export default function ReportsPage() {
         color: getEarthyColorByIndex(0),
       });
     }
+  };
+
+  // Helper functions for quick date filters
+  const handleQuickFilter = (filterType: string) => {
+    setSelectedQuickFilter(filterType);
+
+    if (filterType === 'custom') {
+      // Don't set dates for custom, let user select
+      return;
+    }
+
+    const now = new Date();
+    let dateFrom: Date;
+    let dateTo: Date;
+
+    switch (filterType) {
+      case 'today':
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        break;
+      case 'thisWeek':
+        const dayOfWeek = now.getDay();
+        const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), diff);
+        dateFrom.setHours(0, 0, 0, 0);
+        dateTo = new Date(dateFrom);
+        dateTo.setDate(dateFrom.getDate() + 6);
+        dateTo.setHours(23, 59, 59, 999);
+        break;
+      case 'thisMonth':
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+        dateFrom.setHours(0, 0, 0, 0);
+        dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        break;
+      case 'thisYear':
+        dateFrom = new Date(now.getFullYear(), 0, 1);
+        dateFrom.setHours(0, 0, 0, 0);
+        dateTo = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        break;
+      default:
+        return;
+    }
+
+    setFilters({
+      ...filters,
+      dateFrom: dateFrom.toISOString(),
+      dateTo: dateTo.toISOString(),
+    });
   };
 
   const handleAdminExport = async () => {
@@ -939,10 +926,10 @@ export default function ReportsPage() {
             lastActivity:
               filteredUsers.length > 0
                 ? new Date(
-                    Math.max(
-                      ...filteredUsers.map(u => new Date(u.createdAt).getTime())
-                    )
-                  ).toLocaleDateString()
+                  Math.max(
+                    ...filteredUsers.map(u => new Date(u.createdAt).getTime())
+                  )
+                ).toLocaleDateString()
                 : 'N/A',
           },
           {
@@ -951,12 +938,12 @@ export default function ReportsPage() {
             lastActivity:
               filteredTicketsForAdmin.length > 0
                 ? new Date(
-                    Math.max(
-                      ...filteredTicketsForAdmin.map(t =>
-                        new Date(t.createdAt).getTime()
-                      )
+                  Math.max(
+                    ...filteredTicketsForAdmin.map(t =>
+                      new Date(t.createdAt).getTime()
                     )
-                  ).toLocaleDateString()
+                  )
+                ).toLocaleDateString()
                 : 'N/A',
           },
           { activityType: 'System Changes', count: 0, lastActivity: 'N/A' },
@@ -1092,92 +1079,113 @@ export default function ReportsPage() {
           </Group>
 
           {/* Filters */}
-          <Card className="pdf-hide-elements">
-            <Stack>
-              <Group justify='space-between'>
-                <Title order={4}>Filter Options</Title>
-                <Button
-                  variant='outline'
-                  leftSection={<IconRefresh size={16} />}
-                  onClick={() => setFilters({})}
-                  disabled={Object.keys(filters).length === 0}
-                >
-                  Clear All Filters
-                </Button>
-              </Group>
-              <Grid>
-                {/* Top Row - 3 filters */}
-                <Grid.Col span={3}>
-                  <DatePickerInput
-                    label='From Date'
-                    placeholder='Select start date'
-                    value={filters.dateFrom ? new Date(filters.dateFrom) : null}
-                    onChange={(date: Date | null) =>
-                      setFilters({ ...filters, dateFrom: date?.toISOString() })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <DatePickerInput
-                    label='To Date'
-                    placeholder='Select end date'
-                    value={filters.dateTo ? new Date(filters.dateTo) : null}
-                    onChange={(date: Date | null) =>
-                      setFilters({ ...filters, dateTo: date?.toISOString() })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <MultiSelect
-                    label='Month-Year'
-                    placeholder='Select month-years'
-                    data={availableMonthYears}
-                    value={filters.monthYear || []}
-                    onChange={value =>
-                      setFilters({ ...filters, monthYear: value })
-                    }
-                    clearable
-                    searchable
-                    size='sm'
-                    styles={{
-                      input: {
-                        height: '36px', // Match DatePickerInput height
-                        fontSize: '14px',
-                      },
+          <Card className="pdf-hide-elements" withBorder>
+            <Stack gap="md">
+              {/* Quick Filters Section */}
+              <div>
+                <Text size="sm" fw={500} mb="xs">
+                  Quick Filters:
+                </Text>
+                <Group gap="xs">
+                  <Button
+                    variant={selectedQuickFilter === 'today' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('today')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'today' ? primaryDark : primaryLighter,
+                      color: 'white',
                     }}
-                  />
-                </Grid.Col>
-                {/* Bottom Row - 3 filters */}
-                <Grid.Col span={3}>
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisWeek' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisWeek')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisWeek' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Week
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisMonth' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisMonth')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisMonth' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Month
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisYear' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisYear')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisYear' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Year
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'custom' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => {
+                      setSelectedQuickFilter('custom');
+                      handleQuickFilter('custom');
+                    }}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'custom' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    Custom Range
+                  </Button>
+                </Group>
+              </div>
+
+              {/* Date Range Inputs - Only show when Custom Range is selected */}
+              {selectedQuickFilter === 'custom' && (
+                <Grid>
+                  <Grid.Col span={6}>
+                    <DatePickerInput
+                      label="From"
+                      placeholder="Select start date"
+                      value={filters.dateFrom ? new Date(filters.dateFrom) : null}
+                      onChange={(date: Date | null) => {
+                        setSelectedQuickFilter('custom');
+                        setFilters({ ...filters, dateFrom: date?.toISOString() });
+                      }}
+                      clearable
+                      leftSection={<IconCalendar size={16} />}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <DatePickerInput
+                      label="To"
+                      placeholder="Select end date"
+                      value={filters.dateTo ? new Date(filters.dateTo) : null}
+                      onChange={(date: Date | null) => {
+                        setSelectedQuickFilter('custom');
+                        setFilters({ ...filters, dateTo: date?.toISOString() });
+                      }}
+                      clearable
+                      leftSection={<IconCalendar size={16} />}
+                    />
+                  </Grid.Col>
+                </Grid>
+              )}
+
+              {/* Additional Filters - Category, Status, Priority */}
+              <Grid>
+                <Grid.Col span={4}>
                   <MultiSelect
-                    label='Status'
-                    placeholder='Select status'
-                    data={STATUS_OPTIONS}
-                    value={filters.status || []}
-                    onChange={value =>
-                      setFilters({ ...filters, status: value })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <MultiSelect
-                    label='Priority'
-                    placeholder='Select priority'
-                    data={PRIORITY_OPTIONS}
-                    value={filters.priority || []}
-                    onChange={value =>
-                      setFilters({ ...filters, priority: value })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <MultiSelect
-                    label='Category'
-                    placeholder='Select category'
+                    label="Category"
+                    placeholder="Select category"
                     data={categoryOptions}
                     value={filters.category || []}
                     onChange={value =>
@@ -1186,7 +1194,46 @@ export default function ReportsPage() {
                     clearable
                   />
                 </Grid.Col>
+                <Grid.Col span={4}>
+                  <MultiSelect
+                    label="Status"
+                    placeholder="Select status"
+                    data={STATUS_OPTIONS}
+                    value={filters.status || []}
+                    onChange={value =>
+                      setFilters({ ...filters, status: value })
+                    }
+                    clearable
+                  />
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <MultiSelect
+                    label="Priority"
+                    placeholder="Select priority"
+                    data={PRIORITY_OPTIONS}
+                    value={filters.priority || []}
+                    onChange={value =>
+                      setFilters({ ...filters, priority: value })
+                    }
+                    clearable
+                  />
+                </Grid.Col>
               </Grid>
+
+              {/* Clear Filters Button */}
+              <Group justify="flex-end">
+                <Button
+                  variant="outline"
+                  leftSection={<IconRefresh size={16} />}
+                  onClick={() => {
+                    setFilters({});
+                    setSelectedQuickFilter('custom');
+                  }}
+                  disabled={Object.keys(filters).length === 0}
+                >
+                  Clear All Filters
+                </Button>
+              </Group>
             </Stack>
           </Card>
 
@@ -1218,329 +1265,329 @@ export default function ReportsPage() {
           {['SUPPORT_STAFF', 'SUPPORT_MANAGER'].includes(
             user?.activeRole || ''
           ) && (
-            <div id="report-content-section" style={{ marginTop: '1.5rem' }}>
-              <Grid>
-              {/* Left Column - Category, Impact, and Priority stacked with spacing */}
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack gap='sm'>
-                  <Paper withBorder p='md'>
-                    <Title order={4} mb='md'>
-                      Tickets by Category
-                    </Title>
-                    <Stack gap={0}>
-                      {categoryBreakdown.map(
-                        ([category, count]: [string, number], index: number) => (
-                          <div
-                            key={category}
-                            style={{
-                              padding: '12px 16px',
-                              borderBottom:
-                                index < categoryBreakdown.length - 1
-                                  ? '1px solid var(--mantine-color-gray-2)'
-                                  : 'none',
-                              backgroundColor:
-                                index % 2 === 0
-                                  ? 'var(--mantine-color-gray-0)'
-                                  : 'transparent',
-                            }}
-                          >
-                            <Group justify='space-between' align='center'>
-                              <Text size='sm'>{category}</Text>
-                              <Badge variant='light' color='dynamic'>
-                                {count}
-                              </Badge>
-                            </Group>
-                          </div>
-                        )
-                      )}
-                    </Stack>
-                  </Paper>
-                  
-                  <Paper withBorder p='md'>
-                    <Title order={4} mb='md'>
-                      Tickets by Impact
-                    </Title>
-                    <Stack gap={0}>
-                      {Object.entries(impactBreakdown).map(
-                        ([impact, count]: [string, number], index: number) => (
-                          <div
-                            key={impact}
-                            style={{
-                              padding: '12px 16px',
-                              borderBottom:
-                                index < Object.entries(impactBreakdown).length - 1
-                                  ? '1px solid var(--mantine-color-gray-2)'
-                                  : 'none',
-                              backgroundColor:
-                                index % 2 === 0
-                                  ? 'var(--mantine-color-gray-0)'
-                                  : 'transparent',
-                            }}
-                          >
-                            <Group justify='space-between' align='center'>
-                              <Text size='sm'>{impact}</Text>
-                              <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
-                                {count}
-                              </Badge>
-                            </Group>
-                          </div>
-                        )
-                      )}
-                    </Stack>
-                  </Paper>
+              <div id="report-content-section" style={{ marginTop: '1.5rem' }}>
+                <Grid>
+                  {/* Left Column - Category, Impact, and Priority stacked with spacing */}
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Stack gap='sm'>
+                      <Paper withBorder p='md'>
+                        <Title order={4} mb='md'>
+                          Tickets by Category
+                        </Title>
+                        <Stack gap={0}>
+                          {categoryBreakdown.map(
+                            ([category, count]: [string, number], index: number) => (
+                              <div
+                                key={category}
+                                style={{
+                                  padding: '12px 16px',
+                                  borderBottom:
+                                    index < categoryBreakdown.length - 1
+                                      ? '1px solid var(--mantine-color-gray-2)'
+                                      : 'none',
+                                  backgroundColor:
+                                    index % 2 === 0
+                                      ? 'var(--mantine-color-gray-0)'
+                                      : 'transparent',
+                                }}
+                              >
+                                <Group justify='space-between' align='center'>
+                                  <Text size='sm'>{category}</Text>
+                                  <Badge variant='light' color='dynamic'>
+                                    {count}
+                                  </Badge>
+                                </Group>
+                              </div>
+                            )
+                          )}
+                        </Stack>
+                      </Paper>
 
-                  <Paper withBorder p='md'>
-                    <Title order={4} mb='md'>
-                      Tickets by Priority
-                    </Title>
-                    <Stack gap={0}>
-                      {Object.entries(priorityBreakdown).map(
-                        ([priority, count]: [string, number], index: number) => (
-                          <div
-                            key={priority}
-                            style={{
-                              padding: '12px 16px',
-                              borderBottom:
-                                index <
-                                Object.entries(priorityBreakdown).length - 1
-                                  ? '1px solid var(--mantine-color-gray-2)'
-                                  : 'none',
-                              backgroundColor:
-                                index % 2 === 0
-                                  ? 'var(--mantine-color-gray-0)'
-                                  : 'transparent',
-                            }}
-                          >
-                            <Group justify='space-between' align='center'>
-                              <Text size='sm'>{priority}</Text>
-                              <Badge variant='light' color='dynamic'>
-                                {count}
-                              </Badge>
-                            </Group>
-                          </div>
-                        )
-                      )}
-                    </Stack>
-                  </Paper>
-                </Stack>
-              </Grid.Col>
+                      <Paper withBorder p='md'>
+                        <Title order={4} mb='md'>
+                          Tickets by Impact
+                        </Title>
+                        <Stack gap={0}>
+                          {Object.entries(impactBreakdown).map(
+                            ([impact, count]: [string, number], index: number) => (
+                              <div
+                                key={impact}
+                                style={{
+                                  padding: '12px 16px',
+                                  borderBottom:
+                                    index < Object.entries(impactBreakdown).length - 1
+                                      ? '1px solid var(--mantine-color-gray-2)'
+                                      : 'none',
+                                  backgroundColor:
+                                    index % 2 === 0
+                                      ? 'var(--mantine-color-gray-0)'
+                                      : 'transparent',
+                                }}
+                              >
+                                <Group justify='space-between' align='center'>
+                                  <Text size='sm'>{impact}</Text>
+                                  <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
+                                    {count}
+                                  </Badge>
+                                </Group>
+                              </div>
+                            )
+                          )}
+                        </Stack>
+                      </Paper>
 
-              {/* Right Column - Status */}
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack gap='md'>
-                  <Paper withBorder p='md'>
-                    <Title order={4} mb='md'>
-                      Tickets by Status
-                    </Title>
-                    <Stack gap={0}>
-                      {Object.entries(statusBreakdown).map(
-                        ([status, count]: [string, number], index: number) => (
-                          <div
-                            key={status}
-                            style={{
-                              padding: '12px 16px',
-                              borderBottom:
-                                index < Object.entries(statusBreakdown).length - 1
-                                  ? '1px solid var(--mantine-color-gray-2)'
-                                  : 'none',
-                              backgroundColor:
-                                index % 2 === 0
-                                  ? 'var(--mantine-color-gray-0)'
-                                  : 'transparent',
-                            }}
-                          >
-                            <Group justify='space-between' align='center'>
-                              <Text size='sm'>{status.replace('_', ' ')}</Text>
-                              <Badge variant='light' color='dynamic'>
-                                {count}
-                              </Badge>
-                            </Group>
-                          </div>
-                        )
-                      )}
+                      <Paper withBorder p='md'>
+                        <Title order={4} mb='md'>
+                          Tickets by Priority
+                        </Title>
+                        <Stack gap={0}>
+                          {Object.entries(priorityBreakdown).map(
+                            ([priority, count]: [string, number], index: number) => (
+                              <div
+                                key={priority}
+                                style={{
+                                  padding: '12px 16px',
+                                  borderBottom:
+                                    index <
+                                      Object.entries(priorityBreakdown).length - 1
+                                      ? '1px solid var(--mantine-color-gray-2)'
+                                      : 'none',
+                                  backgroundColor:
+                                    index % 2 === 0
+                                      ? 'var(--mantine-color-gray-0)'
+                                      : 'transparent',
+                                }}
+                              >
+                                <Group justify='space-between' align='center'>
+                                  <Text size='sm'>{priority}</Text>
+                                  <Badge variant='light' color='dynamic'>
+                                    {count}
+                                  </Badge>
+                                </Group>
+                              </div>
+                            )
+                          )}
+                        </Stack>
+                      </Paper>
                     </Stack>
-                  </Paper>
-                </Stack>
-              </Grid.Col>
-            </Grid>
-            </div>
-          )}
+                  </Grid.Col>
+
+                  {/* Right Column - Status */}
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Stack gap='md'>
+                      <Paper withBorder p='md'>
+                        <Title order={4} mb='md'>
+                          Tickets by Status
+                        </Title>
+                        <Stack gap={0}>
+                          {Object.entries(statusBreakdown).map(
+                            ([status, count]: [string, number], index: number) => (
+                              <div
+                                key={status}
+                                style={{
+                                  padding: '12px 16px',
+                                  borderBottom:
+                                    index < Object.entries(statusBreakdown).length - 1
+                                      ? '1px solid var(--mantine-color-gray-2)'
+                                      : 'none',
+                                  backgroundColor:
+                                    index % 2 === 0
+                                      ? 'var(--mantine-color-gray-0)'
+                                      : 'transparent',
+                                }}
+                              >
+                                <Group justify='space-between' align='center'>
+                                  <Text size='sm'>{status.replace('_', ' ')}</Text>
+                                  <Badge variant='light' color='dynamic'>
+                                    {count}
+                                  </Badge>
+                                </Group>
+                              </div>
+                            )
+                          )}
+                        </Stack>
+                      </Paper>
+                    </Stack>
+                  </Grid.Col>
+                </Grid>
+              </div>
+            )}
 
           {/* Staff Performance Section - Support Manager Only */}
           {user?.activeRole === 'SUPPORT_MANAGER' && (
-              <Paper withBorder p='md' data-section="staff-performance">
-                <Title order={3} mb='md'>
-                  Staff Performance
-                </Title>
-                <Table>
-                  <Table.Thead>
+            <Paper withBorder p='md' data-section="staff-performance">
+              <Title order={3} mb='md'>
+                Staff Performance
+              </Title>
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Staff Member</Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        All
+                        <Tooltip
+                          label='Total tickets assigned to this staff member'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        Working
+                        <Tooltip
+                          label='Tickets in working status (based on active workflow)'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        Done
+                        <Tooltip
+                          label='Tickets in done status (based on active workflow)'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        Hold
+                        <Tooltip
+                          label='Tickets in hold status (not working or done)'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        Overdue
+                        <Tooltip
+                          label='Tickets in Working state that have passed their due date'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                    <Table.Th>
+                      <Group gap='xs' align='center'>
+                        Performance
+                        <Tooltip
+                          label='Percentage of all tickets to tickets where status is Done but were completed before due date, or are in Working state and not past due date'
+                          position='top'
+                          withArrow
+                        >
+                          <IconInfoCircle
+                            size={12}
+                            color='var(--mantine-color-dimmed)'
+                            style={{ cursor: 'help' }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    </Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {staffPerformance.length > 0 ? (
+                    staffPerformance.map(staff => {
+                      return (
+                        <Table.Tr key={staff.name}>
+                          <Table.Td>
+                            <Group gap='sm'>
+                              <Avatar size='sm' color='dynamic'>
+                                {staff.name.charAt(0).toUpperCase()}
+                              </Avatar>
+                              <Text fw={500}>{staff.name}</Text>
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant='light' color='dynamic'>
+                              {staff.all}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant='light' color='dynamic'>
+                              {staff.working}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant='light' color='dynamic'>
+                              {staff.done}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant='light' color='dynamic'>
+                              {staff.hold}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
+                              {staff.overdue}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge
+                              variant='light'
+                              style={{
+                                backgroundColor: staff.performance >= 90
+                                  ? primaryLight
+                                  : staff.performance >= 70
+                                    ? primaryLighter
+                                    : primaryDark,
+                                color: 'white'
+                              }}
+                            >
+                              {staff.performance}%
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                      );
+                    })
+                  ) : (
                     <Table.Tr>
-                      <Table.Th>Staff Member</Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          All
-                          <Tooltip
-                            label='Total tickets assigned to this staff member'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          Working
-                          <Tooltip
-                            label='Tickets in working status (based on active workflow)'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          Done
-                          <Tooltip
-                            label='Tickets in done status (based on active workflow)'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          Hold
-                          <Tooltip
-                            label='Tickets in hold status (not working or done)'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          Overdue
-                          <Tooltip
-                            label='Tickets in Working state that have passed their due date'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
-                      <Table.Th>
-                        <Group gap='xs' align='center'>
-                          Performance
-                          <Tooltip
-                            label='Percentage of all tickets to tickets where status is Done but were completed before due date, or are in Working state and not past due date'
-                            position='top'
-                            withArrow
-                          >
-                            <IconInfoCircle
-                              size={12}
-                              color='var(--mantine-color-dimmed)'
-                              style={{ cursor: 'help' }}
-                            />
-                          </Tooltip>
-                        </Group>
-                      </Table.Th>
+                      <Table.Td colSpan={7} style={{ textAlign: 'center' }}>
+                        <Text c='dimmed'>No staff performance data available</Text>
+                      </Table.Td>
                     </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {staffPerformance.length > 0 ? (
-                      staffPerformance.map(staff => {
-                        return (
-                          <Table.Tr key={staff.name}>
-                            <Table.Td>
-                              <Group gap='sm'>
-                                <Avatar size='sm' color='dynamic'>
-                                  {staff.name.charAt(0).toUpperCase()}
-                                </Avatar>
-                                <Text fw={500}>{staff.name}</Text>
-                              </Group>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant='light' color='dynamic'>
-                                {staff.all}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant='light' color='dynamic'>
-                                {staff.working}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant='light' color='dynamic'>
-                                {staff.done}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant='light' color='dynamic'>
-                                {staff.hold}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(0), color: 'white' }}>
-                                {staff.overdue}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge
-                                variant='light'
-                                style={{
-                                  backgroundColor: staff.performance >= 90
-                                    ? primaryLight
-                                    : staff.performance >= 70
-                                      ? primaryLighter
-                                      : primaryDark,
-                                  color: 'white'
-                                }}
-                              >
-                                {staff.performance}%
-                              </Badge>
-                            </Table.Td>
-                          </Table.Tr>
-                        );
-                      })
-                    ) : (
-                      <Table.Tr>
-                        <Table.Td colSpan={7} style={{ textAlign: 'center' }}>
-                          <Text c='dimmed'>No staff performance data available</Text>
-                        </Table.Td>
-                      </Table.Tr>
-                    )}
-                  </Table.Tbody>
-                </Table>
-              </Paper>
-            )}
+                  )}
+                </Table.Tbody>
+              </Table>
+            </Paper>
+          )}
         </Stack>
 
         {/* Export Modal */}
@@ -1609,66 +1656,112 @@ export default function ReportsPage() {
       {user?.activeRole === 'ADMIN' && (
         <Stack gap='md'>
           {/* Filters */}
-          <Card className="pdf-hide-elements">
-            <Stack>
-              <Group justify='space-between'>
-                <Title order={4}>Filter Options</Title>
-                <Button
-                  variant='outline'
-                  leftSection={<IconRefresh size={16} />}
-                  onClick={() => setFilters({})}
-                  disabled={Object.keys(filters).length === 0}
-                >
-                  Clear All Filters
-                </Button>
-              </Group>
-              <Grid>
-                <Grid.Col span={3}>
-                  <DatePickerInput
-                    label='From Date'
-                    placeholder='Select start date'
-                    value={filters.dateFrom ? new Date(filters.dateFrom) : null}
-                    onChange={(date: Date | null) =>
-                      setFilters({ ...filters, dateFrom: date?.toISOString() })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <DatePickerInput
-                    label='To Date'
-                    placeholder='Select end date'
-                    value={filters.dateTo ? new Date(filters.dateTo) : null}
-                    onChange={(date: Date | null) =>
-                      setFilters({ ...filters, dateTo: date?.toISOString() })
-                    }
-                    clearable
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
-                  <MultiSelect
-                    label='Month-Year'
-                    placeholder='Select month-years'
-                    data={availableMonthYears}
-                    value={filters.monthYear || []}
-                    onChange={value =>
-                      setFilters({ ...filters, monthYear: value })
-                    }
-                    clearable
-                    searchable
-                    size='sm'
-                    styles={{
-                      input: {
-                        height: '36px', // Match DatePickerInput height
-                        fontSize: '14px',
-                      },
+          <Card className="pdf-hide-elements" withBorder>
+            <Stack gap="md">
+              {/* Quick Filters Section */}
+              <div>
+                <Text size="sm" fw={500} mb="xs">
+                  Quick Filters:
+                </Text>
+                <Group gap="xs">
+                  <Button
+                    variant={selectedQuickFilter === 'today' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('today')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'today' ? primaryDark : primaryLighter,
+                      color: 'white',
                     }}
-                  />
-                </Grid.Col>
-                <Grid.Col span={3}>
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisWeek' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisWeek')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisWeek' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Week
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisMonth' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisMonth')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisMonth' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Month
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'thisYear' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => handleQuickFilter('thisYear')}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'thisYear' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    This Year
+                  </Button>
+                  <Button
+                    variant={selectedQuickFilter === 'custom' ? 'filled' : 'light'}
+                    size="sm"
+                    onClick={() => {
+                      setSelectedQuickFilter('custom');
+                      handleQuickFilter('custom');
+                    }}
+                    style={{
+                      backgroundColor: selectedQuickFilter === 'custom' ? primaryDark : primaryLighter,
+                      color: 'white',
+                    }}
+                  >
+                    Custom Range
+                  </Button>
+                </Group>
+              </div>
+
+              {/* Date Range Inputs - Only show when Custom Range is selected */}
+              {selectedQuickFilter === 'custom' && (
+                <Grid>
+                  <Grid.Col span={6}>
+                    <DatePickerInput
+                      label="From"
+                      placeholder="Select start date"
+                      value={filters.dateFrom ? new Date(filters.dateFrom) : null}
+                      onChange={(date: Date | null) => {
+                        setSelectedQuickFilter('custom');
+                        setFilters({ ...filters, dateFrom: date?.toISOString() });
+                      }}
+                      clearable
+                      leftSection={<IconCalendar size={16} />}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <DatePickerInput
+                      label="To"
+                      placeholder="Select end date"
+                      value={filters.dateTo ? new Date(filters.dateTo) : null}
+                      onChange={(date: Date | null) => {
+                        setSelectedQuickFilter('custom');
+                        setFilters({ ...filters, dateTo: date?.toISOString() });
+                      }}
+                      clearable
+                      leftSection={<IconCalendar size={16} />}
+                    />
+                  </Grid.Col>
+                </Grid>
+              )}
+
+              <Grid>
+                <Grid.Col span={12}>
                   <MultiSelect
-                    label='Category'
-                    placeholder='Select category'
+                    label="Category"
+                    placeholder="Select category"
                     data={categoryOptions}
                     value={filters.category || []}
                     onChange={value =>
@@ -1677,7 +1770,24 @@ export default function ReportsPage() {
                     clearable
                   />
                 </Grid.Col>
+             
               </Grid>
+
+
+              {/* Clear Filters Button */}
+              <Group justify="flex-end">
+                <Button
+                  variant="outline"
+                  leftSection={<IconRefresh size={16} />}
+                  onClick={() => {
+                    setFilters({});
+                    setSelectedQuickFilter('custom');
+                  }}
+                  disabled={Object.keys(filters).length === 0}
+                >
+                  Clear All Filters
+                </Button>
+              </Group>
             </Stack>
           </Card>
 
@@ -1700,443 +1810,443 @@ export default function ReportsPage() {
 
           {/* Breakdown Tables - Masonry two-column layout */}
           <div id="report-content-section" style={{ marginTop: '1.5rem' }}>
-          <div
-            style={{
-              columnCount: isSmall ? 1 : 2,
-              columnGap: '16px',
-            }}
-          >
             <div
               style={{
-                breakInside: 'avoid',
-                marginBottom: '16px',
-                display: 'inline-block',
-                width: '100%',
-                verticalAlign: 'top',
+                columnCount: isSmall ? 1 : 2,
+                columnGap: '16px',
               }}
             >
-              <Paper withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Users by Role
-                </Title>
-                <Stack gap={0}>
-                  {Object.entries({
-                    END_USER: filteredUsers.filter(u =>
-                      u.roles?.includes(UserRole.END_USER)
-                    ).length,
-                    SUPPORT_STAFF: filteredUsers.filter(u =>
-                      u.roles?.includes(UserRole.SUPPORT_STAFF)
-                    ).length,
-                    SUPPORT_MANAGER: filteredUsers.filter(u =>
-                      u.roles?.includes(UserRole.SUPPORT_MANAGER)
-                    ).length,
-                    ADMIN: filteredUsers.filter(u =>
-                      u.roles?.includes(UserRole.ADMIN)
-                    ).length,
-                  }).map(([role, count], index, array) => (
-                    <div
-                      key={role}
-                      style={{
-                        padding: '12px 16px',
-                        borderBottom:
-                          index < array.length - 1
-                            ? '1px solid var(--mantine-color-gray-2)'
-                            : 'none',
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'var(--mantine-color-gray-0)'
-                            : 'transparent',
-                      }}
-                    >
-                      <Group justify='space-between' align='center'>
-                        <Text size='sm'>{role.replace('_', ' ')}</Text>
-                        <Badge variant='light' color={primaryLight}>
-                          {count}
-                        </Badge>
-                      </Group>
-                    </div>
-                  ))}
-                </Stack>
-              </Paper>
-            </div>
-
-            <div
-              style={{
-                breakInside: 'avoid',
-                marginBottom: '16px',
-                display: 'inline-block',
-                width: '100%',
-                verticalAlign: 'top',
-              }}
-            >
-              <Paper withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Users by Registration Period
-                </Title>
-                <Stack gap={0}>
-                  {Array.from({ length: 4 }, (_, i) => {
-                    const date = new Date();
-                    date.setMonth(date.getMonth() - i);
-                    const monthYear = date.toLocaleDateString('en-US', {
-                      month: 'short',
-                      year: 'numeric',
-                    });
-                    const count = filteredUsers.filter(user => {
-                      const userDate = new Date(user.createdAt);
-                      return (
-                        userDate.getMonth() === date.getMonth() &&
-                        userDate.getFullYear() === date.getFullYear()
-                      );
-                    }).length;
-                    return { monthYear, count };
-                  }).map(({ monthYear, count }, index, array) => (
-                    <div
-                      key={monthYear}
-                      style={{
-                        padding: '12px 16px',
-                        borderBottom:
-                          index < array.length - 1
-                            ? '1px solid var(--mantine-color-gray-2)'
-                            : 'none',
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'var(--mantine-color-gray-0)'
-                            : 'transparent',
-                      }}
-                    >
-                      <Group justify='space-between' align='center'>
-                        <Text size='sm'>{monthYear}</Text>
-                        <Badge variant='light' color='dynamic'>
-                          {count}
-                        </Badge>
-                      </Group>
-                    </div>
-                  ))}
-                </Stack>
-              </Paper>
-            </div>
-
-            <div
-              style={{
-                breakInside: 'avoid',
-                marginBottom: '16px',
-                display: 'inline-block',
-                width: '100%',
-                verticalAlign: 'top',
-              }}
-            >
-              <Paper withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Users by Status
-                </Title>
-                <Stack gap={0}>
-                  {Object.entries({
-                    Active: filteredUsers.filter(u => u.isActive).length,
-                    Inactive: filteredUsers.filter(u => !u.isActive).length,
-                  }).map(([status, count], index, array) => (
-                    <div
-                      key={status}
-                      style={{
-                        padding: '12px 16px',
-                        borderBottom:
-                          index < array.length - 1
-                            ? '1px solid var(--mantine-color-gray-2)'
-                            : 'none',
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'var(--mantine-color-gray-0)'
-                            : 'transparent',
-                      }}
-                    >
-                      <Group justify='space-between' align='center'>
-                        <Text size='sm'>{status}</Text>
-                        <Badge
-                          variant='light'
-                          style={{
-                            backgroundColor: status === 'Active' ? primaryLight : primaryDark,
-                            color: 'white'
-                          }}
-                        >
-                          {count}
-                        </Badge>
-                      </Group>
-                    </div>
-                  ))}
-                </Stack>
-              </Paper>
-            </div>
-
-            <div
-              style={{
-                breakInside: 'avoid',
-                marginBottom: '16px',
-                display: 'inline-block',
-                width: '100%',
-                verticalAlign: 'top',
-              }}
-            >
-              <Paper withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Tickets by Priority
-                </Title>
-                <Stack gap={0}>
-                  {Object.entries({
-                    CRITICAL: filteredTicketsForAdmin.filter(
-                      t => t.priority === 'CRITICAL'
-                    ).length,
-                    HIGH: filteredTicketsForAdmin.filter(
-                      t => t.priority === 'HIGH'
-                    ).length,
-                    MEDIUM: filteredTicketsForAdmin.filter(
-                      t => t.priority === 'MEDIUM'
-                    ).length,
-                    LOW: filteredTicketsForAdmin.filter(
-                      t => t.priority === 'LOW'
-                    ).length,
-                  }).map(([priority, count], index, array) => (
-                    <div
-                      key={priority}
-                      style={{
-                        padding: '12px 16px',
-                        borderBottom:
-                          index < array.length - 1
-                            ? '1px solid var(--mantine-color-gray-2)'
-                            : 'none',
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'var(--mantine-color-gray-0)'
-                            : 'transparent',
-                      }}
-                    >
-                      <Group justify='space-between' align='center'>
-                        <Text size='sm'>{priority}</Text>
-                        <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }}>
-                          {count}
-                        </Badge>
-                      </Group>
-                    </div>
-                  ))}
-                </Stack>
-              </Paper>
-            </div>
-
-            <div
-              style={{
-                breakInside: 'avoid',
-                marginBottom: '16px',
-                display: 'inline-block',
-                width: '100%',
-                verticalAlign: 'top',
-              }}
-            >
-              <Paper withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Tickets by Category
-                </Title>
-                <Stack gap={0}>
-                  {Object.entries(
-                    filteredTicketsForAdmin.reduce(
-                      (acc, ticket) => {
-                        const category = ticket.category?.customName || ticket.category?.name || 'Unknown';
-                        acc[category] = (acc[category] || 0) + 1;
-                        return acc;
-                      },
-                      {} as Record<string, number>
-                    )
-                  ).map(([category, count], index, array) => (
-                    <div
-                      key={category}
-                      style={{
-                        padding: '12px 16px',
-                        borderBottom:
-                          index < array.length - 1
-                            ? '1px solid var(--mantine-color-gray-2)'
-                            : 'none',
-                        backgroundColor:
-                          index % 2 === 0
-                            ? 'var(--mantine-color-gray-0)'
-                            : 'transparent',
-                      }}
-                    >
-                      <Group justify='space-between' align='center'>
-                        <Text size='sm'>{category}</Text>
-                        <Badge variant='light' color={primaryLighter}>
-                          {count}
-                        </Badge>
-                      </Group>
-                    </div>
-                  ))}
-                </Stack>
-              </Paper>
-            </div>
-          </div>
-
-          {/* Security & Compliance Breakdown Tables */}
-          <div>
-            <Title order={3} mb='md'>
-              Security & Compliance Analysis
-            </Title>
-            <Grid>
-              <Grid.Col span={12}>
-                <Card withBorder>
-                  <Card.Section withBorder inheritPadding py='xs'>
-                    <Text fw={500}>Login Activity Summary</Text>
-                  </Card.Section>
-                  <Table>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Metric</Table.Th>
-                        <Table.Th>Count</Table.Th>
-                        <Table.Th>
-                          <Group gap={6} align='center'>
-                            <Text>Status</Text>
-                            <Tooltip
-                              label='Qualitative state for each metric (e.g., Normal, Active, Pending, Online) based on thresholds or current activity'
-                              withArrow
-                              position='top'
-                            >
-                              <IconInfoCircle
-                                size={14}
-                                style={{ cursor: 'help' }}
-                                color='var(--mantine-color-dimmed)'
-                              />
-                            </Tooltip>
-                          </Group>
-                        </Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      <Table.Tr>
-                        <Table.Td>Failed Login Attempts</Table.Td>
-                        <Table.Td>0</Table.Td>
-                        <Table.Td>
-                          <Badge style={{ backgroundColor: primaryLight, color: 'white' }} variant='light'>
-                            Normal
+              <div
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  display: 'inline-block',
+                  width: '100%',
+                  verticalAlign: 'top',
+                }}
+              >
+                <Paper withBorder p='md'>
+                  <Title order={4} mb='md'>
+                    Users by Role
+                  </Title>
+                  <Stack gap={0}>
+                    {Object.entries({
+                      END_USER: filteredUsers.filter(u =>
+                        u.roles?.includes(UserRole.END_USER)
+                      ).length,
+                      SUPPORT_STAFF: filteredUsers.filter(u =>
+                        u.roles?.includes(UserRole.SUPPORT_STAFF)
+                      ).length,
+                      SUPPORT_MANAGER: filteredUsers.filter(u =>
+                        u.roles?.includes(UserRole.SUPPORT_MANAGER)
+                      ).length,
+                      ADMIN: filteredUsers.filter(u =>
+                        u.roles?.includes(UserRole.ADMIN)
+                      ).length,
+                    }).map(([role, count], index, array) => (
+                      <div
+                        key={role}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom:
+                            index < array.length - 1
+                              ? '1px solid var(--mantine-color-gray-2)'
+                              : 'none',
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'var(--mantine-color-gray-0)'
+                              : 'transparent',
+                        }}
+                      >
+                        <Group justify='space-between' align='center'>
+                          <Text size='sm'>{role.replace('_', ' ')}</Text>
+                          <Badge variant='light' color={primaryLight}>
+                            {count}
                           </Badge>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Successful Logins</Table.Td>
-                        <Table.Td>{filteredUsers.length}</Table.Td>
-                        <Table.Td>
-                          <Badge color='dynamic' variant='light'>
-                            Active
-                          </Badge>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Password Resets</Table.Td>
-                        <Table.Td>0</Table.Td>
-                        <Table.Td>
-                          <Badge style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }} variant='light'>
-                            Pending
-                          </Badge>
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Active Sessions</Table.Td>
-                        <Table.Td>0</Table.Td>
-                        <Table.Td>
-                          <Badge style={{ backgroundColor: primaryLight, color: 'white' }} variant='light'>
-                            Online
-                          </Badge>
-                        </Table.Td>
-                      </Table.Tr>
-                    </Table.Tbody>
-                  </Table>
-                </Card>
-              </Grid.Col>
+                        </Group>
+                      </div>
+                    ))}
+                  </Stack>
+                </Paper>
+              </div>
 
-              <Grid.Col span={12}>
-                <Card withBorder>
-                  <Card.Section withBorder inheritPadding py='xs'>
-                    <Text fw={500}>Audit Trail Summary</Text>
-                  </Card.Section>
-                  <Table>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Activity Type</Table.Th>
-                        <Table.Th>Count</Table.Th>
-                        <Table.Th>Last Activity</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      <Table.Tr>
-                        <Table.Td>User Registrations</Table.Td>
-                        <Table.Td>{filteredUsers.length}</Table.Td>
-                        <Table.Td>
-                          {filteredUsers.length > 0
-                            ? new Date(
+              <div
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  display: 'inline-block',
+                  width: '100%',
+                  verticalAlign: 'top',
+                }}
+              >
+                <Paper withBorder p='md'>
+                  <Title order={4} mb='md'>
+                    Users by Registration Period
+                  </Title>
+                  <Stack gap={0}>
+                    {Array.from({ length: 4 }, (_, i) => {
+                      const date = new Date();
+                      date.setMonth(date.getMonth() - i);
+                      const monthYear = date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      });
+                      const count = filteredUsers.filter(user => {
+                        const userDate = new Date(user.createdAt);
+                        return (
+                          userDate.getMonth() === date.getMonth() &&
+                          userDate.getFullYear() === date.getFullYear()
+                        );
+                      }).length;
+                      return { monthYear, count };
+                    }).map(({ monthYear, count }, index, array) => (
+                      <div
+                        key={monthYear}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom:
+                            index < array.length - 1
+                              ? '1px solid var(--mantine-color-gray-2)'
+                              : 'none',
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'var(--mantine-color-gray-0)'
+                              : 'transparent',
+                        }}
+                      >
+                        <Group justify='space-between' align='center'>
+                          <Text size='sm'>{monthYear}</Text>
+                          <Badge variant='light' color='dynamic'>
+                            {count}
+                          </Badge>
+                        </Group>
+                      </div>
+                    ))}
+                  </Stack>
+                </Paper>
+              </div>
+
+              <div
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  display: 'inline-block',
+                  width: '100%',
+                  verticalAlign: 'top',
+                }}
+              >
+                <Paper withBorder p='md'>
+                  <Title order={4} mb='md'>
+                    Users by Status
+                  </Title>
+                  <Stack gap={0}>
+                    {Object.entries({
+                      Active: filteredUsers.filter(u => u.isActive).length,
+                      Inactive: filteredUsers.filter(u => !u.isActive).length,
+                    }).map(([status, count], index, array) => (
+                      <div
+                        key={status}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom:
+                            index < array.length - 1
+                              ? '1px solid var(--mantine-color-gray-2)'
+                              : 'none',
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'var(--mantine-color-gray-0)'
+                              : 'transparent',
+                        }}
+                      >
+                        <Group justify='space-between' align='center'>
+                          <Text size='sm'>{status}</Text>
+                          <Badge
+                            variant='light'
+                            style={{
+                              backgroundColor: status === 'Active' ? primaryLight : primaryDark,
+                              color: 'white'
+                            }}
+                          >
+                            {count}
+                          </Badge>
+                        </Group>
+                      </div>
+                    ))}
+                  </Stack>
+                </Paper>
+              </div>
+
+              <div
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  display: 'inline-block',
+                  width: '100%',
+                  verticalAlign: 'top',
+                }}
+              >
+                <Paper withBorder p='md'>
+                  <Title order={4} mb='md'>
+                    Tickets by Priority
+                  </Title>
+                  <Stack gap={0}>
+                    {Object.entries({
+                      CRITICAL: filteredTicketsForAdmin.filter(
+                        t => t.priority === 'CRITICAL'
+                      ).length,
+                      HIGH: filteredTicketsForAdmin.filter(
+                        t => t.priority === 'HIGH'
+                      ).length,
+                      MEDIUM: filteredTicketsForAdmin.filter(
+                        t => t.priority === 'MEDIUM'
+                      ).length,
+                      LOW: filteredTicketsForAdmin.filter(
+                        t => t.priority === 'LOW'
+                      ).length,
+                    }).map(([priority, count], index, array) => (
+                      <div
+                        key={priority}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom:
+                            index < array.length - 1
+                              ? '1px solid var(--mantine-color-gray-2)'
+                              : 'none',
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'var(--mantine-color-gray-0)'
+                              : 'transparent',
+                        }}
+                      >
+                        <Group justify='space-between' align='center'>
+                          <Text size='sm'>{priority}</Text>
+                          <Badge variant='light' style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }}>
+                            {count}
+                          </Badge>
+                        </Group>
+                      </div>
+                    ))}
+                  </Stack>
+                </Paper>
+              </div>
+
+              <div
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  display: 'inline-block',
+                  width: '100%',
+                  verticalAlign: 'top',
+                }}
+              >
+                <Paper withBorder p='md'>
+                  <Title order={4} mb='md'>
+                    Tickets by Category
+                  </Title>
+                  <Stack gap={0}>
+                    {Object.entries(
+                      filteredTicketsForAdmin.reduce(
+                        (acc, ticket) => {
+                          const category = ticket.category?.customName || ticket.category?.name || 'Unknown';
+                          acc[category] = (acc[category] || 0) + 1;
+                          return acc;
+                        },
+                        {} as Record<string, number>
+                      )
+                    ).map(([category, count], index, array) => (
+                      <div
+                        key={category}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom:
+                            index < array.length - 1
+                              ? '1px solid var(--mantine-color-gray-2)'
+                              : 'none',
+                          backgroundColor:
+                            index % 2 === 0
+                              ? 'var(--mantine-color-gray-0)'
+                              : 'transparent',
+                        }}
+                      >
+                        <Group justify='space-between' align='center'>
+                          <Text size='sm'>{category}</Text>
+                          <Badge variant='light' color={primaryLighter}>
+                            {count}
+                          </Badge>
+                        </Group>
+                      </div>
+                    ))}
+                  </Stack>
+                </Paper>
+              </div>
+            </div>
+
+            {/* Security & Compliance Breakdown Tables */}
+            <div>
+              <Title order={3} mb='md'>
+                Security & Compliance Analysis
+              </Title>
+              <Grid>
+                <Grid.Col span={12}>
+                  <Card withBorder>
+                    <Card.Section withBorder inheritPadding py='xs'>
+                      <Text fw={500}>Login Activity Summary</Text>
+                    </Card.Section>
+                    <Table>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Metric</Table.Th>
+                          <Table.Th>Count</Table.Th>
+                          <Table.Th>
+                            <Group gap={6} align='center'>
+                              <Text>Status</Text>
+                              <Tooltip
+                                label='Qualitative state for each metric (e.g., Normal, Active, Pending, Online) based on thresholds or current activity'
+                                withArrow
+                                position='top'
+                              >
+                                <IconInfoCircle
+                                  size={14}
+                                  style={{ cursor: 'help' }}
+                                  color='var(--mantine-color-dimmed)'
+                                />
+                              </Tooltip>
+                            </Group>
+                          </Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        <Table.Tr>
+                          <Table.Td>Failed Login Attempts</Table.Td>
+                          <Table.Td>0</Table.Td>
+                          <Table.Td>
+                            <Badge style={{ backgroundColor: primaryLight, color: 'white' }} variant='light'>
+                              Normal
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>Successful Logins</Table.Td>
+                          <Table.Td>{filteredUsers.length}</Table.Td>
+                          <Table.Td>
+                            <Badge color='dynamic' variant='light'>
+                              Active
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>Password Resets</Table.Td>
+                          <Table.Td>0</Table.Td>
+                          <Table.Td>
+                            <Badge style={{ backgroundColor: getEarthyColorByIndex(1), color: 'white' }} variant='light'>
+                              Pending
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>Active Sessions</Table.Td>
+                          <Table.Td>0</Table.Td>
+                          <Table.Td>
+                            <Badge style={{ backgroundColor: primaryLight, color: 'white' }} variant='light'>
+                              Online
+                            </Badge>
+                          </Table.Td>
+                        </Table.Tr>
+                      </Table.Tbody>
+                    </Table>
+                  </Card>
+                </Grid.Col>
+
+                <Grid.Col span={12}>
+                  <Card withBorder>
+                    <Card.Section withBorder inheritPadding py='xs'>
+                      <Text fw={500}>Audit Trail Summary</Text>
+                    </Card.Section>
+                    <Table>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Activity Type</Table.Th>
+                          <Table.Th>Count</Table.Th>
+                          <Table.Th>Last Activity</Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        <Table.Tr>
+                          <Table.Td>User Registrations</Table.Td>
+                          <Table.Td>{filteredUsers.length}</Table.Td>
+                          <Table.Td>
+                            {filteredUsers.length > 0
+                              ? new Date(
                                 Math.max(
                                   ...filteredUsers.map(u =>
                                     new Date(u.createdAt).getTime()
                                   )
                                 )
                               ).toLocaleDateString()
-                            : 'N/A'}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>Ticket Creations</Table.Td>
-                        <Table.Td>{filteredTicketsForAdmin.length}</Table.Td>
-                        <Table.Td>
-                          {filteredTicketsForAdmin.length > 0
-                            ? new Date(
+                              : 'N/A'}
+                          </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>Ticket Creations</Table.Td>
+                          <Table.Td>{filteredTicketsForAdmin.length}</Table.Td>
+                          <Table.Td>
+                            {filteredTicketsForAdmin.length > 0
+                              ? new Date(
                                 Math.max(
                                   ...filteredTicketsForAdmin.map(t =>
                                     new Date(t.createdAt).getTime()
                                   )
                                 )
                               ).toLocaleDateString()
-                            : 'N/A'}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>
-                          <Group gap={6} align='center'>
-                            <Text>System Changes</Text>
-                            <Tooltip
-                              label='Administrative configuration updates such as role/permission changes, policy edits, or settings updates'
-                              withArrow
-                              position='top'
-                            >
-                              <IconInfoCircle
-                                size={14}
-                                style={{ cursor: 'help' }}
-                                color='var(--mantine-color-dimmed)'
-                              />
-                            </Tooltip>
-                          </Group>
-                        </Table.Td>
-                        <Table.Td>0</Table.Td>
-                        <Table.Td>N/A</Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td>
-                          <Group gap={6} align='center'>
-                            <Text>Security Events</Text>
-                            <Tooltip
-                              label='Security-relevant activities such as lockouts, suspicious login patterns, MFA changes, or policy violations'
-                              withArrow
-                              position='top'
-                            >
-                              <IconInfoCircle
-                                size={14}
-                                style={{ cursor: 'help' }}
-                                color='var(--mantine-color-dimmed)'
-                              />
-                            </Tooltip>
-                          </Group>
-                        </Table.Td>
-                        <Table.Td>0</Table.Td>
-                        <Table.Td>N/A</Table.Td>
-                      </Table.Tr>
-                    </Table.Tbody>
-                  </Table>
-                </Card>
-              </Grid.Col>
-            </Grid>
-          </div>
+                              : 'N/A'}
+                          </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>
+                            <Group gap={6} align='center'>
+                              <Text>System Changes</Text>
+                              <Tooltip
+                                label='Administrative configuration updates such as role/permission changes, policy edits, or settings updates'
+                                withArrow
+                                position='top'
+                              >
+                                <IconInfoCircle
+                                  size={14}
+                                  style={{ cursor: 'help' }}
+                                  color='var(--mantine-color-dimmed)'
+                                />
+                              </Tooltip>
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>0</Table.Td>
+                          <Table.Td>N/A</Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                          <Table.Td>
+                            <Group gap={6} align='center'>
+                              <Text>Security Events</Text>
+                              <Tooltip
+                                label='Security-relevant activities such as lockouts, suspicious login patterns, MFA changes, or policy violations'
+                                withArrow
+                                position='top'
+                              >
+                                <IconInfoCircle
+                                  size={14}
+                                  style={{ cursor: 'help' }}
+                                  color='var(--mantine-color-dimmed)'
+                                />
+                              </Tooltip>
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>0</Table.Td>
+                          <Table.Td>N/A</Table.Td>
+                        </Table.Tr>
+                      </Table.Tbody>
+                    </Table>
+                  </Card>
+                </Grid.Col>
+              </Grid>
+            </div>
           </div>
         </Stack>
       )}

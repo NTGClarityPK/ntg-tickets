@@ -434,7 +434,7 @@ export default function TicketDetailPage() {
             Back
           </Button>
           <div>
-            <Title order={1}>Ticket {ticket.ticketNumber}</Title>
+            <Title order={1}>{ticket.ticketNumber}</Title>
             <Text c='dimmed'>{ticket.title}</Text>
           </div>
         </Group>
