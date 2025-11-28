@@ -1,16 +1,16 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Button, Menu, Group, Text, useMantineTheme } from '@mantine/core';
+import { Button, Menu, Text, useMantineTheme } from '@mantine/core';
 import { IconWorld } from '@tabler/icons-react';
 import { RTLChevronDown } from '../ui/RTLIcon';
 import { useState, useEffect } from 'react';
 import { useRTL } from '../../hooks/useRTL';
 import { useRouter } from 'next/navigation';
+import { US } from 'country-flag-icons/react/3x2';
 
-const languages: Array<{ code: string; name: string; flag: string }> = [
-  { code: 'en', name: 'US English', flag: '🇺🇸' },
-  // { code: 'ar', name: 'العربية', flag: '🇸🇦' }, // Temporarily hidden until Arabic support is complete
+const languages = [
+  { code: 'en', name: 'US English', Flag: US },
 ];
 
 export function LanguageSwitcher() {
@@ -19,11 +19,25 @@ export function LanguageSwitcher() {
   const { direction } = useRTL();
   const [opened, setOpened] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const theme = useMantineTheme();
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
+    const checkDarkMode = () => {
+      setIsDarkMode(
+        document.documentElement.getAttribute('data-mantine-color-scheme') === 'dark'
+      );
+    };
+    checkDarkMode();
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-mantine-color-scheme'],
+    });
+    return () => observer.disconnect();
   }, []);
 
   const currentLanguage =
@@ -40,7 +54,6 @@ export function LanguageSwitcher() {
     return (
       <Button
         variant='outline'
-        color={theme.colors[theme.primaryColor][9]}
         leftSection={<IconWorld size={16} />}
         rightSection={<RTLChevronDown size={16} />}
         style={{ minWidth: 120 }}
@@ -64,7 +77,6 @@ export function LanguageSwitcher() {
         <Menu.Target>
           <Button
             variant='outline'
-            color={theme.colors[theme.primaryColor][9]}
             leftSection={<IconWorld size={16} />}
             rightSection={<RTLChevronDown size={16} />}
             style={{
@@ -77,54 +89,45 @@ export function LanguageSwitcher() {
 
         <Menu.Dropdown>
           <Menu.Label>{t('language')}</Menu.Label>
-          {languages.map(language => (
-            <Menu.Item
-              key={language.code}
-              leftSection={<Text size='lg'>{language.flag}</Text>}
-              onClick={() => handleLanguageChange(language.code)}
-              style={{
-                backgroundColor:
-                  locale === language.code
-                    ? theme.colors.red[1]
-                    : 'transparent',
-                color:
-                  locale === language.code ? theme.colors.red[6] : 'inherit',
-                fontWeight: locale === language.code ? 600 : 400,
-                transition: 'background-color 0.2s ease',
-                marginBottom: '4px',
-              }}
-              onMouseEnter={e => {
-                // Use theme-aware hover: light for light mode, dark for dark mode
-                const isDarkMode =
-                  document.documentElement.getAttribute(
-                    'data-mantine-color-scheme'
-                  ) === 'dark';
-                if (isDarkMode) {
-                  e.currentTarget.style.backgroundColor = theme.colors.red[2];
-                  e.currentTarget.style.color = theme.colors.red[8];
-                } else {
-                  e.currentTarget.style.backgroundColor = '#f8f9ff';
+          {languages.map(language => {
+            const isSelected = locale === language.code;
+            const selectedBg = isDarkMode ? theme.colors.red[8] : theme.colors.red[1];
+            const selectedColor = isDarkMode ? theme.white : theme.colors.red[6];
+            const hoverBg = isDarkMode ? theme.colors.red[7] : theme.colors.red[0];
+
+            return (
+              <Menu.Item
+                key={language.code}
+                leftSection={<language.Flag style={{ width: 16 }} />}
+                rightSection={
+                  isSelected ? (
+                    <Text size='sm' c={selectedColor}>
+                      ✓
+                    </Text>
+                  ) : null
                 }
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor =
-                  locale === language.code
-                    ? theme.colors.red[1]
-                    : 'transparent';
-                e.currentTarget.style.color =
-                  locale === language.code ? theme.colors.red[6] : 'inherit';
-              }}
-            >
-              <Group justify='space-between'>
+                onClick={() => handleLanguageChange(language.code)}
+                style={{
+                  backgroundColor: isSelected ? selectedBg : 'transparent',
+                  color: isSelected ? selectedColor : 'inherit',
+                  fontWeight: isSelected ? 600 : 400,
+                  transition: 'background-color 0.2s ease, color 0.2s ease',
+                  marginBottom: '4px',
+                }}
+                onMouseEnter={e => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = hoverBg;
+                  }
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = isSelected ? selectedBg : 'transparent';
+                  e.currentTarget.style.color = isSelected ? selectedColor : 'inherit';
+                }}
+              >
                 <Text size='sm'>{language.name}</Text>
-                {locale === language.code && (
-                  <Text size='xs' c={theme.colors[theme.primaryColor][6]}>
-                    ✓
-                  </Text>
-                )}
-              </Group>
-            </Menu.Item>
-          ))}
+              </Menu.Item>
+            );
+          })}
         </Menu.Dropdown>
       </Menu>
     </div>

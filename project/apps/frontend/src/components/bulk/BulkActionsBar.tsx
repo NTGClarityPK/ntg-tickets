@@ -178,7 +178,6 @@ export function BulkActionsBar({
         withBorder
         p='md'
         mb='md'
-        style={{ backgroundColor: theme.colors[theme.primaryColor][0] }}
       >
         <Group justify='space-between'>
           <Group>
