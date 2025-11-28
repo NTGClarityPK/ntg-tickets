@@ -59,8 +59,9 @@ export default function ForgotPasswordPage() {
     try {
       await authClient.forgotPassword(email);
       setSuccess(true);
-    } catch (error: any) {
-      setError(error.message || t('errorOccurred'));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(errorMessage || t('errorOccurred'));
     } finally {
       setLoading(false);
     }

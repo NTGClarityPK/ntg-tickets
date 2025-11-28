@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   PasswordInput,
@@ -35,7 +35,6 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [validating, setValidating] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Check if we have a valid session from the reset token
@@ -128,8 +127,9 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push('/auth/signin');
       }, 2000);
-    } catch (error: any) {
-      setError(error.message || t('resetPasswordFailed') || 'Failed to reset password');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(errorMessage || t('resetPasswordFailed') || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
