@@ -91,7 +91,7 @@ import { TicketNotFound } from '../../../components/error/TicketNotFound';
 
 export default function TicketDetailPage() {
   const theme = useMantineTheme();
-  const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest } = useDynamicTheme();
+  const { primaryLight, primaryLighter, primaryDark, primaryDarker, primaryLightest, primaryDarkest, primary } = useDynamicTheme();
 
   const statusColors: Record<TicketStatus, string> = {
     NEW: primaryLight,
@@ -562,7 +562,7 @@ export default function TicketDetailPage() {
                                   </Menu.Item>
                                   <Menu.Item
                                     leftSection={<IconTrash size={14} />}
-                                    color={theme.colors[theme.primaryColor][9]}
+                                    color={primary}
                                     onClick={() => setDeleteCommentId(comment.id)}
                                   >
                                     Delete
