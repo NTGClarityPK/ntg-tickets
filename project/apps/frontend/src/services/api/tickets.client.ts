@@ -34,7 +34,7 @@ export const ticketsClient = {
     httpClient.post<ApiResponse<Ticket>>('/tickets', data),
 
   updateTicket: (id: string, data: UpdateTicketInput) =>
-    httpClient.patch<ApiResponse<Ticket>>(`/tickets/${id}`, data),
+    httpClient.patch<ApiResponse<{ id: string; description: string; status: string }>>(`/tickets/${id}`, data),
 
   deleteTicket: (id: string) => httpClient.delete(`/tickets/${id}`),
 

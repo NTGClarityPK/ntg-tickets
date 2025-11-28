@@ -205,17 +205,19 @@ export function useUpdateTicket() {
       data: UpdateTicketInput;
     }) => {
       const response = await ticketApi.updateTicket(id, data);
-      const ticket = normalizeItemResponse<Ticket>(response.data);
+      const result = normalizeItemResponse<{ id: string; description: string; status: string }>(response.data);
 
-      if (!ticket) {
+      if (!result) {
         throw new Error('Ticket update response payload is malformed.');
       }
 
-      return ticket;
+      // Return the minimal response - the full ticket will be refetched via query invalidation
+      return result;
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (result, { id }) => {
+      // Invalidate queries to refetch the full ticket data
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', result.id || id] });
     },
   });
 }

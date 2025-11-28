@@ -168,7 +168,11 @@ export class TicketsController {
       req.user.activeRole
     );
     return {
-      data: ticket,
+      data: {
+        id: ticket.id,
+        description: ticket.description,
+        status: ticket.status,
+      },
       message: 'Ticket updated successfully',
     };
   }
