@@ -64,29 +64,27 @@ async function bootstrap() {
     app.setGlobalPrefix(apiPrefix);
 
     // Swagger documentation
-    if (appConfig.nodeEnv !== 'prod') {
-      const config = new DocumentBuilder()
-        .setTitle('NTG Ticket API')
-        .setDescription('Complete IT Support - Ticket Management System API')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .addTag('Auth', 'Authentication endpoints')
-        .addTag('Users', 'User management endpoints')
-        .addTag('Tickets', 'Ticket management endpoints')
-        .addTag('Comments', 'Comment management endpoints')
-        .addTag('Attachments', 'File attachment endpoints')
-        .addTag('Notifications', 'Notification endpoints')
-        .addTag('Reports', 'Reporting endpoints')
-        .addTag('Admin', 'Administration endpoints')
-        .build();
+    const config = new DocumentBuilder()
+      .setTitle('NTG Ticket API')
+      .setDescription('Complete IT Support - Ticket Management System API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addTag('Auth', 'Authentication endpoints')
+      .addTag('Users', 'User management endpoints')
+      .addTag('Tickets', 'Ticket management endpoints')
+      .addTag('Comments', 'Comment management endpoints')
+      .addTag('Attachments', 'File attachment endpoints')
+      .addTag('Notifications', 'Notification endpoints')
+      .addTag('Reports', 'Reporting endpoints')
+      .addTag('Admin', 'Administration endpoints')
+      .build();
 
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document, {
-        swaggerOptions: {
-          persistAuthorization: true,
-        },
-      });
-    }
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
 
     // Start the server
     await app.listen(port, () => {
