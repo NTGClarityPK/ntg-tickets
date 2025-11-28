@@ -16,6 +16,7 @@ import {
   Divider,
   Table,
   ActionIcon,
+  Loader,
   Modal,
   Code,
   useMantineTheme,
@@ -100,14 +101,15 @@ export default function SystemMonitoringPage() {
             Monitor system performance and health
           </Text>
         </div>
-        <Button
+        <ActionIcon
           variant='light'
-          leftSection={<IconRefresh size={16} />}
+          size='lg'
           onClick={handleRefresh}
-          loading={statsLoading || healthLoading}
+          disabled={statsLoading || healthLoading}
+          title='Refresh'
         >
-          Refresh
-        </Button>
+          {statsLoading || healthLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+        </ActionIcon>
       </Group>
 
       {/* System Health Overview */}

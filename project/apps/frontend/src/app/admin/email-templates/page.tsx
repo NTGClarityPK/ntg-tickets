@@ -18,6 +18,7 @@ import {
   Select,
   Switch,
   ActionIcon,
+  Loader,
   Tabs,
   Code,
   Divider,
@@ -379,14 +380,15 @@ export default function EmailTemplatesPage() {
           </Text>
         </div>
         <Group>
-          <Button
+          <ActionIcon
             variant='light'
-            leftSection={<IconRefresh size={16} />}
+            size='lg'
             onClick={() => refetch()}
-            loading={isLoading}
+            disabled={isLoading}
+            title='Refresh'
           >
-            Refresh
-          </Button>
+            {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+          </ActionIcon>
           <Button
             variant='light'
             leftSection={<IconTemplate size={16} />}

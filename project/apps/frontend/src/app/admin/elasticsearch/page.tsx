@@ -18,6 +18,8 @@ import {
   Tabs,
   TextInput,
   Divider,
+  ActionIcon,
+  Loader,
   useMantineTheme,
 } from '@mantine/core';
 import {
@@ -160,14 +162,15 @@ export default function ElasticsearchPage() {
             Monitor and manage Elasticsearch cluster
           </Text>
         </div>
-        <Button
+        <ActionIcon
           variant='light'
-          leftSection={<IconRefresh size={16} />}
+          size='lg'
           onClick={handleRefresh}
-          loading={healthLoading}
+          disabled={healthLoading}
+          title='Refresh'
         >
-          Refresh
-        </Button>
+          {healthLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+        </ActionIcon>
       </Group>
 
       {/* Health Overview */}

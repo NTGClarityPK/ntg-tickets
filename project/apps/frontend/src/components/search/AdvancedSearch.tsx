@@ -236,13 +236,14 @@ export function AdvancedSearch() {
               {health?.status || 'Unknown'}
             </Badge>
           )}
-          <Button
+          <ActionIcon
             variant='light'
-            leftSection={<IconRefresh size={16} />}
+            size='lg'
             onClick={() => window.location.reload()}
+            title='Refresh'
           >
-            Refresh
-          </Button>
+            <IconRefresh size={20} />
+          </ActionIcon>
         </Group>
       </Group>
 

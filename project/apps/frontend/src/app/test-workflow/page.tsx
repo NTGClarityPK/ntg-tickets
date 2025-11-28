@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Container, Title, Text, Card, Stack, Code, Button, Alert, useMantineTheme } from '@mantine/core';
+import { Container, Title, Text, Card, Stack, Code, Alert, ActionIcon, useMantineTheme } from '@mantine/core';
+import { IconRefresh } from '@tabler/icons-react';
 import { workflowsApi } from '../../lib/apiClient';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useCanCreateTicket } from '../../hooks/useCanCreateTicket';
@@ -129,7 +130,14 @@ export default function TestWorkflowPage() {
           </Stack>
         </Card>
 
-        <Button onClick={fetchWorkflow}>Refresh Data</Button>
+        <ActionIcon
+          variant='light'
+          size='lg'
+          onClick={fetchWorkflow}
+          title='Refresh Data'
+        >
+          <IconRefresh size={20} />
+        </ActionIcon>
       </Stack>
     </Container>
   );

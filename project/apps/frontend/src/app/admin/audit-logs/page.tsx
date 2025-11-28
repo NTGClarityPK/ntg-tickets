@@ -169,14 +169,15 @@ export default function AuditLogsPage() {
           </Text>
         </div>
         <Group>
-          <Button
+          <ActionIcon
             variant='light'
-            leftSection={<IconRefresh size={16} />}
+            size='lg'
             onClick={() => refetch()}
-            loading={isLoading}
+            disabled={isLoading}
+            title='Refresh'
           >
-            Refresh
-          </Button>
+            {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+          </ActionIcon>
           <Button
             leftSection={<IconDownload size={16} />}
             onClick={handleExport}

@@ -10,7 +10,8 @@ import {
   Card,
   Avatar,
   Alert,
-  Button,
+  ActionIcon,
+  Loader,
   useMantineTheme,
 } from '@mantine/core';
 import { IconRefresh, IconAlertTriangle } from '@tabler/icons-react';
@@ -39,15 +40,16 @@ export function AdminDashboardPresenter({
               System administration and user management metrics
             </Text>
           </div>
-          <Button
+          <ActionIcon
             className="pdf-hide-elements"
-            leftSection={<IconRefresh size={16} />}
-            onClick={onRefresh}
-            loading={refreshing}
             variant='outline'
+            size='lg'
+            onClick={onRefresh}
+            disabled={refreshing}
+            title='Refresh Data'
           >
-            Refresh Data
-          </Button>
+            {refreshing ? <Loader size={16} /> : <IconRefresh size={20} />}
+          </ActionIcon>
         </Group>
 
         {/* Overview Stats */}

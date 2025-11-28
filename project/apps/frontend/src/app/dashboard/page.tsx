@@ -20,6 +20,7 @@ import {
   Badge,
   Paper,
   Tooltip,
+  ActionIcon,
 } from '@mantine/core';
 import {
   IconFileExport,
@@ -1073,13 +1074,14 @@ export default function ReportsPage() {
               </Text>
             </div>
             <Group className="pdf-hide-elements">
-              <Button
+              <ActionIcon
                 variant='light'
-                leftSection={<IconRefresh size={16} />}
+                size='lg'
                 onClick={() => window.location.reload()}
+                title='Refresh'
               >
-                Refresh
-              </Button>
+                <IconRefresh size={20} />
+              </ActionIcon>
               <Button
                 leftSection={<IconFileExport size={16} />}
                 onClick={() => setExportModalOpen(true)}
@@ -1586,13 +1588,14 @@ export default function ReportsPage() {
           </Text>
         </div>
         <Group className="pdf-hide-elements">
-          <Button
+          <ActionIcon
             variant='light'
-            leftSection={<IconRefresh size={16} />}
+            size='lg'
             onClick={() => window.location.reload()}
+            title='Refresh'
           >
-            Refresh
-          </Button>
+            <IconRefresh size={20} />
+          </ActionIcon>
           <Button
             leftSection={<IconFileExport size={16} />}
             onClick={() => setExportModalOpen(true)}

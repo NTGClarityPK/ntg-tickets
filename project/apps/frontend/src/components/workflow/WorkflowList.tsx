@@ -33,6 +33,7 @@ import {
   IconEye,
   IconCopy,
   IconDots,
+  IconRefresh,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { WorkflowEditor } from './WorkflowEditor';
@@ -234,9 +235,14 @@ export function WorkflowList({
                 onChange={setStatusFilter}
                 clearable
               />
-              <Button variant="outline" onClick={onRefresh}>
-                Refresh
-              </Button>
+              <ActionIcon
+                variant="outline"
+                size="lg"
+                onClick={onRefresh}
+                title="Refresh"
+              >
+                <IconRefresh size={20} />
+              </ActionIcon>
             </Group>
 
             <ScrollArea>

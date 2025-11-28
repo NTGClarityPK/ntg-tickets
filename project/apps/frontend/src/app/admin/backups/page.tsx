@@ -10,6 +10,7 @@ import {
   Text,
   Badge,
   ActionIcon,
+  Loader,
   Menu,
   Modal,
   Alert,
@@ -177,10 +178,12 @@ export default function BackupsPage() {
               </Group>
               <ActionIcon
                 variant='light'
+                size='lg'
                 onClick={() => refetch()}
-                loading={isLoading}
+                disabled={isLoading}
+                title='Refresh'
               >
-                <IconRefresh size={16} />
+                {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
               </ActionIcon>
             </Group>
 

@@ -182,14 +182,15 @@ export default function BackupPage() {
           </Text>
         </div>
         <Group>
-          <Button
+          <ActionIcon
             variant='light'
-            leftSection={<IconRefresh size={16} />}
+            size='lg'
             onClick={() => refetch()}
-            loading={isLoading}
+            disabled={isLoading}
+            title='Refresh'
           >
-            Refresh
-          </Button>
+            {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+          </ActionIcon>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setCreateModalOpen(true)}

@@ -164,7 +164,7 @@ export const useBulkOperations = () => {
           }
         }
 
-        // Invalidate queries to refresh the ticket list
+        // Invalidate queries to  the ticket list
         if (successful > 0) {
           queryClient.invalidateQueries({ queryKey: ['tickets'] });
           queryClient.invalidateQueries({

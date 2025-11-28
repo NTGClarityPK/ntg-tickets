@@ -12,7 +12,7 @@ import {
   Avatar,
   Loader,
   Alert,
-  Button,
+  ActionIcon,
   useMantineTheme,
 } from '@mantine/core';
 import {
@@ -193,15 +193,16 @@ export function AdminDashboard() {
               System administration and user management metrics
             </Text>
           </div>
-          <Button
+          <ActionIcon
             className="pdf-hide-elements"
-            leftSection={<IconRefresh size={16} />}
-            onClick={handleRefresh}
-            loading={refreshing}
             variant='outline'
+            size='lg'
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title='Refresh Data'
           >
-            Refresh Data
-          </Button>
+            {refreshing ? <Loader size={16} /> : <IconRefresh size={20} />}
+          </ActionIcon>
         </Group>
 
         {/* User Management Stats */}
