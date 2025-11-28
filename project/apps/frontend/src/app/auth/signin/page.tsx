@@ -317,12 +317,11 @@ export default function SignInPage() {
                   disabled={loading}
                 />
                 <Text
+                  component='a'
+                  href='/auth/forgot-password'
                   size='sm'
                   c={primary}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    // TODO: Implement password reset
-                  }}
+                  style={{ cursor: 'pointer', textDecoration: 'none' }}
                 >
                   Forgot password?
                 </Text>

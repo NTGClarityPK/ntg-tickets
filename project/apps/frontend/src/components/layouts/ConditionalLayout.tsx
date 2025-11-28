@@ -11,7 +11,14 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
 
   // Define routes that should not have the app shell
-  const noAppShellRoutes = ['/auth/signin', '/auth/signup', '/auth/accept-invite', '/'];
+  const noAppShellRoutes = [
+    '/auth/signin',
+    '/auth/signup',
+    '/auth/accept-invite',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/',
+  ];
 
   // Check if current path should not have app shell
   const shouldSkipAppShell = noAppShellRoutes.some(route => pathname === route);

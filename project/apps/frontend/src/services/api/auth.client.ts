@@ -59,6 +59,11 @@ export const authClient = {
       refresh_token: refreshToken,
     });
   },
+
+  forgotPassword: (email: string) =>
+    httpClient.post<ApiResponse<{ message: string }>>('/auth/supabase/reset-password', {
+      email,
+    }),
 };
 
 
