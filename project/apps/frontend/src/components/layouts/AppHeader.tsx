@@ -68,7 +68,7 @@ export function AppHeader({
   const queryClient = useQueryClient();
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [logoImageError, setLogoImageError] = useState(false);
-  const { primary, themeSettings, primaryLight, primaryLighter, primaryDark, primaryDarker, primaryDarkest } = useDynamicTheme();
+  const { primary, themeSettings, primaryLight, primaryLighter, primaryLightest, primaryDark, primaryDarker, primaryDarkest, isDark } = useDynamicTheme();
 
   // Debug log
   // Debug logging removed for production
@@ -286,39 +286,51 @@ export function AppHeader({
                       router.push('/notifications');
                     }}
                     style={{
-                      transition: 'background-color 0.2s ease',
+                      transition: 'background-color 0.2s ease, color 0.2s ease',
                       marginBottom: '4px',
                       backgroundColor: notification.isRead
                         ? 'transparent'
-                        : theme.colors.red[0],
+                        : isDark
+                          ? primaryDark
+                          : primaryLightest,
+                      color: !notification.isRead
+                        ? isDark
+                          ? '#ffffff'
+                          : '#212529'
+                        : undefined,
                     }}
                     onMouseEnter={e => {
-                      // Use theme-aware hover: light for light mode, dark for dark mode
-                      const isDarkMode =
-                        document.documentElement.getAttribute(
-                          'data-mantine-color-scheme'
-                        ) === 'dark';
-                      if (isDarkMode) {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-2)';
-                        e.currentTarget.style.color =
-                          'var(--mantine-color-red-8)';
-                      } else {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-0)';
-                      }
+                      e.currentTarget.style.backgroundColor = isDark
+                        ? primaryDark
+                        : primaryLightest;
+                      e.currentTarget.style.color = isDark
+                        ? '#ffffff'
+                        : '#212529';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.backgroundColor =
-                        notification.isRead
-                          ? 'transparent'
-                          : theme.colors.red[0];
-                      e.currentTarget.style.color = 'inherit';
+                      e.currentTarget.style.backgroundColor = notification.isRead
+                        ? 'transparent'
+                        : isDark
+                          ? primaryDark
+                          : primaryLightest;
+                      if (!notification.isRead) {
+                        e.currentTarget.style.color = isDark
+                          ? '#ffffff'
+                          : '#212529';
+                      } else {
+                        e.currentTarget.style.color = '';
+                      }
                     }}
                   >
                     <Stack gap={4}>
                       <Group justify='space-between'>
-                        <Text size='sm' fw={notification.isRead ? 400 : 600}>
+                        <Text 
+                          size='sm' 
+                          fw={notification.isRead ? 400 : 600}
+                          style={{ 
+                            color: 'inherit',
+                          }}
+                        >
                           {notification.title}
                         </Text>
                         {!notification.isRead && (
@@ -327,10 +339,23 @@ export function AppHeader({
                           </Badge>
                         )}
                       </Group>
-                      <Text size='xs' c='dimmed' lineClamp={2}>
+                      <Text 
+                        size='xs' 
+                        style={{ 
+                          color: 'inherit',
+                          opacity: 0.9,
+                        }}
+                        lineClamp={2}
+                      >
                         {notification.message}
                       </Text>
-                      <Text size='xs' c='dimmed'>
+                      <Text 
+                        size='xs' 
+                        style={{ 
+                          color: 'inherit',
+                          opacity: 0.9,
+                        }}
+                      >
                         {new Date(notification.createdAt).toLocaleDateString()}
                       </Text>
                     </Stack>
@@ -350,31 +375,29 @@ export function AppHeader({
                 leftSection={<IconBell size={14} />}
                 onClick={() => router.push('/notifications')}
                 style={{
-                  transition: 'background-color 0.2s ease',
+                  transition: 'background-color 0.2s ease, color 0.2s ease',
                   marginBottom: '4px',
                 }}
                 onMouseEnter={e => {
-                  // Use theme-aware hover: light for light mode, dark for dark mode
-                  const isDarkMode =
-                    document.documentElement.getAttribute(
-                      'data-mantine-color-scheme'
-                    ) === 'dark';
-                  if (isDarkMode) {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-2)';
-                    e.currentTarget.style.color = 'var(--mantine-color-red-8)';
-                  } else {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-0)';
-                  }
+                  e.currentTarget.style.backgroundColor = isDark
+                    ? primaryDark
+                    : primaryLightest;
+                  e.currentTarget.style.color = isDark
+                    ? '#ffffff'
+                    : '#212529';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'inherit';
+                  e.currentTarget.style.color = '';
                 }}
               >
                 <Group justify='space-between'>
-                  <Text size='sm'>{t('viewAllNotifications')}</Text>
+                  <Text 
+                    size='sm'
+                    style={{ color: 'inherit' }}
+                  >
+                    {t('viewAllNotifications')}
+                  </Text>
                   {unreadCount > 0 && (
                     <Badge size='xs' style={{ backgroundColor: primary, color: 'white' }} variant='filled'>
                       {unreadCount > 99 ? '99+' : unreadCount}
@@ -453,23 +476,12 @@ export function AppHeader({
                       marginBottom: '4px',
                     }}
                     onMouseEnter={e => {
-                      const isDarkMode =
-                        document.documentElement.getAttribute(
-                          'data-mantine-color-scheme'
-                        ) === 'dark';
-                      if (isDarkMode) {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-2)';
-                        e.currentTarget.style.color =
-                          'var(--mantine-color-red-8)';
-                      } else {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-0)';
-                      }
+                      e.currentTarget.style.backgroundColor = isDark
+                        ? primaryDark
+                        : primaryLight;
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'inherit';
                     }}
                   >
                     <Text size='sm'>{tAuth('switchRole')}</Text>
@@ -486,23 +498,12 @@ export function AppHeader({
                   marginBottom: '4px',
                 }}
                 onMouseEnter={e => {
-                  // Use theme-aware hover: light for light mode, dark for dark mode
-                  const isDarkMode =
-                    document.documentElement.getAttribute(
-                      'data-mantine-color-scheme'
-                    ) === 'dark';
-                  if (isDarkMode) {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-2)';
-                    e.currentTarget.style.color = 'var(--mantine-color-red-8)';
-                  } else {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-0)';
-                  }
+                  e.currentTarget.style.backgroundColor = isDark
+                    ? primaryDark
+                    : primaryLight;
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'inherit';
                 }}
               >
                 <Text size='sm'>{t('profile')}</Text>
@@ -515,23 +516,12 @@ export function AppHeader({
                   marginBottom: '4px',
                 }}
                 onMouseEnter={e => {
-                  // Use theme-aware hover: light for light mode, dark for dark mode
-                  const isDarkMode =
-                    document.documentElement.getAttribute(
-                      'data-mantine-color-scheme'
-                    ) === 'dark';
-                  if (isDarkMode) {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-2)';
-                    e.currentTarget.style.color = 'var(--mantine-color-red-8)';
-                  } else {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-0)';
-                  }
+                  e.currentTarget.style.backgroundColor = isDark
+                    ? primaryDark
+                    : primaryLight;
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'inherit';
                 }}
               >
                 <Text size='sm'>{t('settings')}</Text>
@@ -547,23 +537,12 @@ export function AppHeader({
                     marginBottom: '4px',
                   }}
                   onMouseEnter={e => {
-                    // Use theme-aware hover: light for light mode, dark for dark mode
-                    const isDarkMode =
-                      document.documentElement.getAttribute(
-                        'data-mantine-color-scheme'
-                      ) === 'dark';
-                    if (isDarkMode) {
-                      e.currentTarget.style.backgroundColor =
-                        'var(--mantine-color-red-2)';
-                      e.currentTarget.style.color = 'var(--mantine-color-red-8)';
-                    } else {
-                      e.currentTarget.style.backgroundColor =
-                        'var(--mantine-color-red-0)';
-                    }
+                    e.currentTarget.style.backgroundColor = isDark
+                      ? primaryDark
+                      : primaryLight;
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = 'inherit';
                   }}
                 >
                   <Text size='sm'>Theme Settings</Text>
@@ -580,24 +559,12 @@ export function AppHeader({
                       marginBottom: '4px',
                     }}
                     onMouseEnter={e => {
-                      // Use theme-aware hover: light for light mode, dark for dark mode
-                      const isDarkMode =
-                        document.documentElement.getAttribute(
-                          'data-mantine-color-scheme'
-                        ) === 'dark';
-                      if (isDarkMode) {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-2)';
-                        e.currentTarget.style.color =
-                          'var(--mantine-color-red-8)';
-                      } else {
-                        e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-red-0)';
-                      }
+                      e.currentTarget.style.backgroundColor = isDark
+                        ? primaryDark
+                        : primaryLight;
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'inherit';
                     }}
                   >
                     <Text size='sm'>{t('helpSupport')}</Text>
@@ -614,23 +581,12 @@ export function AppHeader({
                   marginBottom: '4px',
                 }}
                 onMouseEnter={e => {
-                  // Use theme-aware hover: light for light mode, dark for dark mode
-                  const isDarkMode =
-                    document.documentElement.getAttribute(
-                      'data-mantine-color-scheme'
-                    ) === 'dark';
-                  if (isDarkMode) {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-2)';
-                    e.currentTarget.style.color = 'var(--mantine-color-red-8)';
-                  } else {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--mantine-color-red-0)';
-                  }
+                  e.currentTarget.style.backgroundColor = isDark
+                    ? primaryDark
+                    : primaryLight;
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'inherit';
                 }}
               >
                 Sign out
