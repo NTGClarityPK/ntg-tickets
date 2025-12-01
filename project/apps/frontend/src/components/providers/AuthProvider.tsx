@@ -11,7 +11,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { setUser, setLoading } = useAuthActions();
+  const { setUser, setOrganization, setLoading } = useAuthActions();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -64,6 +64,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               });
+              
+              // Set organization if available
+              if (userData.organization) {
+                setOrganization(userData.organization);
+              }
             } else if (mounted) {
               // User data not found, but we have a session
               if (existingUser) {
@@ -160,6 +165,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             });
+            
+            // Set organization if available
+            if (userData.organization) {
+              setOrganization(userData.organization);
+            }
           }
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -167,6 +177,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setOrganization(null);
       }
     });
 
@@ -174,7 +185,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [setUser, setLoading]);
+  }, [setUser, setOrganization, setLoading]);
 
   // Show loading state during initialization
   if (!isInitialized) {

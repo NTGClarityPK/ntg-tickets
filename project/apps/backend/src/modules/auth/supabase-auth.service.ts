@@ -106,10 +106,11 @@ export class SupabaseAuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Get user from our database
+    // Get user from our database with tenant/organization
     const dbUser = await this.prisma.user.findUnique({
       where: { id: user.id },
       include: {
+        tenant: true,
         requestedTickets: {
           select: { id: true, status: true },
         },

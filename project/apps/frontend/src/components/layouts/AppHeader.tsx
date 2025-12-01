@@ -57,9 +57,11 @@ export function AppHeader({
 }: AppHeaderProps) {
   const t = useTranslations('common');
   const tAuth = useTranslations('auth');
-  const { user, logout, updateUser } = useAuthStore();
+  const { user, organization, logout, updateUser } = useAuthStore();
   const { unreadCount, getRecentNotifications } = useNotificationsStore();
   const { siteName } = useSiteBranding();
+  // Use organization name if available (from store or user object), otherwise fallback to siteName
+  const displayName = organization?.name || user?.organization?.name || siteName;
   const router = useRouter();
   const theme = useMantineTheme();
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
@@ -225,7 +227,7 @@ export function AppHeader({
             })()}
             {!isMobile && (
               <Text fw={700} size='lg' style={{ color: primary }}>
-                {siteName}
+                {displayName}
               </Text>
             )}
           </Group>

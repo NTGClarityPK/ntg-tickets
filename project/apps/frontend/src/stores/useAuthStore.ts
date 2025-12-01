@@ -115,6 +115,7 @@ export const useAuthState = () => useAuthStore(state => ({
  */
 export const useAuthActions = () => useAuthStore(state => ({
   setUser: state.setUser,
+  setOrganization: state.setOrganization,
   updateUser: state.updateUser,
   setLoading: state.setLoading,
   logout: state.logout,

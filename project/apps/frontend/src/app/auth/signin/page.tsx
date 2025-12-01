@@ -52,7 +52,7 @@ export default function SignInPage() {
     null
   );
   const router = useRouter();
-  const { setUser } = useAuthActions();
+  const { setUser, setOrganization } = useAuthActions();
   const {
     attempts,
     isLocked,
@@ -121,6 +121,11 @@ export default function SignInPage() {
       };
       
       setUser(userData);
+      
+      // Set organization if available in the response
+      if (result.organization) {
+        setOrganization(result.organization);
+      }
       
       // Verify user is set in store
       const storedUser = useAuthStore.getState()?.user;

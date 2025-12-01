@@ -14,6 +14,17 @@ export interface SupabaseAuthResponse {
     roles: string[];
     activeRole: string;
   };
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    domain?: string;
+    plan: string;
+    maxUsers: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   access_token: string;
   refresh_token: string;
 }

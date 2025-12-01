@@ -426,6 +426,17 @@ export class AuthController {
       roles: string[];
       activeRole: string;
       isActive: boolean;
+      organization?: {
+        id: string;
+        name: string;
+        slug: string;
+        domain?: string;
+        plan: string;
+        maxUsers: number;
+        isActive: boolean;
+        createdAt: string;
+        updatedAt: string;
+      } | null;
     } | null;
     message: string;
   }> {
@@ -441,6 +452,7 @@ export class AuthController {
         roles: user.roles,
         activeRole: user.activeRole || user.roles[0] || 'END_USER',
         isActive: user.isActive,
+        organization: user.organization || null,
       },
       message: 'User information retrieved successfully',
     };
@@ -643,6 +655,17 @@ export class AuthController {
         roles: string[];
         activeRole: string;
       };
+      organization?: {
+        id: string;
+        name: string;
+        slug: string;
+        domain?: string;
+        plan: string;
+        maxUsers: number;
+        isActive: boolean;
+        createdAt: string;
+        updatedAt: string;
+      } | null;
       access_token: string;
       refresh_token: string;
     };
@@ -657,6 +680,19 @@ export class AuthController {
       // Determine active role (use first role for now)
       const activeRole = result.user.roles[0] || 'END_USER';
 
+      // Get organization/tenant data
+      const organization = result.user.tenant ? {
+        id: result.user.tenant.id,
+        name: result.user.tenant.name,
+        slug: result.user.tenant.slug,
+        domain: result.user.tenant.domain,
+        plan: result.user.tenant.plan,
+        maxUsers: result.user.tenant.maxUsers,
+        isActive: result.user.tenant.isActive,
+        createdAt: result.user.tenant.createdAt.toISOString(),
+        updatedAt: result.user.tenant.updatedAt.toISOString(),
+      } : null;
+
       return {
         data: {
           user: {
@@ -666,6 +702,7 @@ export class AuthController {
             roles: result.user.roles,
             activeRole,
           },
+          organization,
           access_token: result.access_token,
           refresh_token: result.refresh_token,
         },

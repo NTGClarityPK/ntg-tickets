@@ -307,11 +307,23 @@ export class AuthService {
     roles: string[];
     activeRole?: string;
     isActive: boolean;
+    organization?: {
+      id: string;
+      name: string;
+      slug: string;
+      domain?: string;
+      plan: string;
+      maxUsers: number;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    } | null;
   } | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
+          tenant: true,
           requestedTickets: {
             select: { id: true, status: true },
           },
@@ -325,7 +337,7 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
-      // Return user with activeRole (use first role as default)
+      // Return user with activeRole and organization (use first role as default)
       return {
         id: user.id,
         email: user.email,
@@ -333,6 +345,17 @@ export class AuthService {
         roles: user.roles.map((r) => r.toString()),
         activeRole: user.roles[0]?.toString() || 'END_USER',
         isActive: user.isActive,
+        organization: user.tenant ? {
+          id: user.tenant.id,
+          name: user.tenant.name,
+          slug: user.tenant.slug,
+          domain: user.tenant.domain,
+          plan: user.tenant.plan,
+          maxUsers: user.tenant.maxUsers,
+          isActive: user.tenant.isActive,
+          createdAt: user.tenant.createdAt.toISOString(),
+          updatedAt: user.tenant.updatedAt.toISOString(),
+        } : null,
       };
     } catch (error) {
       this.logger.error('Error getting current user:', error);
