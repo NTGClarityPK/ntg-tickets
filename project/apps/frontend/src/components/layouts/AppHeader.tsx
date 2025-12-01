@@ -556,7 +556,6 @@ export function AppHeader({
               <Menu.Item
                 leftSection={<IconLogout size={14} />}
                 onClick={handleLogout}
-                color={primary}
                 style={{
                   transition: 'background-color 0.2s ease',
                   marginBottom: '4px',
