@@ -475,7 +475,6 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
           position: toolbarSticky ? 'sticky' : 'static',
           top: toolbarSticky ? toolbarStickyOffset : 'auto',
           zIndex: toolbarSticky ? 10 : 'auto',
-          backgroundColor: 'white',
           borderBottom: '1px solid #e9ecef',
           padding: '8px',
         }}
