@@ -69,18 +69,13 @@ export class SupabaseAuthService {
           tenantId,
           email: supabaseUser.email!,
           name,
-          password: '', // No password stored - Supabase handles it
           roles,
           isActive: true,
         },
       });
 
-      // Remove password from response
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...userWithoutPassword } = user;
-
       return {
-        user: userWithoutPassword,
+        user,
         supabaseUser,
       };
     } catch (error) {

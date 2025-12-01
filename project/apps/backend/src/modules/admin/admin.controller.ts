@@ -14,6 +14,7 @@ import {
 } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -115,6 +116,7 @@ export class AdminController {
   }
 
   @Get('public-config')
+  @Public()
   @ApiOperation({ summary: 'Get public system configuration' })
   @ApiResponse({
     status: 200,
@@ -129,6 +131,7 @@ export class AdminController {
   }
 
   @Get('public-theme-settings')
+  @Public()
   @ApiOperation({ summary: 'Get public theme settings' })
   @ApiResponse({
     status: 200,

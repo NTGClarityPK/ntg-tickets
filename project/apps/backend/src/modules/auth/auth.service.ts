@@ -12,7 +12,6 @@ import { SupabaseAuthService } from './supabase-auth.service';
 import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import { UserRole } from '@prisma/client';
 import { User } from '../users/entities/user.entity';
-import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -66,26 +65,10 @@ export class AuthService {
     id: string;
     email: string;
     name: string;
-    password?: string;
     avatar?: string;
     roles?: UserRole[];
   }): Promise<User> {
     try {
-      // Validate password if provided
-      if (userData.password) {
-        const passwordValidation = this.validationService.validatePassword(
-          userData.password
-        );
-        if (!passwordValidation.isValid) {
-          throw new BadRequestException(passwordValidation.message);
-        }
-      }
-
-      // Hash password if provided
-      const hashedPassword = userData.password
-        ? await bcrypt.hash(userData.password, 12)
-        : undefined;
-
       // Get tenantId - for OAuth login, user must already exist with a tenant
       const existingUser = await this.prisma.user.findUnique({
         where: { email: userData.email },
@@ -104,16 +87,12 @@ export class AuthService {
           roles: userData.roles || [UserRole.END_USER],
           isActive: true,
           updatedAt: new Date(),
-          ...(hashedPassword && { password: hashedPassword }),
         },
         create: {
           id: userData.id,
           tenantId,
           email: userData.email,
           name: userData.name,
-          password:
-            hashedPassword ||
-            (await bcrypt.hash('temp-password-' + Date.now(), 12)), // Temporary password that must be changed
           avatar: userData.avatar,
           roles: userData.roles || [UserRole.END_USER],
           isActive: true,
@@ -128,11 +107,8 @@ export class AuthService {
         },
       });
 
-      // Remove password from response
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...userWithoutPassword } = user;
       this.logger.log(`User ${user.email} created/updated successfully`);
-      return userWithoutPassword as unknown as User;
+      return user as unknown as User;
     } catch (error) {
       this.logger.error('Error creating/updating user:', error);
       throw error;
@@ -375,35 +351,10 @@ export class AuthService {
     name: string;
     roles: string[];
   } | null> {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (!user) {
-        this.logger.error(`User not found in database: ${email}`);
-        return null;
-      }
-
-      if (!user.isActive) {
-        this.logger.error(`User is inactive: ${email}`);
-        return null;
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordValid) {
-        this.logger.error(`Password validation failed for: ${email}`);
-        return null;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    } catch (error) {
-      this.logger.error('Error validating user credentials:', error);
-      return null;
-    }
+    // This method is deprecated - passwords are now managed by Supabase Auth
+    // Use SupabaseAuthService.signIn() instead
+    this.logger.warn('validateUserCredentials is deprecated. Use SupabaseAuthService.signIn() instead.');
+    return null;
   }
 
   async switchActiveRole(

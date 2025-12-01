@@ -30,8 +30,8 @@ type UserWithRelations = Prisma.UserGetPayload<{
 
 type UserWithoutRelations = Prisma.UserGetPayload<Record<string, never>>;
 
-type SanitizedUser = Omit<UserWithRelations, 'password'>;
-type SanitizedUserWithoutRelations = Omit<UserWithoutRelations, 'password'>;
+type SanitizedUser = UserWithRelations;
+type SanitizedUserWithoutRelations = UserWithoutRelations;
 
 @Injectable()
 export class UsersService {
@@ -99,7 +99,6 @@ export class UsersService {
             tenantId,
             email: supabaseUser.email!,
             name: createUserDto.name,
-            password: null, // No password stored - Supabase handles it
             roles: createUserDto.roles || [UserRole.END_USER],
             isActive: true,
           },
@@ -319,9 +318,6 @@ export class UsersService {
 
         // Don't store password in our database - Supabase handles it
         delete updateData.password;
-      } else {
-        // Remove password from update data if not provided
-        delete updateData.password;
       }
 
       const user = await this.prisma.user.update({
@@ -532,15 +528,11 @@ export class UsersService {
   }
 
   private sanitizeUser(user: UserWithRelations): SanitizedUser {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, ...safeUser } = user;
-    return safeUser as SanitizedUser;
+    return user;
   }
 
   private sanitizeUserSimple(user: UserWithoutRelations): SanitizedUserWithoutRelations {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, ...safeUser } = user;
-    return safeUser as SanitizedUserWithoutRelations;
+    return user;
   }
 
   private handleServiceError(error: unknown, userMessage: string): never {

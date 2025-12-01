@@ -61,7 +61,6 @@ model User {
   id                   String              @id @default(uuid())
   email                String              @unique
   name                 String
-  password             String?
   roles                UserRole[]          @default([END_USER])
   isActive             Boolean             @default(true)
   avatar               String?

@@ -110,7 +110,6 @@ async function createUserWithSupabase(
       where: { email },
       data: {
         name,
-        password: null, // Clear password - Supabase handles it
         roles,
         tenantId,
         isActive: true,
@@ -128,7 +127,6 @@ async function createUserWithSupabase(
         tenantId,
         email,
         name,
-        password: null,
         roles,
         isActive: true,
       },
