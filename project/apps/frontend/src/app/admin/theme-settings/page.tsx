@@ -175,6 +175,9 @@ export default function ThemeSettingsPage() {
         color: primary,
         icon: <IconCheck size={16} />,
       });
+      // Clear localStorage cache to ensure all users get the new theme
+      localStorage.removeItem('theme-settings');
+      // Invalidate queries to refetch from database
       queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
       queryClient.invalidateQueries({ queryKey: ['public-theme-settings'] });
     },
@@ -221,6 +224,9 @@ export default function ThemeSettingsPage() {
         color: theme.primaryColor,
         icon: <IconRefresh size={16} />,
       });
+      // Clear localStorage cache to ensure all users get the reset theme
+      localStorage.removeItem('theme-settings');
+      // Invalidate queries to refetch from database
       queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
       queryClient.invalidateQueries({ queryKey: ['public-theme-settings'] });
     },

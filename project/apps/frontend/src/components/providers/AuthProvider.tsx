@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore, useAuthActions } from '../../stores/useAuthStore';
 import { UserRole } from '../../types/unified';
 import { getCurrentUser } from '../../lib/supabase-auth';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const { setUser, setOrganization, setLoading } = useAuthActions();
   const [isInitialized, setIsInitialized] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let mounted = true;
@@ -65,11 +67,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 updatedAt: new Date().toISOString(),
               });
               
-              // Set organization if available
-              if (userData.organization) {
-                setOrganization(userData.organization);
-              }
-            } else if (mounted) {
+            // Set organization if available
+            if (userData.organization) {
+              setOrganization(userData.organization);
+            }
+            
+            // Invalidate theme settings queries to refetch with new tenant context
+            queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
+            queryClient.invalidateQueries({ queryKey: ['public-theme-settings'] });
+          } else if (mounted) {
               // User data not found, but we have a session
               if (existingUser) {
                 // eslint-disable-next-line no-console
@@ -170,6 +176,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (userData.organization) {
               setOrganization(userData.organization);
             }
+            
+            // Invalidate theme settings queries to refetch with new tenant context
+            queryClient.invalidateQueries({ queryKey: ['theme-settings'] });
+            queryClient.invalidateQueries({ queryKey: ['public-theme-settings'] });
           }
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -185,7 +195,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [setUser, setOrganization, setLoading]);
+  }, [setUser, setOrganization, setLoading, queryClient]);
 
   // Show loading state during initialization
   if (!isInitialized) {

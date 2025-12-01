@@ -116,13 +116,16 @@ export class AdminController {
   }
 
   @Get('public-config')
-  @Public()
-  @ApiOperation({ summary: 'Get public system configuration' })
+  // Removed @Public() - requires authentication to get tenant context
+  // This ensures configuration and theme settings are properly scoped to the user's organization
+  @ApiOperation({ summary: 'Get public system configuration (authenticated users)' })
   @ApiResponse({
     status: 200,
     description: 'Public system configuration retrieved successfully',
   })
-  async getPublicConfiguration() {
+  async getPublicConfiguration(@Request() req) {
+    // Requires authentication but allows all authenticated users (not just admins)
+    // Tenant context is set by the auth guard, ensuring proper tenant isolation
     const config = await this.adminService.getPublicConfiguration();
     return {
       data: config,
@@ -131,13 +134,16 @@ export class AdminController {
   }
 
   @Get('public-theme-settings')
-  @Public()
-  @ApiOperation({ summary: 'Get public theme settings' })
+  // Removed @Public() - requires authentication to get tenant context
+  // This ensures theme settings are properly scoped to the user's organization
+  @ApiOperation({ summary: 'Get public theme settings (authenticated users)' })
   @ApiResponse({
     status: 200,
     description: 'Public theme settings retrieved successfully',
   })
-  async getPublicThemeSettings() {
+  async getPublicThemeSettings(@Request() req) {
+    // Requires authentication but allows all authenticated users (not just admins)
+    // Tenant context is set by the auth guard, ensuring proper tenant isolation
     const themeSettings = await this.adminService.getThemeSettings();
     return {
       data: themeSettings,

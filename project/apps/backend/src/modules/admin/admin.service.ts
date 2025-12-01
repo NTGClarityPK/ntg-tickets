@@ -599,11 +599,13 @@ export class AdminService {
 
   async getThemeSettings() {
     try {
-      const tenantId = this.tenantContext.getTenantId();
+      // Require tenantId to ensure proper tenant isolation
+      // This will throw an error if tenant context is not set
+      const tenantId = this.tenantContext.requireTenantId();
       const themeSettings = await (this.prisma as any).themeSettings.findFirst({
         where: { 
           isActive: true,
-          ...(tenantId && { tenantId }),
+          tenantId, // Always filter by tenantId
         },
         orderBy: { updatedAt: 'desc' },
       });
