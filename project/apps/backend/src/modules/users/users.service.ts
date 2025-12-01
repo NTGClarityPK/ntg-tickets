@@ -204,8 +204,9 @@ export class UsersService {
     isActive: boolean;
   } | null> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id },
+      const tenantId = this.tenantContext.requireTenantId();
+      const user = await this.prisma.user.findFirst({
+        where: { id, tenantId },
       });
 
       if (!user) {
@@ -389,8 +390,10 @@ export class UsersService {
     }[]
   > {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const users = await this.prisma.user.findMany({
         where: {
+          tenantId,
           roles: { has: role },
           isActive: true,
         },
@@ -414,8 +417,10 @@ export class UsersService {
     }[]
   > {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const users = await this.prisma.user.findMany({
         where: {
+          tenantId,
           roles: { has: UserRole.SUPPORT_STAFF },
           isActive: true,
         },
@@ -470,8 +475,10 @@ export class UsersService {
     }[]
   > {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const users = await this.prisma.user.findMany({
         where: {
+          tenantId,
           roles: { has: UserRole.SUPPORT_MANAGER },
           isActive: true,
         },

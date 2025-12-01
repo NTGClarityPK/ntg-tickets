@@ -1297,8 +1297,12 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    const assignee = await this.prisma.user.findUnique({
-      where: { id: assignedToId },
+    // Verify assignee exists and belongs to the same tenant
+    const assignee = await this.prisma.user.findFirst({
+      where: { 
+        id: assignedToId,
+        ...(tenantId ? { tenantId } : {}),
+      },
     });
 
     if (!assignee) {
@@ -1977,8 +1981,10 @@ export class TicketsService {
     try {
       // Find support staff members who are active and have the least number of open tickets
       // Also consider their expertise in the specific category/subcategory
+      const tenantId = this.tenantContext.getTenantId();
       const supportStaff = await this.prisma.user.findMany({
         where: {
+          ...(tenantId ? { tenantId } : {}),
           roles: {
             hasSome: ['SUPPORT_STAFF', 'SUPPORT_MANAGER'],
           },
