@@ -32,7 +32,14 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       setLoading: isLoading => set({ isLoading }),
-      logout: () => set({ user: null, organization: null, isAuthenticated: false }),
+      logout: () => {
+        // Clear the state
+        set({ user: null, organization: null, isAuthenticated: false });
+        // Clear the persisted storage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-storage');
+        }
+      },
       hasRole: (role: string): boolean => {
         const state = get();
         return state.user?.activeRole === role;
