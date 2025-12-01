@@ -101,9 +101,10 @@ export function canAssignTickets(
  * @returns True if user can edit tickets
  */
 export function canEditTickets(
-  userRole: UserRole | string | null | undefined
+
 ): boolean {
-  return isSupportStaff(userRole);
+  // Allow anyone to edit tickets
+  return true;
 }
 
 /**

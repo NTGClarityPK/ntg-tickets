@@ -23,7 +23,6 @@ import { RTLArrowLeft } from '../../../../components/ui/RTLIcon';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useTicket, useUpdateTicket } from '../../../../hooks/useTickets';
-import { useAuthStore } from '../../../../stores/useAuthStore';
 import {
   TicketStatus,
   TicketPriority,
@@ -37,7 +36,6 @@ export default function EditTicketPage() {
   const { primaryLight, primaryDark } = useDynamicTheme();
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
   const ticketId = params.id as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,12 +93,6 @@ export default function EditTicketPage() {
     router.push(`/tickets/${ticketId}`);
   };
 
-  const canEdit =
-    user?.activeRole === 'ADMIN' ||
-    user?.activeRole === 'SUPPORT_MANAGER' ||
-    (user?.activeRole === 'SUPPORT_STAFF' &&
-      ticket?.assignedTo?.id === user?.id);
-
   if (isLoading) {
     return (
       <Container size='xl' py='md'>
@@ -117,29 +109,6 @@ export default function EditTicketPage() {
       <Container size='xl' py='md'>
         <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
           Failed to load ticket: {error?.message || 'Ticket not found'}
-        </Alert>
-        <Group mt='md'>
-          <Button
-            variant='outline'
-            leftSection={<RTLArrowLeft size={16} />}
-            onClick={() => router.back()}
-          >
-            Go Back
-          </Button>
-        </Group>
-      </Container>
-    );
-  }
-
-  if (!canEdit) {
-    return (
-      <Container size='xl' py='md'>
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          title='Access Denied'
-          color={theme.colors[theme.primaryColor][9]}
-        >
-          You don't have permission to edit this ticket.
         </Alert>
         <Group mt='md'>
           <Button
@@ -276,50 +245,6 @@ export default function EditTicketPage() {
 
           <Grid.Col span={4}>
             <Stack gap='md'>
-              <Card withBorder p='md'>
-                <Title order={4} mb='md'>
-                  Status & Resolution
-                </Title>
-                <Stack gap='md'>
-                  <Select
-                    label='Status'
-                    placeholder='Select status'
-                    required
-                    data={Object.values(TicketStatus).map(status => ({
-                      value: status as string,
-                      label: (status as string).replace('_', ' '),
-                    }))}
-                    {...form.getInputProps('status')}
-                  />
-                  {(form.values.status === 'RESOLVED' ||
-                    form.values.status === 'CLOSED') && (
-                    <RichTextEditorComponent
-                      label='Resolution Notes'
-                      placeholder='Describe how the issue was resolved...'
-                      minHeight={150}
-                      maxHeight={300}
-                      value={form.values.resolution}
-                      onChange={(value: string) =>
-                        form.setFieldValue('resolution', value)
-                      }
-                      allowImageUpload={false}
-                      allowTableInsertion={true}
-                      allowCodeBlocks={true}
-                      allowHeadings={true}
-                      allowLists={true}
-                      allowTextFormatting={true}
-                      allowTextAlignment={true}
-                      allowTextColor={false}
-                      allowHighlight={true}
-                      allowLinks={true}
-                      allowUndoRedo={true}
-                      allowClearFormatting={true}
-                      showToolbar={true}
-                      toolbarPosition='top'
-                    />
-                  )}
-                </Stack>
-              </Card>
 
               <Card withBorder p='md'>
                 <Title order={4} mb='md'>

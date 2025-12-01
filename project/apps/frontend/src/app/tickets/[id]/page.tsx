@@ -182,16 +182,8 @@ export default function TicketDetailPage() {
     return fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase());
   };
 
-  const canEdit =
-    ROLE_GROUPS.ADMIN_ONLY.includes(user?.activeRole as 'ADMIN') ||
-    ROLE_GROUPS.MANAGEMENT.includes(
-      user?.activeRole as 'SUPPORT_MANAGER' | 'ADMIN'
-    ) ||
-    (user?.activeRole === 'SUPPORT_STAFF' &&
-      ticket?.assignedTo?.id === user?.id) ||
-    (user?.activeRole === 'END_USER' &&
-      ticket?.status === 'CLOSED' &&
-      ticket?.requester?.id === user?.id);
+  // Allow anyone to edit any ticket
+  const canEdit = true;
   const canAssign = user?.activeRole === 'SUPPORT_MANAGER';
   const canDelete = ROLE_GROUPS.ADMIN_ONLY.includes(
     user?.activeRole as 'ADMIN'

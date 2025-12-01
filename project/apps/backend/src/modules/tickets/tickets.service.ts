@@ -763,13 +763,6 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    // Check permissions
-    if (userRole === 'END_USER' && existingTicket.requesterId !== userId) {
-      throw new ForbiddenException(
-        'Access denied: You can only update your own tickets'
-      );
-    }
-
     // Track changes for history
     const changes = this.trackChanges(
       existingTicket,
