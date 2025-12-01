@@ -95,8 +95,12 @@ export class CategoriesService {
 
   async findOne(id: string) {
     try {
-      const category = await this.prisma.category.findUnique({
-        where: { id },
+      const tenantId = this.tenantContext.requireTenantId();
+      const category = await this.prisma.category.findFirst({
+        where: { 
+          id,
+          tenantId,
+        },
         include: {
           subcategories: {
             where: { isActive: true },
@@ -118,8 +122,10 @@ export class CategoriesService {
 
   async findByEnumName(name: string) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const category = await this.prisma.category.findFirst({
         where: {
+          tenantId,
           name: name as
             | 'HARDWARE'
             | 'SOFTWARE'
@@ -196,8 +202,10 @@ export class CategoriesService {
 
   async getSubcategoriesByCategoryName(categoryName: string) {
     try {
+      const tenantId = this.tenantContext.requireTenantId();
       const category = await this.prisma.category.findFirst({
         where: {
+          tenantId,
           name: categoryName as
             | 'HARDWARE'
             | 'SOFTWARE'

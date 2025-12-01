@@ -620,9 +620,13 @@ export class WorkflowsService {
    * Get all unique statuses from all workflows (including deleted ones for historical reference)
    * Returns statuses with workflow identifier in format: workflow-{workflowId}-{statusName}
    * Also includes default system statuses for workflows that don't have transitions yet
+   * Only returns workflows from the current organization/tenant
    */
   async getAllWorkflowStatuses() {
     try {
+      // Get tenant ID to filter workflows by current organization
+      const tenantId = this.tenantContext.requireTenantId();
+      
       // Default system statuses that should always be available
       const defaultSystemStatuses = [
         'NEW',
@@ -634,9 +638,11 @@ export class WorkflowsService {
         'REOPENED',
       ];
 
-      // Get all workflows including soft-deleted ones to capture all historical statuses
+      // Get all workflows from current tenant including soft-deleted ones to capture all historical statuses
       const allWorkflows = await this.prisma.workflow.findMany({
-        where: {},
+        where: {
+          tenantId,
+        },
         select: {
           id: true,
           name: true,

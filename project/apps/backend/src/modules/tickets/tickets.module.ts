@@ -12,6 +12,7 @@ import { AuthModule } from '../auth/auth.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { WorkflowsModule } from '../workflows/workflows.module';
 import { EmailModule } from '../../common/email/email.module';
+import { TenantsModule } from '../tenants/tenants.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmailModule } from '../../common/email/email.module';
     WebSocketModule,
     WorkflowsModule,
     EmailModule,
+    TenantsModule,
   ],
   providers: [TicketsService, PrismaService],
   controllers: [TicketsController],

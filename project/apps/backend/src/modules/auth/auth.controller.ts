@@ -29,6 +29,7 @@ import { SanitizationService } from '../../common/validation/sanitization.servic
 import { TokenBlacklistService } from '../../common/security/token-blacklist.service';
 import { PrismaService } from '../../database/prisma.service';
 import { UserRole } from '@prisma/client';
+import { TenantsService } from '../tenants/tenants.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -41,6 +42,7 @@ export class AuthController {
     private readonly sanitizationService: SanitizationService,
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly prisma: PrismaService,
+    private readonly tenantsService: TenantsService,
   ) {}
 
   // ===== ORGANIZATION SIGNUP =====
@@ -138,8 +140,8 @@ export class AuthController {
         // Sign in the user to get tokens
         const signInResult = await this.supabaseAuthService.signIn(email, password);
 
-        // Create default categories for the new organization
-        await this.createDefaultCategories(tenant.id, user.id);
+        // Create default categories AND subcategories for the new organization
+        await this.tenantsService.initializeDefaultCategories(tenant.id, user.id);
 
         // Create default workflow for the new organization
         await this.createDefaultWorkflow(tenant.id, user.id);
@@ -187,20 +189,8 @@ export class AuthController {
       .replace(/(^-|-$)/g, '');
   }
 
-  private async createDefaultCategories(tenantId: string, userId: string) {
-    const categories = ['HARDWARE', 'SOFTWARE', 'NETWORK', 'ACCESS', 'OTHER'];
-    for (const name of categories) {
-      await this.prisma.category.create({
-        data: {
-          tenantId,
-          name: name as any,
-          description: `${name} related issues`,
-          isActive: true,
-          createdBy: userId,
-        },
-      });
-    }
-  }
+  // Removed createDefaultCategories - now using TenantsService.initializeDefaultCategories
+  // which creates both categories AND subcategories
 
   private async createDefaultWorkflow(tenantId: string, userId: string) {
     const defaultDefinition = {

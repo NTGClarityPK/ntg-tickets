@@ -10,11 +10,13 @@ import { SupabaseAuthService } from './supabase-auth.service';
 import { AuthController } from './auth.controller';
 import { SupabaseAuthGuard } from './guards/supabase-auth.guard';
 import { UsersModule } from '../users/users.module';
+import { TenantsModule } from '../tenants/tenants.module';
 
 @Module({
   imports: [
     UsersModule,
     SupabaseModule,
+    TenantsModule,
   ],
   providers: [
     AuthService,

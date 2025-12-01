@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -23,6 +25,7 @@ import { WorkflowsService } from '../workflows/workflows.service';
 import { TicketResponseDto } from './dto/ticket-response.dto';
 import { EmailNotificationService } from '../../common/email/email-notification.service';
 import { TenantContextService } from '../../common/tenant/tenant-context.service';
+import { TenantsService } from '../tenants/tenants.service';
 
 // Define proper types for ticket filters
 interface TicketFilters {
@@ -106,7 +109,9 @@ export class TicketsService {
     private readonly workflowExecutionService: WorkflowExecutionService,
     private readonly workflowsService: WorkflowsService,
     private readonly emailNotificationService: EmailNotificationService,
-    private readonly tenantContext: TenantContextService
+    private readonly tenantContext: TenantContextService,
+    @Inject(forwardRef(() => TenantsService))
+    private readonly tenantsService: TenantsService
   ) {}
 
   /**
@@ -169,23 +174,93 @@ export class TicketsService {
     }
     this.logger.log(`Found user: ${requester.email}`, 'TicketsService');
 
-    // Validate category exists
+    // Get tenant context
+    const tenantId = this.tenantContext.requireTenantId();
+
+    // Check if tenant has any categories - if not, initialize them
+    const categoryCount = await this.prisma.category.count({
+      where: { tenantId },
+    });
+
+    if (categoryCount === 0) {
+      this.logger.log(
+        `No categories found for tenant ${tenantId}, initializing default categories`,
+        'TicketsService'
+      );
+      try {
+        await this.tenantsService.initializeDefaultCategories(tenantId, userId);
+        this.logger.log(
+          `Successfully initialized default categories for tenant ${tenantId}`,
+          'TicketsService'
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to initialize categories for tenant ${tenantId}: ${error.message}`,
+          'TicketsService'
+        );
+        // Continue anyway - maybe categories will be created manually
+      }
+    }
+
+    // Validate category exists and belongs to tenant
     this.logger.log(
-      `Looking up category with ID: ${createTicketDto.category}`,
+      `Looking up category with ID: ${createTicketDto.category} for tenant: ${tenantId}`,
       'TicketsService'
     );
-    const category = await this.prisma.category.findUnique({
-      where: { id: createTicketDto.category },
+    const category = await this.prisma.category.findFirst({
+      where: { 
+        id: createTicketDto.category,
+        tenantId: tenantId,
+      },
     });
 
     if (!category) {
       this.logger.error(
-        `Category not found with ID: ${createTicketDto.category}`,
+        `Category not found with ID: ${createTicketDto.category} for tenant: ${tenantId}`,
         'TicketsService'
       );
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('Category not found or does not belong to your organization');
     }
+    
+    // Double-check tenant match (security check)
+    if (category.tenantId !== tenantId) {
+      this.logger.error(
+        `Category ${createTicketDto.category} belongs to tenant ${category.tenantId}, but request is for tenant ${tenantId}`,
+        'TicketsService'
+      );
+      throw new NotFoundException('Category not found or does not belong to your organization');
+    }
+    
     this.logger.log(`Found category: ${category.name}`, 'TicketsService');
+
+    // Check if this category has subcategories - if not, initialize subcategories for all categories
+    const subcategoryCount = await this.prisma.subcategory.count({
+      where: {
+        category: {
+          tenantId: tenantId,
+        },
+      },
+    });
+
+    if (subcategoryCount === 0) {
+      this.logger.log(
+        `No subcategories found for tenant ${tenantId}, initializing default subcategories`,
+        'TicketsService'
+      );
+      try {
+        await this.tenantsService.initializeDefaultCategories(tenantId, userId);
+        this.logger.log(
+          `Successfully initialized default subcategories for tenant ${tenantId}`,
+          'TicketsService'
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to initialize subcategories for tenant ${tenantId}: ${error.message}`,
+          'TicketsService'
+        );
+        // Continue anyway - maybe subcategories will be created manually
+      }
+    }
 
     // Validate subcategory exists and belongs to category (if provided)
     let subcategory = null;
@@ -194,20 +269,35 @@ export class TicketsService {
         `Looking up subcategory with ID: ${createTicketDto.subcategory} for category: ${createTicketDto.category}`,
         'TicketsService'
       );
-      subcategory = await this.prisma.subcategory.findUnique({
+      // Subcategory must belong to the category, and category must belong to the tenant
+      subcategory = await this.prisma.subcategory.findFirst({
         where: {
           id: createTicketDto.subcategory,
           categoryId: createTicketDto.category,
+          category: {
+            tenantId: tenantId,
+          },
         },
       });
 
       if (!subcategory) {
+        // Log available subcategories for debugging
+        const availableSubcategories = await this.prisma.subcategory.findMany({
+          where: {
+            categoryId: createTicketDto.category,
+            category: {
+              tenantId: tenantId,
+            },
+          },
+          select: { id: true, name: true },
+        });
+        
         this.logger.error(
-          `Subcategory not found with ID: ${createTicketDto.subcategory} for category: ${createTicketDto.category}`,
+          `Subcategory not found with ID: ${createTicketDto.subcategory} for category: ${createTicketDto.category} in tenant: ${tenantId}. Available subcategories: ${JSON.stringify(availableSubcategories)}`,
           'TicketsService'
         );
         throw new NotFoundException(
-          'Subcategory not found or does not belong to category'
+          'Subcategory not found or does not belong to this category in your organization'
         );
       }
       this.logger.log(`Found subcategory: ${subcategory.name}`, 'TicketsService');
@@ -247,9 +337,6 @@ export class TicketsService {
       workflowVersion,
       initialStatus,
     } = await this.resolveDefaultWorkflow();
-
-    // Get tenant context
-    const tenantId = this.tenantContext.requireTenantId();
 
     // Create ticket
     const ticket = await this.prisma.ticket.create({

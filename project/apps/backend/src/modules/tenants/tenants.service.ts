@@ -40,7 +40,8 @@ export class TenantsService {
       throw new ConflictException('Organization with this slug already exists');
     }
 
-    return this.prisma.tenant.create({
+    // Create tenant
+    const tenant = await this.prisma.tenant.create({
       data: {
         name: createTenantDto.name,
         slug,
@@ -50,6 +51,199 @@ export class TenantsService {
         isActive: createTenantDto.isActive ?? true,
       },
     });
+
+    // Initialize default categories and subcategories for the new tenant
+    // Note: We need a system admin user to create categories. If no admin exists yet,
+    // we'll create them when the first admin user is created. For now, we'll skip this
+    // and let the seed script or first admin handle it.
+    // Alternatively, we could create a system user, but that's not ideal.
+    
+    // Actually, let's create default categories with a placeholder createdBy
+    // The first admin user can be used, or we can update this later
+    try {
+      await this.initializeDefaultCategories(tenant.id);
+    } catch (error) {
+      this.logger.error(`Failed to initialize default categories for tenant ${tenant.id}:`, error);
+      // Don't fail tenant creation if category initialization fails
+      // Categories can be created manually later
+    }
+
+    return tenant;
+  }
+
+  /**
+   * Initialize default categories and subcategories for a tenant
+   * This should be called when a new tenant is created or when needed
+   * @param tenantId - The tenant ID to initialize categories for
+   * @param userId - Optional user ID to use as creator. If not provided, will find first admin.
+   */
+  async initializeDefaultCategories(tenantId: string, userId?: string) {
+    // Find user to use as creator
+    let creatorUser;
+    if (userId) {
+      creatorUser = await this.prisma.user.findFirst({
+        where: { id: userId, tenantId, isActive: true },
+      });
+    }
+
+    // If no specific user provided or not found, find the first admin user for this tenant
+    if (!creatorUser) {
+      creatorUser = await this.prisma.user.findFirst({
+        where: {
+          tenantId,
+          roles: { has: UserRole.ADMIN },
+          isActive: true,
+        },
+      });
+    }
+
+    // If still no user found, try to find any active user in the tenant
+    if (!creatorUser) {
+      creatorUser = await this.prisma.user.findFirst({
+        where: {
+          tenantId,
+          isActive: true,
+        },
+      });
+    }
+
+    // If no user exists yet, we can't create categories (they need a creator)
+    if (!creatorUser) {
+      this.logger.warn(`No user found for tenant ${tenantId}. Categories will need to be created manually after users are created.`);
+      return;
+    }
+
+    const { TicketCategory } = await import('@prisma/client');
+
+    // Helper to find or create category
+    async function findOrCreateCategory(name: any, description: string) {
+      let category = await this.prisma.category.findFirst({
+        where: { tenantId, name },
+      });
+      if (!category) {
+        category = await this.prisma.category.create({
+          data: { tenantId, name, description, isActive: true, createdBy: creatorUser.id },
+        });
+      }
+      return category;
+    }
+
+    // Create default categories
+    const hardware = await findOrCreateCategory.call(this, TicketCategory.HARDWARE, 'Hardware-related issues');
+    const software = await findOrCreateCategory.call(this, TicketCategory.SOFTWARE, 'Software-related issues');
+    const network = await findOrCreateCategory.call(this, TicketCategory.NETWORK, 'Network-related issues');
+    const access = await findOrCreateCategory.call(this, TicketCategory.ACCESS, 'Access and permissions issues');
+    const other = await findOrCreateCategory.call(this, TicketCategory.OTHER, 'Other issues');
+
+    // Create default subcategories for Hardware
+    const hardwareSubcategories = [
+      { name: 'desktop', description: 'Desktop Computer' },
+      { name: 'laptop', description: 'Laptop Computer' },
+      { name: 'printer', description: 'Printer' },
+      { name: 'monitor', description: 'Monitor' },
+      { name: 'keyboard', description: 'Keyboard/Mouse' },
+    ];
+
+    for (const sub of hardwareSubcategories) {
+      await this.prisma.subcategory.upsert({
+        where: { name_categoryId: { name: sub.name, categoryId: hardware.id } },
+        update: {},
+        create: {
+          name: sub.name,
+          description: sub.description,
+          categoryId: hardware.id,
+          isActive: true,
+          createdBy: creatorUser.id,
+        },
+      });
+    }
+
+    // Create default subcategories for Software
+    const softwareSubcategories = [
+      { name: 'operating_system', description: 'Operating System' },
+      { name: 'email_client', description: 'Email Client' },
+      { name: 'browser', description: 'Web Browser' },
+      { name: 'office_suite', description: 'Office Suite' },
+      { name: 'other', description: 'Other Software' },
+    ];
+
+    for (const sub of softwareSubcategories) {
+      await this.prisma.subcategory.upsert({
+        where: { name_categoryId: { name: sub.name, categoryId: software.id } },
+        update: {},
+        create: {
+          name: sub.name,
+          description: sub.description,
+          categoryId: software.id,
+          isActive: true,
+          createdBy: creatorUser.id,
+        },
+      });
+    }
+
+    // Create default subcategories for Network
+    const networkSubcategories = [
+      { name: 'internet', description: 'Internet Connection' },
+      { name: 'wifi', description: 'WiFi' },
+      { name: 'vpn', description: 'VPN' },
+    ];
+
+    for (const sub of networkSubcategories) {
+      await this.prisma.subcategory.upsert({
+        where: { name_categoryId: { name: sub.name, categoryId: network.id } },
+        update: {},
+        create: {
+          name: sub.name,
+          description: sub.description,
+          categoryId: network.id,
+          isActive: true,
+          createdBy: creatorUser.id,
+        },
+      });
+    }
+
+    // Create default subcategories for Access
+    const accessSubcategories = [
+      { name: 'password_reset', description: 'Password Reset' },
+      { name: 'permissions', description: 'Permissions' },
+      { name: 'user_account', description: 'User Account' },
+    ];
+
+    for (const sub of accessSubcategories) {
+      await this.prisma.subcategory.upsert({
+        where: { name_categoryId: { name: sub.name, categoryId: access.id } },
+        update: {},
+        create: {
+          name: sub.name,
+          description: sub.description,
+          categoryId: access.id,
+          isActive: true,
+          createdBy: creatorUser.id,
+        },
+      });
+    }
+
+    // Create default subcategories for Other
+    const otherSubcategories = [
+      { name: 'general', description: 'General Issues' },
+      { name: 'training', description: 'Training Requests' },
+    ];
+
+    for (const sub of otherSubcategories) {
+      await this.prisma.subcategory.upsert({
+        where: { name_categoryId: { name: sub.name, categoryId: other.id } },
+        update: {},
+        create: {
+          name: sub.name,
+          description: sub.description,
+          categoryId: other.id,
+          isActive: true,
+          createdBy: creatorUser.id,
+        },
+      });
+    }
+
+    this.logger.log(`Initialized default categories and subcategories for tenant ${tenantId}`);
   }
 
   async findAll() {
@@ -333,6 +527,18 @@ export class TenantsService {
         where: { id: invitation.id },
         data: { acceptedAt: new Date() },
       });
+
+      // Initialize categories and subcategories if they don't exist yet
+      // This ensures every tenant has categories ready when users sign up
+      try {
+        await this.initializeDefaultCategories(invitation.tenantId, user.id);
+      } catch (error) {
+        this.logger.error(
+          `Failed to initialize categories for tenant ${invitation.tenantId} after user creation:`,
+          error
+        );
+        // Don't fail user creation if category initialization fails
+      }
 
       return {
         user: {
