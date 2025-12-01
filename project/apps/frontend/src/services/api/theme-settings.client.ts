@@ -12,6 +12,9 @@ export interface PublicThemeSettings {
   id: string;
   primaryColor: string;
   logoUrl?: string;
+  faviconUrl?: string;
+  logoData?: string;
+  faviconData?: string;
   isActive: boolean;
 }
 

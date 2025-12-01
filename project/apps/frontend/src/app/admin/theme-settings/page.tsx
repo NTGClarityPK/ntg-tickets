@@ -212,6 +212,8 @@ export default function ThemeSettingsPage() {
         primaryColor: '#f0940a',
         logoUrl: '', // Clear logo URL
         logoData: '', // Clear logo data
+        faviconUrl: '', // Clear favicon URL
+        faviconData: '', // Clear favicon data
       };
 
       const response = await themeSettingsApi.updateThemeSettings(resetData);

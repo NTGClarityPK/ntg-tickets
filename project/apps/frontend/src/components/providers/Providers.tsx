@@ -13,6 +13,7 @@ import { useDynamicTheme } from '../../hooks/useDynamicTheme';
 import { SkipLink } from '../accessibility/SkipLink';
 import { ErrorBoundary } from '../error/ErrorBoundary';
 import { GlobalErrorHandler } from '../error/GlobalErrorHandler';
+import { DynamicFavicon } from '../common/DynamicFavicon';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
+      <DynamicFavicon />
       <ThemeProvider>
         <ErrorBoundary>
           <SkipLink targetId='main-content'>Skip to main content</SkipLink>
