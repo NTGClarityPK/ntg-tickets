@@ -18,7 +18,6 @@ import {
 import {
   IconBell,
   IconLogout,
-  IconSettings,
   IconUser,
   IconHelp,
   IconPalette,
@@ -507,24 +506,6 @@ export function AppHeader({
                 }}
               >
                 <Text size='sm'>{t('profile')}</Text>
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<IconSettings size={14} />}
-                onClick={() => router.push('/settings')}
-                style={{
-                  transition: 'background-color 0.2s ease',
-                  marginBottom: '4px',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = isDark
-                    ? primaryDark
-                    : primaryLight;
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <Text size='sm'>{t('settings')}</Text>
               </Menu.Item>
 
               {/* Theme Settings - Admin Only */}
