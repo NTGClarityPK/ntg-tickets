@@ -30,6 +30,7 @@ import { TokenBlacklistService } from '../../common/security/token-blacklist.ser
 import { PrismaService } from '../../database/prisma.service';
 import { UserRole } from '@prisma/client';
 import { TenantsService } from '../tenants/tenants.service';
+import { EmailTemplatesService } from '../email-templates/email-templates.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -43,6 +44,7 @@ export class AuthController {
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly prisma: PrismaService,
     private readonly tenantsService: TenantsService,
+    private readonly emailTemplatesService: EmailTemplatesService,
   ) {}
 
   // ===== ORGANIZATION SIGNUP =====
@@ -148,6 +150,9 @@ export class AuthController {
 
         // Create default system settings
         await this.createDefaultSettings(tenant.id);
+
+        // Create default email templates for the new organization
+        await this.emailTemplatesService.createDefaultTemplates(tenant.id);
 
         return {
           data: {

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ValidationService } from '../../common/validation/validation.service';
 import { SanitizationService } from '../../common/validation/sanitization.service';
 import { TokenBlacklistService } from '../../common/security/token-blacklist.service';
@@ -11,12 +11,14 @@ import { AuthController } from './auth.controller';
 import { SupabaseAuthGuard } from './guards/supabase-auth.guard';
 import { UsersModule } from '../users/users.module';
 import { TenantsModule } from '../tenants/tenants.module';
+import { EmailTemplatesModule } from '../email-templates/email-templates.module';
 
 @Module({
   imports: [
     UsersModule,
     SupabaseModule,
     TenantsModule,
+    forwardRef(() => EmailTemplatesModule),
   ],
   providers: [
     AuthService,

@@ -141,7 +141,7 @@ export class EmailTemplatesService {
     }
   }
 
-  async createDefaultTemplates() {
+  async createDefaultTemplates(tenantId?: string) {
     try {
       const defaultTemplates = [
         {
@@ -307,16 +307,17 @@ export class EmailTemplatesService {
         },
       ];
 
-      const tenantId = this.tenantContext.requireTenantId();
+      // Use provided tenantId or get from context
+      const resolvedTenantId = tenantId || this.tenantContext.requireTenantId();
       for (const template of defaultTemplates) {
         // Check if any template of this type already exists
         const existing = await this.prisma.emailTemplate.findFirst({
-          where: { tenantId, type: template.type },
+          where: { tenantId: resolvedTenantId, type: template.type },
         });
 
         if (!existing) {
           await this.prisma.emailTemplate.create({
-            data: { ...template, tenantId },
+            data: { ...template, tenantId: resolvedTenantId },
           });
         }
       }
