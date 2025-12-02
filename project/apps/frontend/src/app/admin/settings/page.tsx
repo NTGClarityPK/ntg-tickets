@@ -132,6 +132,7 @@ export default function SettingsPage() {
             onClick={handleSave}
             color={saved ? theme.primaryColor : theme.primaryColor}
             loading={updateSettingsMutation.isPending}
+            data-testid="admin-settings-save-button"
           >
             {saved ? t('saved') : tSettings('saveChanges')}
           </Button>
@@ -149,21 +150,21 @@ export default function SettingsPage() {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={setActiveTab} data-testid="admin-settings-tabs">
         <Tabs.List>
-          <Tabs.Tab value='general' leftSection={<IconSettings size={16} />}>
+          <Tabs.Tab value='general' leftSection={<IconSettings size={16} />} data-testid="admin-settings-tab-general">
             {tSettings('general')}
           </Tabs.Tab>
-          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />}>
+          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />} data-testid="admin-settings-tab-notifications">
             {tSettings('notifications')}
           </Tabs.Tab>
-          <Tabs.Tab value='security' leftSection={<IconShield size={16} />}>
+          <Tabs.Tab value='security' leftSection={<IconShield size={16} />} data-testid="admin-settings-tab-security">
             {tSettings('security')}
           </Tabs.Tab>
-          <Tabs.Tab value='system' leftSection={<IconDatabase size={16} />}>
+          <Tabs.Tab value='system' leftSection={<IconDatabase size={16} />} data-testid="admin-settings-tab-system">
             {t('system')}
           </Tabs.Tab>
-          <Tabs.Tab value='email' leftSection={<IconMail size={16} />}>
+          <Tabs.Tab value='email' leftSection={<IconMail size={16} />} data-testid="admin-settings-tab-email">
             {t('email')}
           </Tabs.Tab>
         </Tabs.List>
@@ -182,6 +183,7 @@ export default function SettingsPage() {
                   onChange={e =>
                     handleSettingChange('siteName', e.target.value)
                   }
+                  data-testid="admin-settings-site-name-input"
                 />
               </Grid.Col>
               <Grid.Col span={6}>
@@ -192,6 +194,7 @@ export default function SettingsPage() {
                   onChange={e =>
                     handleSettingChange('siteDescription', e.target.value)
                   }
+                  data-testid="admin-settings-site-description-input"
                 />
               </Grid.Col>
               <Grid.Col span={4}>
@@ -208,6 +211,7 @@ export default function SettingsPage() {
                   onChange={value =>
                     value && handleSettingChange('timezone', value)
                   }
+                  data-testid="admin-settings-timezone-select"
                 />
               </Grid.Col>
               <Grid.Col span={4}>
@@ -222,6 +226,7 @@ export default function SettingsPage() {
                   onChange={value =>
                     value && handleSettingChange('language', value)
                   }
+                  data-testid="admin-settings-language-select"
                 />
               </Grid.Col>
               <Grid.Col span={4}>
@@ -237,6 +242,7 @@ export default function SettingsPage() {
                   onChange={value =>
                     value && handleSettingChange('dateFormat', value)
                   }
+                  data-testid="admin-settings-date-format-select"
                 />
               </Grid.Col>
             </Grid>
@@ -260,6 +266,7 @@ export default function SettingsPage() {
                   )
                 }
                 disabled={updateSettingsMutation.isPending}
+                data-testid="admin-settings-email-notifications-switch"
               />
               <Switch
                 label={tSettings('pushNotifications')}
@@ -271,6 +278,7 @@ export default function SettingsPage() {
                     e.currentTarget.checked
                   )
                 }
+                data-testid="admin-settings-push-notifications-switch"
               />
               <Switch
                 label='SMS Notifications'
@@ -282,6 +290,7 @@ export default function SettingsPage() {
                     e.currentTarget.checked
                   )
                 }
+                data-testid="admin-settings-sms-notifications-switch"
               />
               <Divider />
               <Select
@@ -297,6 +306,7 @@ export default function SettingsPage() {
                 onChange={value =>
                   value && handleSettingChange('notificationFrequency', value)
                 }
+                data-testid="admin-settings-notification-frequency-select"
               />
             </Stack>
           </Card>
@@ -318,6 +328,7 @@ export default function SettingsPage() {
                   }
                   min={6}
                   max={20}
+                  data-testid="admin-settings-password-min-length-input"
                 />
               </Grid.Col>
               <Grid.Col span={6}>
@@ -330,6 +341,7 @@ export default function SettingsPage() {
                   }
                   min={5}
                   max={480}
+                  data-testid="admin-settings-session-timeout-input"
                 />
               </Grid.Col>
               <Grid.Col span={6}>
@@ -342,6 +354,7 @@ export default function SettingsPage() {
                   }
                   min={3}
                   max={10}
+                  data-testid="admin-settings-max-login-attempts-input"
                 />
               </Grid.Col>
               <Grid.Col span={6}>
@@ -355,6 +368,7 @@ export default function SettingsPage() {
                       e.currentTarget.checked
                     )
                   }
+                  data-testid="admin-settings-require-2fa-switch"
                 />
               </Grid.Col>
             </Grid>
@@ -377,6 +391,7 @@ export default function SettingsPage() {
                     e.currentTarget.checked
                   )
                 }
+                data-testid="admin-settings-auto-assign-switch"
               />
               <Switch
                 label='Auto-close Resolved Tickets'
@@ -388,6 +403,7 @@ export default function SettingsPage() {
                     e.currentTarget.checked
                   )
                 }
+                data-testid="admin-settings-auto-close-switch"
               />
               {settings.autoCloseResolved && (
                 <NumberInput
@@ -397,6 +413,7 @@ export default function SettingsPage() {
                   onChange={value =>
                     handleSettingChange('autoCloseDays', value)
                   }
+                  data-testid="admin-settings-auto-close-days-input"
                   min={1}
                   max={30}
                 />

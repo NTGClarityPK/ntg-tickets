@@ -277,8 +277,8 @@ export function TicketsListContainer() {
 
   if (error) {
     return (
-      <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
+      <Container size='xl' py='md' data-testid="tickets-list-container-error">
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]} data-testid="tickets-list-error-alert">
           Failed to load tickets: {error.message}
         </Alert>
       </Container>

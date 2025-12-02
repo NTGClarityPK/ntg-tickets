@@ -41,13 +41,14 @@ export function ThemeToggle() {
   };
 
   return (
-    <Menu shadow='md' width={200}>
+    <Menu shadow='md' width={200} data-testid="theme-toggle-menu">
       <Menu.Target>
         <ActionIcon
           variant='subtle'
           color={mantineTheme.colors[mantineTheme.primaryColor][9]}
           size='lg'
           aria-label='Toggle theme'
+          data-testid="theme-toggle-button"
         >
           {getIcon()}
         </ActionIcon>
@@ -65,6 +66,7 @@ export function ThemeToggle() {
             transition: 'background-color 0.2s ease',
             marginBottom: '4px',
           }}
+          data-testid="theme-light-option"
           onMouseEnter={e => {
             // Use theme-aware hover: light for light mode, dark for dark mode
             const isDarkMode =
@@ -106,6 +108,7 @@ export function ThemeToggle() {
             transition: 'background-color 0.2s ease',
             marginBottom: '4px',
           }}
+          data-testid="theme-dark-option"
           onMouseEnter={e => {
             // Use theme-aware hover: light for light mode, dark for dark mode
             const isDarkMode =
@@ -147,6 +150,7 @@ export function ThemeToggle() {
             transition: 'background-color 0.2s ease',
             marginBottom: '4px',
           }}
+          data-testid="theme-auto-option"
           onMouseEnter={e => {
             // Use theme-aware hover: light for light mode, dark for dark mode
             const isDarkMode =

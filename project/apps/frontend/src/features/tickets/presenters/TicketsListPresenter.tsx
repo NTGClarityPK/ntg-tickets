@@ -96,6 +96,7 @@ export function TicketsListPresenter({
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={handlers.onAdvancedSearchOpen}
+            data-testid="tickets-advanced-search-button"
           >
             Advanced
           </Button>
@@ -107,6 +108,7 @@ export function TicketsListPresenter({
               leftSection={<IconX size={16} />}
               fullWidth
               onClick={handlers.onClearFilters}
+              data-testid="tickets-clear-filters-button"
             >
               Clear Filters
             </Button>
@@ -197,9 +199,9 @@ export function TicketsListPresenter({
                   {ticket.ticketNumber}
                 </Text>
               </Group>
-              <Menu shadow='md' width={200}>
+              <Menu shadow='md' width={200} data-testid={`ticket-list-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`ticket-list-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
@@ -207,12 +209,14 @@ export function TicketsListPresenter({
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => handlers.onViewTicket(ticket.id)}
+                    data-testid={`ticket-list-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => handlers.onEditTicket(ticket.id)}
+                    data-testid={`ticket-list-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
@@ -223,6 +227,7 @@ export function TicketsListPresenter({
                     onClick={() => {
                       onSetSelectedTicket(ticket);
                     }}
+                    data-testid={`ticket-list-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -293,6 +298,7 @@ export function TicketsListPresenter({
             value={state.currentPage}
             onChange={handlers.onPageChange}
             total={pagination.totalPages}
+            data-testid="tickets-pagination"
           />
         </Group>
       )}
@@ -302,13 +308,14 @@ export function TicketsListPresenter({
         onClose={handlers.onDeleteModalClose}
         title='Delete Ticket'
         centered
+        data-testid="ticket-delete-modal"
       >
         <Text mb='md'>
           Are you sure you want to delete ticket #{state.selectedTicket?.ticketNumber}
           ? This action cannot be undone.
         </Text>
         <Group justify='flex-end'>
-          <Button variant='light' onClick={handlers.onDeleteModalClose}>
+          <Button variant='light' onClick={handlers.onDeleteModalClose} data-testid="ticket-delete-modal-cancel">
             Cancel
           </Button>
           <Button
@@ -316,6 +323,7 @@ export function TicketsListPresenter({
             onClick={() =>
               state.selectedTicket?.id && handlers.onDeleteTicket(state.selectedTicket.id)
             }
+            data-testid="ticket-delete-modal-confirm"
           >
             Delete
           </Button>

@@ -107,6 +107,7 @@ export default function SystemMonitoringPage() {
           onClick={handleRefresh}
           disabled={statsLoading || healthLoading}
           title='Refresh'
+          data-testid="monitoring-refresh-button"
         >
           {statsLoading || healthLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
         </ActionIcon>
@@ -373,6 +374,7 @@ export default function SystemMonitoringPage() {
                   leftSection={<IconRefresh size={16} />}
                   onClick={handleRefresh}
                   fullWidth
+                  data-testid="monitoring-refresh-metrics-button"
                 >
                   Refresh Metrics
                 </Button>
@@ -381,6 +383,7 @@ export default function SystemMonitoringPage() {
                   leftSection={<IconSettings size={16} />}
                   onClick={() => router.push('/admin/settings')}
                   fullWidth
+                  data-testid="monitoring-system-settings-button"
                 >
                   System Settings
                 </Button>
@@ -420,6 +423,7 @@ export default function SystemMonitoringPage() {
         onClose={() => setDetailModalOpen(false)}
         title='Metric Details'
         size='lg'
+        data-testid="monitoring-metric-detail-modal"
       >
         {selectedMetric && (
           <Stack>

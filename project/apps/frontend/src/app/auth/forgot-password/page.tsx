@@ -99,6 +99,7 @@ export default function ForgotPasswordPage() {
               fullWidth
               size='lg'
               radius='md'
+              data-testid="forgot-password-success-back-button"
             >
               {t('backToSignIn') || 'Back to Sign In'}
             </Button>
@@ -110,9 +111,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout title={t('forgotPassword')} subtitle={t('subtitle')} type='signin'>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} data-testid="forgot-password-form">
         <Stack gap='lg'>
-          <Box>
+          <Box data-testid="forgot-password-header">
             <Title order={2} size='1.8rem' fw={700} mb='xs'>
               {t('forgotPassword')}
             </Title>
@@ -128,6 +129,7 @@ export default function ForgotPasswordPage() {
               color={theme.colors[theme.primaryColor][9]}
               variant='light'
               radius='md'
+              data-testid="forgot-password-error-alert"
             >
               {error}
             </Alert>
@@ -160,6 +162,7 @@ export default function ForgotPasswordPage() {
               },
             })}
             disabled={loading}
+            data-testid="forgot-password-email-input"
           />
 
           <Button
@@ -173,6 +176,7 @@ export default function ForgotPasswordPage() {
               border: 'none',
               fontWeight: 600,
             }}
+            data-testid="forgot-password-submit-button"
           >
             {t('sendResetLink') || 'Send Reset Link'}
           </Button>
@@ -184,6 +188,7 @@ export default function ForgotPasswordPage() {
             fullWidth
             size='md'
             radius='md'
+            data-testid="forgot-password-back-button"
           >
             {t('backToSignIn') || 'Back to Sign In'}
           </Button>

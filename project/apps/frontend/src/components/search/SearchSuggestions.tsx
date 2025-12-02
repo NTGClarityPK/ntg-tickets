@@ -150,21 +150,21 @@ export function SearchSuggestions({
   }
 
   return (
-    <Paper withBorder shadow='md' p='sm' radius='md'>
-      <Stack gap='xs'>
-        <Group justify='space-between' mb='xs'>
-          <Text size='sm' fw={500} c='dimmed'>
+    <Paper withBorder shadow='md' p='sm' radius='md' data-testid="search-suggestions-container">
+      <Stack gap='xs' data-testid="search-suggestions-stack">
+        <Group justify='space-between' mb='xs' data-testid="search-suggestions-header">
+          <Text size='sm' fw={500} c='dimmed' data-testid="search-suggestions-title">
             Search Suggestions
           </Text>
-          {isLoading && <Loader size='xs' />}
+          {isLoading && <Loader size='xs' data-testid="search-suggestions-loader" />}
         </Group>
 
-        <Divider />
+        <Divider data-testid="search-suggestions-divider" />
 
-        <div style={{ maxHeight: 200 }}>
-          <ScrollArea.Autosize>
-            <Stack gap='xs'>
-              {suggestions.map(suggestion => (
+        <div style={{ maxHeight: 200 }} data-testid="search-suggestions-list-container">
+          <ScrollArea.Autosize data-testid="search-suggestions-scroll">
+            <Stack gap='xs' data-testid="search-suggestions-list">
+              {suggestions.map((suggestion, index) => (
                 <Button
                   key={suggestion.id}
                   variant='subtle'
@@ -178,15 +178,17 @@ export function SearchSuggestions({
                     height: 'auto',
                     padding: '8px 12px',
                   }}
+                  data-testid={`search-suggestion-item-${index}`}
                 >
-                  <Group justify='space-between' style={{ width: '100%' }}>
-                    <Text size='sm' style={{ flex: 1 }}>
+                  <Group justify='space-between' style={{ width: '100%' }} data-testid={`search-suggestion-content-${index}`}>
+                    <Text size='sm' style={{ flex: 1 }} data-testid={`search-suggestion-text-${index}`}>
                       {suggestion.text}
                     </Text>
                     <Badge
                       size='xs'
                       variant='light'
                       color={getSuggestionColor(suggestion.type)}
+                      data-testid={`search-suggestion-badge-${index}`}
                     >
                       {suggestion.type}
                     </Badge>
@@ -195,7 +197,7 @@ export function SearchSuggestions({
               ))}
 
               {suggestions.length === 0 && !isLoading && (
-                <Text size='sm' c='dimmed' ta='center' py='md'>
+                <Text size='sm' c='dimmed' ta='center' py='md' data-testid="search-suggestions-empty">
                   No suggestions found
                 </Text>
               )}

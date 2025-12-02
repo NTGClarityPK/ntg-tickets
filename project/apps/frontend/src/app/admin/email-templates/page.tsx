@@ -371,65 +371,69 @@ export default function EmailTemplatesPage() {
   };
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={2}>Email Templates</Title>
-          <Text c='dimmed' size='sm'>
+    <Container size='xl' py='md' data-testid="email-templates-page">
+      <Group justify='space-between' mb='xl' data-testid="email-templates-page-header">
+        <div data-testid="email-templates-page-header-content">
+          <Title order={2} data-testid="email-templates-page-title">Email Templates</Title>
+          <Text c='dimmed' size='sm' data-testid="email-templates-page-subtitle">
             Manage email templates for automated notifications
           </Text>
         </div>
-        <Group>
+        <Group data-testid="email-templates-page-header-actions">
           <ActionIcon
             variant='light'
             size='lg'
             onClick={() => refetch()}
             disabled={isLoading}
             title='Refresh'
+            data-testid="email-templates-page-refresh-button"
           >
-            {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
+            {isLoading ? <Loader size={16} data-testid="email-templates-page-refresh-loader" /> : <IconRefresh size={20} />}
           </ActionIcon>
           <Button
             variant='light'
             leftSection={<IconTemplate size={16} />}
             onClick={handleCreateDefaults}
             loading={createDefaults.isPending}
+            data-testid="email-templates-page-create-defaults-button"
           >
             Create Defaults
           </Button>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setCreateModalOpen(true)}
+            data-testid="email-templates-page-create-button"
           >
             Create Template
           </Button>
         </Group>
       </Group>
 
-      <Card>
-        <Stack>
-          <Group justify='space-between'>
-            <Title order={4}>Email Templates</Title>
+      <Card data-testid="email-templates-page-card">
+        <Stack data-testid="email-templates-page-card-stack">
+          <Group justify='space-between' data-testid="email-templates-page-card-header">
+            <Title order={4} data-testid="email-templates-page-card-title">Email Templates</Title>
             <TextInput
               placeholder='Search templates...'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{ width: 300 }}
+              data-testid="email-templates-page-search-input"
             />
           </Group>
 
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Type</Table.Th>
-                <Table.Th>Subject</Table.Th>
-                <Table.Th>Status</Table.Th>
-                <Table.Th>Updated</Table.Th>
-                <Table.Th>Actions</Table.Th>
+          <Table data-testid="email-templates-page-table">
+            <Table.Thead data-testid="email-templates-page-table-head">
+              <Table.Tr data-testid="email-templates-page-table-head-row">
+                <Table.Th data-testid="email-templates-page-table-header-name">Name</Table.Th>
+                <Table.Th data-testid="email-templates-page-table-header-type">Type</Table.Th>
+                <Table.Th data-testid="email-templates-page-table-header-subject">Subject</Table.Th>
+                <Table.Th data-testid="email-templates-page-table-header-status">Status</Table.Th>
+                <Table.Th data-testid="email-templates-page-table-header-updated">Updated</Table.Th>
+                <Table.Th data-testid="email-templates-page-table-header-actions">Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
-            <Table.Tbody>
+            <Table.Tbody data-testid="email-templates-page-table-body">
               {templates
                 ?.filter(
                   (template: {
@@ -460,43 +464,44 @@ export default function EmailTemplatesPage() {
                     updatedAt: string;
                     isDefault?: boolean;
                   }) => (
-                    <Table.Tr key={template.id}>
-                      <Table.Td>
-                        <Group>
-                          <Text fw={500}>{template.name}</Text>
+                    <Table.Tr key={template.id} data-testid={`email-templates-page-table-row-${template.id}`}>
+                      <Table.Td data-testid={`email-templates-page-table-cell-name-${template.id}`}>
+                        <Group data-testid={`email-templates-page-table-cell-name-group-${template.id}`}>
+                          <Text fw={500} data-testid={`email-templates-page-table-cell-name-text-${template.id}`}>{template.name}</Text>
                           {template.isDefault && (
-                            <Badge color={primaryDark} variant='light' size='xs'>
+                            <Badge color={primaryDark} variant='light' size='xs' data-testid={`email-templates-page-table-cell-name-badge-${template.id}`}>
                               Default
                             </Badge>
                           )}
                         </Group>
                       </Table.Td>
-                      <Table.Td>
-                        <Badge color={primaryDark} variant='light' size='sm'>
+                      <Table.Td data-testid={`email-templates-page-table-cell-type-${template.id}`}>
+                        <Badge color={primaryDark} variant='light' size='sm' data-testid={`email-templates-page-table-cell-type-badge-${template.id}`}>
                           {template.type}
                         </Badge>
                       </Table.Td>
-                      <Table.Td>
-                        <Text size='sm' c='dimmed'>
+                      <Table.Td data-testid={`email-templates-page-table-cell-subject-${template.id}`}>
+                        <Text size='sm' c='dimmed' data-testid={`email-templates-page-table-cell-subject-text-${template.id}`}>
                           {template.subject}
                         </Text>
                       </Table.Td>
-                      <Table.Td>
+                      <Table.Td data-testid={`email-templates-page-table-cell-status-${template.id}`}>
                         <Badge
                           color={template.isActive ? primaryLighter : textMuted}
                           variant='light'
                           size='sm'
+                          data-testid={`email-templates-page-table-cell-status-badge-${template.id}`}
                         >
                           {template.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </Table.Td>
-                      <Table.Td>
-                        <Text size='sm' c='dimmed'>
+                      <Table.Td data-testid={`email-templates-page-table-cell-updated-${template.id}`}>
+                        <Text size='sm' c='dimmed' data-testid={`email-templates-page-table-cell-updated-text-${template.id}`}>
                           {new Date(template.updatedAt).toLocaleDateString()}
                         </Text>
                       </Table.Td>
-                      <Table.Td>
-                        <Group gap='xs'>
+                      <Table.Td data-testid={`email-templates-page-table-cell-actions-${template.id}`}>
+                        <Group gap='xs' data-testid={`email-templates-page-table-cell-actions-group-${template.id}`}>
                           <ActionIcon
                             variant='light'
                             size='sm'
@@ -512,6 +517,7 @@ export default function EmailTemplatesPage() {
                                 isActive: template.isActive,
                               })
                             }
+                            data-testid={`email-templates-page-preview-button-${template.id}`}
                           >
                             <IconEye size={14} />
                           </ActionIcon>
@@ -529,6 +535,7 @@ export default function EmailTemplatesPage() {
                                 isActive: template.isActive,
                               })
                             }
+                            data-testid={`email-templates-page-edit-button-${template.id}`}
                           >
                             <IconEdit size={14} />
                           </ActionIcon>
@@ -547,6 +554,7 @@ export default function EmailTemplatesPage() {
                                 isActive: template.isActive,
                               })
                             }
+                            data-testid={`email-templates-page-delete-button-${template.id}`}
                           >
                             <IconTrash size={14} />
                           </ActionIcon>
@@ -566,10 +574,11 @@ export default function EmailTemplatesPage() {
         onClose={() => setCreateModalOpen(false)}
         title='Create Email Template'
         size='xl'
+        data-testid="email-templates-page-create-modal"
       >
-        <Stack>
-          <Grid>
-            <Grid.Col span={6}>
+        <Stack data-testid="email-templates-page-create-modal-stack">
+          <Grid data-testid="email-templates-page-create-modal-grid">
+            <Grid.Col span={6} data-testid="email-templates-page-create-modal-name-col">
               <TextInput
                 label='Template Name'
                 placeholder='Enter template name'
@@ -578,9 +587,10 @@ export default function EmailTemplatesPage() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
+                data-testid="email-templates-page-create-modal-name-input"
               />
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={6} data-testid="email-templates-page-create-modal-type-col">
               <Select
                 label='Template Type'
                 placeholder='Select template type'
@@ -590,6 +600,7 @@ export default function EmailTemplatesPage() {
                   setFormData({ ...formData, type: value || '' })
                 }
                 required
+                data-testid="email-templates-page-create-modal-type-select"
               />
             </Grid.Col>
           </Grid>
@@ -602,32 +613,35 @@ export default function EmailTemplatesPage() {
               setFormData({ ...formData, subject: e.target.value })
             }
             required
+            data-testid="email-templates-page-create-modal-subject-input"
           />
 
           <Tabs
             value={activeTab}
             onChange={value => setActiveTab(value || 'html')}
+            data-testid="email-templates-page-create-modal-tabs"
           >
-            <Tabs.List>
-              <Tabs.Tab value='html' leftSection={<IconCode size={16} />}>
+            <Tabs.List data-testid="email-templates-page-create-modal-tabs-list">
+              <Tabs.Tab value='html' leftSection={<IconCode size={16} />} data-testid="email-templates-page-create-modal-tab-html">
                 HTML Content
               </Tabs.Tab>
              
               <Tabs.Tab
                 value='variables'
                 leftSection={<IconSettings size={16} />}
+                data-testid="email-templates-page-create-modal-tab-variables"
               >
                 Variables
               </Tabs.Tab>
             </Tabs.List>
 
-            <Tabs.Panel value='html' style={{marginTop: '1rem'}}>
-              <Stack>
-                <Group justify='space-between'>
-                  <Text size='sm' fw={500}>
+            <Tabs.Panel value='html' style={{marginTop: '1rem'}} data-testid="email-templates-page-create-modal-panel-html">
+              <Stack data-testid="email-templates-page-create-modal-panel-html-stack">
+                <Group justify='space-between' data-testid="email-templates-page-create-modal-panel-html-header">
+                  <Text size='sm' fw={500} data-testid="email-templates-page-create-modal-panel-html-title">
                     HTML Content
                   </Text>
-                  <Text size='xs' c='dimmed'>
+                  <Text size='xs' c='dimmed' data-testid="email-templates-page-create-modal-panel-html-hint">
                     Use variables like {`{{user.name}}`} for dynamic content
                   </Text>
                 </Group>
@@ -640,14 +654,15 @@ export default function EmailTemplatesPage() {
                   }
                   minRows={10}
                   autosize
+                  data-testid="email-templates-page-create-modal-html-textarea"
                 />
               </Stack>
             </Tabs.Panel>
 
           
 
-            <Tabs.Panel value='variables'>
-              <Stack gap='md' style={{marginTop: '1rem'}}>
+            <Tabs.Panel value='variables' data-testid="email-templates-page-create-modal-panel-variables">
+              <Stack gap='md' style={{marginTop: '1rem'}} data-testid="email-templates-page-create-modal-panel-variables-stack">
                 <style>
                   {`
                     .variables-scroll-container::-webkit-scrollbar {
@@ -659,11 +674,11 @@ export default function EmailTemplatesPage() {
                     }
                   `}
                 </style>
-                <div>
-                  <Text size='sm' fw={500} mb={4}>
+                <div data-testid="email-templates-page-create-modal-panel-variables-header">
+                  <Text size='sm' fw={500} mb={4} data-testid="email-templates-page-create-modal-panel-variables-title">
                     Available Variables
                   </Text>
-                  <Text size='xs' c='dimmed'>
+                  <Text size='xs' c='dimmed' data-testid="email-templates-page-create-modal-panel-variables-hint">
                     Click on a variable to insert it into your template at the cursor position
                   </Text>
                 </div>
@@ -676,6 +691,7 @@ export default function EmailTemplatesPage() {
                     borderRadius: theme.radius.md,
                     backgroundColor: theme.colors.gray[0],
                   }}
+                  data-testid="email-templates-page-create-modal-panel-variables-container"
                 >
                   <Table
                     striped
@@ -685,6 +701,7 @@ export default function EmailTemplatesPage() {
                     style={{
                       borderCollapse: 'collapse',
                     }}
+                    data-testid="email-templates-page-create-modal-panel-variables-table"
                   >
                     <Table.Thead
                       style={{
@@ -693,8 +710,9 @@ export default function EmailTemplatesPage() {
                         backgroundColor: theme.colors.gray[1],
                         zIndex: 1,
                       }}
+                      data-testid="email-templates-page-create-modal-panel-variables-table-head"
                     >
-                      <Table.Tr>
+                      <Table.Tr data-testid="email-templates-page-create-modal-panel-variables-table-head-row">
                         <Table.Th
                           style={{
                             fontSize: '11px',
@@ -704,6 +722,7 @@ export default function EmailTemplatesPage() {
                             color: theme.colors.gray[7],
                             padding: '10px 12px',
                           }}
+                          data-testid="email-templates-page-create-modal-panel-variables-table-header-variable"
                         >
                           Variable
                         </Table.Th>
@@ -716,12 +735,13 @@ export default function EmailTemplatesPage() {
                             color: theme.colors.gray[7],
                             padding: '10px 12px',
                           }}
+                          data-testid="email-templates-page-create-modal-panel-variables-table-header-description"
                         >
                           Description
                         </Table.Th>
                       </Table.Tr>
                     </Table.Thead>
-                    <Table.Tbody>
+                    <Table.Tbody data-testid="email-templates-page-create-modal-panel-variables-table-body">
                       {AVAILABLE_VARIABLES.map(variable => (
                         <Table.Tr
                           key={variable.value}
@@ -737,6 +757,7 @@ export default function EmailTemplatesPage() {
                           onMouseLeave={e => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
+                          data-testid={`email-templates-page-create-modal-panel-variables-table-row-${variable.value}`}
                         >
                           <Table.Td
                             style={{
@@ -746,6 +767,7 @@ export default function EmailTemplatesPage() {
                               padding: '10px 12px',
                               borderBottom: `1px solid ${theme.colors.gray[2]}`,
                             }}
+                            data-testid={`email-templates-page-create-modal-panel-variables-table-cell-variable-${variable.value}`}
                           >
                             <Code
                               style={{
@@ -756,6 +778,7 @@ export default function EmailTemplatesPage() {
                                 fontWeight: 600,
                                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                               }}
+                              data-testid={`email-templates-page-create-modal-panel-variables-table-cell-variable-code-${variable.value}`}
                             >
                               {variable.value}
                             </Code>
@@ -768,6 +791,7 @@ export default function EmailTemplatesPage() {
                               color: theme.colors.gray[7],
                               borderBottom: `1px solid ${theme.colors.gray[2]}`,
                             }}
+                            data-testid={`email-templates-page-create-modal-panel-variables-table-cell-description-${variable.value}`}
                           >
                             {variable.label}
                           </Table.Td>
@@ -787,15 +811,17 @@ export default function EmailTemplatesPage() {
             onChange={e =>
               setFormData({ ...formData, isActive: e.currentTarget.checked })
             }
+            data-testid="email-templates-page-create-modal-active-switch"
           />
 
-          <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setCreateModalOpen(false)}>
+          <Group justify='flex-end' data-testid="email-templates-page-create-modal-actions">
+            <Button variant='light' onClick={() => setCreateModalOpen(false)} data-testid="email-templates-page-create-modal-cancel-button">
               Cancel
             </Button>
             <Button
               onClick={handleCreateTemplate}
               loading={createTemplate.isPending}
+              data-testid="email-templates-page-create-modal-submit-button"
             >
               Create Template
             </Button>
@@ -809,10 +835,11 @@ export default function EmailTemplatesPage() {
         onClose={() => setEditModalOpen(false)}
         title='Edit Email Template'
         size='xl'
+        data-testid="email-templates-page-edit-modal"
       >
-        <Stack>
-          <Grid>
-            <Grid.Col span={6}>
+        <Stack data-testid="email-templates-page-edit-modal-stack">
+          <Grid data-testid="email-templates-page-edit-modal-grid">
+            <Grid.Col span={6} data-testid="email-templates-page-edit-modal-name-col">
               <TextInput
                 label='Template Name'
                 placeholder='Enter template name'
@@ -821,9 +848,10 @@ export default function EmailTemplatesPage() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
+                data-testid="email-templates-page-edit-modal-name-input"
               />
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={6} data-testid="email-templates-page-edit-modal-type-col">
               <Select
                 label='Template Type'
                 placeholder='Select template type'
@@ -833,6 +861,7 @@ export default function EmailTemplatesPage() {
                   setFormData({ ...formData, type: value || '' })
                 }
                 required
+                data-testid="email-templates-page-edit-modal-type-select"
               />
             </Grid.Col>
           </Grid>
@@ -845,22 +874,24 @@ export default function EmailTemplatesPage() {
               setFormData({ ...formData, subject: e.target.value })
             }
             required
+            data-testid="email-templates-page-edit-modal-subject-input"
           />
 
           <Tabs
             value={activeTab}
             onChange={value => setActiveTab(value || 'html')}
+            data-testid="email-templates-page-edit-modal-tabs"
           >
-            <Tabs.List>
-              <Tabs.Tab value='html' leftSection={<IconCode size={16} />}>
+            <Tabs.List data-testid="email-templates-page-edit-modal-tabs-list">
+              <Tabs.Tab value='html' leftSection={<IconCode size={16} />} data-testid="email-templates-page-edit-modal-tab-html">
                 HTML Content
               </Tabs.Tab>
            
             </Tabs.List>
 
-            <Tabs.Panel value='html'>
-              <Stack>
-                <Text size='sm' fw={500} style={{marginTop: '1rem'}}>
+            <Tabs.Panel value='html' data-testid="email-templates-page-edit-modal-panel-html">
+              <Stack data-testid="email-templates-page-edit-modal-panel-html-stack">
+                <Text size='sm' fw={500} style={{marginTop: '1rem'}} data-testid="email-templates-page-edit-modal-panel-html-title">
                   HTML Content
                 </Text>
                 <Textarea
@@ -871,6 +902,7 @@ export default function EmailTemplatesPage() {
                   }
                   minRows={10}
                   autosize
+                  data-testid="email-templates-page-edit-modal-html-textarea"
                 />
               </Stack>
             </Tabs.Panel>
@@ -886,15 +918,17 @@ export default function EmailTemplatesPage() {
             onChange={e =>
               setFormData({ ...formData, isActive: e.currentTarget.checked })
             }
+            data-testid="email-templates-page-edit-modal-active-switch"
           />
 
-          <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setEditModalOpen(false)}>
+          <Group justify='flex-end' data-testid="email-templates-page-edit-modal-actions">
+            <Button variant='light' onClick={() => setEditModalOpen(false)} data-testid="email-templates-page-edit-modal-cancel-button">
               Cancel
             </Button>
             <Button
               onClick={handleUpdateTemplate}
               loading={updateTemplate.isPending}
+              data-testid="email-templates-page-edit-modal-submit-button"
             >
               Update Template
             </Button>
@@ -908,12 +942,13 @@ export default function EmailTemplatesPage() {
         onClose={() => setPreviewModalOpen(false)}
         title='Email Template Preview'
         size='xl'
+        data-testid="email-templates-page-preview-modal"
       >
-        <Stack>
-          <Text size='sm' fw={500}>
+        <Stack data-testid="email-templates-page-preview-modal-stack">
+          <Text size='sm' fw={500} data-testid="email-templates-page-preview-modal-subject">
             Subject: {selectedTemplate?.preview?.subject || selectedTemplate?.subject || ''}
           </Text>
-          <Divider />
+          <Divider data-testid="email-templates-page-preview-modal-divider" />
           <div
             dangerouslySetInnerHTML={{
               __html:
@@ -927,6 +962,7 @@ export default function EmailTemplatesPage() {
               padding: '16px',
               backgroundColor: '#f8f9fa',
             }}
+            data-testid="email-templates-page-preview-modal-content"
           />
         </Stack>
       </Modal>
@@ -936,20 +972,22 @@ export default function EmailTemplatesPage() {
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         title='Delete Email Template'
+        data-testid="email-templates-page-delete-modal"
       >
-        <Stack>
-          <Text>
+        <Stack data-testid="email-templates-page-delete-modal-stack">
+          <Text data-testid="email-templates-page-delete-modal-message">
             Are you sure you want to delete "{selectedTemplate?.name}"? This
             action cannot be undone.
           </Text>
-          <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
+          <Group justify='flex-end' data-testid="email-templates-page-delete-modal-actions">
+            <Button variant='light' onClick={() => setDeleteModalOpen(false)} data-testid="email-templates-page-delete-modal-cancel-button">
               Cancel
             </Button>
             <Button
               color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteTemplate}
               loading={deleteTemplate.isPending}
+              data-testid="email-templates-page-delete-modal-confirm-button"
             >
               Delete
             </Button>

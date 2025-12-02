@@ -158,6 +158,7 @@ export default function ProfilePage() {
             color={saved ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
             loading={updateUserMutation.isPending}
             onClick={() => profileForm.onSubmit(handleProfileUpdate)()}
+            data-testid="profile-save-button"
           >
             {saved ? t('saved') : t('saveChanges')}
           </Button>
@@ -175,15 +176,15 @@ export default function ProfilePage() {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={setActiveTab} data-testid="profile-tabs">
         <Tabs.List>
-          <Tabs.Tab value='profile' leftSection={<IconUser size={16} />}>
+          <Tabs.Tab value='profile' leftSection={<IconUser size={16} />} data-testid="profile-tab-personal">
             {t('personalInfo')}
           </Tabs.Tab>
-          <Tabs.Tab value='security' leftSection={<IconShield size={16} />}>
+          <Tabs.Tab value='security' leftSection={<IconShield size={16} />} data-testid="profile-tab-security">
             {t('security')}
           </Tabs.Tab>
-          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />}>
+          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />} data-testid="profile-tab-notifications">
             {t('notifications')}
           </Tabs.Tab>
         </Tabs.List>
@@ -195,7 +196,7 @@ export default function ProfilePage() {
                 <Title order={3} mb='md'>
                   Personal Information
                 </Title>
-                <form onSubmit={profileForm.onSubmit(handleProfileUpdate)}>
+                <form onSubmit={profileForm.onSubmit(handleProfileUpdate)} data-testid="profile-form">
                   <Stack gap='md'>
                     <Grid>
                       <Grid.Col span={6}>
@@ -204,6 +205,7 @@ export default function ProfilePage() {
                           placeholder='Enter your full name'
                           required
                           {...profileForm.getInputProps('name')}
+                          data-testid="profile-name-input"
                         />
                       </Grid.Col>
                       <Grid.Col span={6}>
@@ -213,6 +215,7 @@ export default function ProfilePage() {
                           required
                           type='email'
                           {...profileForm.getInputProps('email')}
+                          data-testid="profile-email-input"
                         />
                       </Grid.Col>
                     </Grid>
@@ -234,7 +237,7 @@ export default function ProfilePage() {
                         .map((n: string) => n[0])
                         .join('')}
                     </Avatar>
-                    <Button variant='outline' size='sm'>
+                    <Button variant='outline' size='sm' data-testid="profile-change-picture-button">
                       Change Picture
                     </Button>
                   </Stack>
@@ -295,13 +298,14 @@ export default function ProfilePage() {
             <Title order={3} mb='md'>
               Change Password
             </Title>
-            <form onSubmit={passwordForm.onSubmit(handlePasswordChange)}>
+            <form onSubmit={passwordForm.onSubmit(handlePasswordChange)} data-testid="profile-password-form">
               <Stack gap='md'>
                 <PasswordInput
                   label={t('currentPassword')}
                   placeholder='Enter current password'
                   required
                   {...passwordForm.getInputProps('currentPassword')}
+                  data-testid="profile-current-password-input"
                 />
                 <Grid>
                   <Grid.Col span={6}>
@@ -310,6 +314,7 @@ export default function ProfilePage() {
                       placeholder='Enter new password'
                       required
                       {...passwordForm.getInputProps('newPassword')}
+                      data-testid="profile-new-password-input"
                     />
                   </Grid.Col>
                   <Grid.Col span={6}>
@@ -318,11 +323,12 @@ export default function ProfilePage() {
                       placeholder='Confirm new password'
                       required
                       {...passwordForm.getInputProps('confirmPassword')}
+                      data-testid="profile-confirm-password-input"
                     />
                   </Grid.Col>
                 </Grid>
                 <Group justify='flex-end'>
-                  <Button type='submit'>Change Password</Button>
+                  <Button type='submit' data-testid="profile-change-password-button">Change Password</Button>
                 </Group>
               </Stack>
             </form>
@@ -339,15 +345,18 @@ export default function ProfilePage() {
                 label={t('emailNotifications')}
                 description='Receive notifications via email'
                 defaultChecked
+                data-testid="profile-email-notifications-switch"
               />
               <Switch
                 label={t('pushNotifications')}
                 description='Receive push notifications in browser'
                 defaultChecked
+                data-testid="profile-push-notifications-switch"
               />
               <Switch
                 label='SMS Notifications'
                 description='Receive notifications via SMS'
+                data-testid="profile-sms-notifications-switch"
               />
               <Divider />
               <Select
@@ -360,6 +369,7 @@ export default function ProfilePage() {
                   { value: 'weekly', label: 'Weekly Digest' },
                 ]}
                 defaultValue='immediate'
+                data-testid="profile-notification-frequency-select"
               />
             </Stack>
           </Card>

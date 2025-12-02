@@ -34,22 +34,23 @@ export function SupportStaffDashboardPresenter({
   onViewTickets,
 }: SupportStaffDashboardPresenterProps) {
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
+    <Container size='xl' py='md' data-testid="support-staff-dashboard-container">
+      <Stack gap='md' data-testid="support-staff-dashboard-stack">
         {/* Header */}
-        <Group justify='space-between'>
-          <div>
-            <Title order={2}>Support Staff Overview</Title>
-            <Text c='dimmed'>
+        <Group justify='space-between' data-testid="support-staff-dashboard-header">
+          <div data-testid="support-staff-dashboard-header-text">
+            <Title order={2} data-testid="support-staff-dashboard-title">Support Staff Overview</Title>
+            <Text c='dimmed' data-testid="support-staff-dashboard-subtitle">
               Manage your assigned tickets and track performance
             </Text>
           </div>
-          <Group>
+          <Group data-testid="support-staff-dashboard-actions">
             <Button
               className="pdf-hide-elements"
               variant='outline'
               leftSection={<IconSearch size={16} />}
               onClick={onViewTickets}
+              data-testid="support-staff-dashboard-search-button"
             >
               Search Tickets
             </Button>

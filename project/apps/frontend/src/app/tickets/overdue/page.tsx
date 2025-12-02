@@ -142,23 +142,23 @@ function OverdueTicketsPageContent() {
   };
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={2}>Overdue Tickets</Title>
-          <Text c='dimmed' size='sm'>
+    <Container size='xl' py='md' data-testid="overdue-tickets-page">
+      <Group justify='space-between' mb='xl' data-testid="overdue-tickets-header">
+        <div data-testid="overdue-tickets-header-content">
+          <Title order={2} data-testid="overdue-tickets-title">Overdue Tickets</Title>
+          <Text c='dimmed' size='sm' data-testid="overdue-tickets-subtitle">
             Tickets that have exceeded their SLA deadlines
           </Text>
           {hasActiveFilters() && (
-            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs' data-testid="overdue-tickets-filter-count">
               Showing {tickets.length} of {totalOverdueTickets} tickets
             </Text>
           )}
         </div>
       </Group>
 
-      <Grid mb='md'>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <Grid mb='md' data-testid="overdue-tickets-toolbar">
+        <Grid.Col span={{ base: 12, md: 6 }} data-testid="overdue-tickets-search-col">
           <SearchBar
             key={searchFilters.search || 'empty'}
             value={searchFilters.search}
@@ -177,17 +177,18 @@ function OverdueTicketsPageContent() {
             isLoading={isFetching}
           />
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="overdue-tickets-advanced-col">
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={() => setAdvancedSearchOpen(true)}
+            data-testid="overdue-tickets-advanced-button"
           >
             Advanced
           </Button>
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="overdue-tickets-reset-col">
           {hasActiveFilters() && (
             <Button
               variant='outline'
@@ -197,6 +198,7 @@ function OverdueTicketsPageContent() {
                 clearFilters();
                 setCurrentPage(1);
               }}
+              data-testid="overdue-tickets-reset-filters-button"
             >
               Reset Filters
             </Button>
@@ -204,48 +206,52 @@ function OverdueTicketsPageContent() {
         </Grid.Col>
       </Grid>
 
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="overdue-tickets-list">
         {tickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
-            <Group justify='space-between' mb='sm'>
-              <Group gap='sm'>
-                <Badge color={getStatusColor(ticket.status)} variant='light'>
+          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder data-testid={`overdue-ticket-card-${ticket.id}`}>
+            <Group justify='space-between' mb='sm' data-testid={`overdue-ticket-header-${ticket.id}`}>
+              <Group gap='sm' data-testid={`overdue-ticket-badges-${ticket.id}`}>
+                <Badge color={getStatusColor(ticket.status)} variant='light' data-testid={`overdue-ticket-status-badge-${ticket.id}`}>
                   {ticket.status}
                 </Badge>
                 <Badge
                   color={getPriorityColor(ticket.priority)}
                   variant='outline'
+                  data-testid={`overdue-ticket-priority-badge-${ticket.id}`}
                 >
                   {ticket.priority}
                 </Badge>
-                <Text size='sm' c='dimmed'>
+                <Text size='sm' c='dimmed' data-testid={`overdue-ticket-number-${ticket.id}`}>
                   {ticket.ticketNumber}
                 </Text>
               </Group>
-              <Menu shadow='md' width={200}>
+              <Menu shadow='md' width={200} data-testid={`overdue-ticket-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`overdue-ticket-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown data-testid={`overdue-ticket-menu-dropdown-${ticket.id}`}>
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => router.push(`/tickets/${ticket.id}`)}
+                    data-testid={`overdue-ticket-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+                    data-testid={`overdue-ticket-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
-                  <Menu.Divider />
+                  <Menu.Divider data-testid={`overdue-ticket-menu-divider-${ticket.id}`} />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+                    data-testid={`overdue-ticket-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -258,28 +264,29 @@ function OverdueTicketsPageContent() {
               mb='xs'
               style={{ cursor: 'pointer' }}
               onClick={() => router.push(`/tickets/${ticket.id}`)}
+              data-testid={`overdue-ticket-title-${ticket.id}`}
             >
               {ticket.title}
             </Text>
 
-            <Text size='sm' c='dimmed' mb='sm' lineClamp={2}>
+            <Text size='sm' c='dimmed' mb='sm' lineClamp={2} data-testid={`overdue-ticket-description-${ticket.id}`}>
               {stripHtmlTags(ticket.description)}
             </Text>
 
-            <Group justify='space-between'>
-              <Group gap='md'>
-                <Text size='sm'>{ticket.requester?.name}</Text>
-                <Text size='sm'>
+            <Group justify='space-between' data-testid={`overdue-ticket-footer-${ticket.id}`}>
+              <Group gap='md' data-testid={`overdue-ticket-info-${ticket.id}`}>
+                <Text size='sm' data-testid={`overdue-ticket-requester-${ticket.id}`}>{ticket.requester?.name}</Text>
+                <Text size='sm' data-testid={`overdue-ticket-created-date-${ticket.id}`}>
                   {new Date(ticket.createdAt).toLocaleDateString('en-US')}
                 </Text>
                 {ticket.assignedTo && (
-                  <Group gap={4}>
+                  <Group gap={4} data-testid={`overdue-ticket-assigned-${ticket.id}`}>
                     <IconTicket size={14} />
-                    <Text size='sm'>Assigned to {ticket.assignedTo.name}</Text>
+                    <Text size='sm' data-testid={`overdue-ticket-assigned-name-${ticket.id}`}>Assigned to {ticket.assignedTo.name}</Text>
                   </Group>
                 )}
               </Group>
-              <Badge variant='light' color='gray'>
+              <Badge variant='light' color='gray' data-testid={`overdue-ticket-overdue-badge-${ticket.id}`}>
                 Overdue{' '}
                 {ticket.dueDate
                   ? Math.round(calculateOverdueHours(ticket.dueDate))
@@ -292,12 +299,12 @@ function OverdueTicketsPageContent() {
       </Stack>
 
       {tickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <Text size='lg' fw={500}>
+        <Card shadow='sm' padding='xl' radius='md' withBorder data-testid="overdue-tickets-empty-state">
+          <Stack align='center' gap='md' data-testid="overdue-tickets-empty-state-content">
+            <Text size='lg' fw={500} data-testid="overdue-tickets-empty-state-title">
               No overdue tickets
             </Text>
-            <Text c='dimmed' ta='center'>
+            <Text c='dimmed' ta='center' data-testid="overdue-tickets-empty-state-message">
               No tickets match your current filters.
             </Text>
           </Stack>
@@ -305,11 +312,12 @@ function OverdueTicketsPageContent() {
       )}
 
       {(pagination?.totalPages || 0) > 1 && (
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="overdue-tickets-pagination-group">
           <Pagination
             value={currentPage}
             onChange={setCurrentPage}
             total={pagination?.totalPages || 1}
+            data-testid="overdue-tickets-pagination"
           />
         </Group>
       )}

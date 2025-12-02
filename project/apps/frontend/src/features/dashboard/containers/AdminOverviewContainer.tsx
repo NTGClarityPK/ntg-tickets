@@ -65,9 +65,9 @@ export function AdminOverviewContainer() {
 
   if (usersLoading || auditLogsLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
+      <Container size='xl' py='md' data-testid="admin-overview-loading-container">
+        <Group justify='center' py='xl' data-testid="admin-overview-loading-group">
+          <Loader size='lg' data-testid="admin-overview-loader" />
         </Group>
       </Container>
     );
@@ -131,27 +131,27 @@ export function AdminOverviewContainer() {
   ];
 
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
-        <div style={{ marginBottom: '2rem' }}>
-          <Title order={2} >Administrative Overview</Title>
-          <Text c='dimmed' size='sm'>
+    <Container size='xl' py='md' data-testid="admin-overview-container">
+      <Stack gap='md' data-testid="admin-overview-stack">
+        <div style={{ marginBottom: '2rem' }} data-testid="admin-overview-header">
+          <Title order={2} data-testid="admin-overview-title">Administrative Overview</Title>
+          <Text c='dimmed' size='sm' data-testid="admin-overview-subtitle">
                 System administration and user management metrics.
           </Text>
         </div>
-        <Grid>
+        <Grid data-testid="admin-overview-grid">
           {cards.map(card => (
-            <Grid.Col key={card.title} span={{ base: 12, sm: 6, md: 4 }}>
-              <Card withBorder>
-                <Group>
-                  <Avatar color={card.color} size='lg'>
+            <Grid.Col key={card.title} span={{ base: 12, sm: 6, md: 4 }} data-testid={`admin-overview-card-col-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
+              <Card withBorder data-testid={`admin-overview-card-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <Group data-testid={`admin-overview-card-group-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <Avatar color={card.color} size='lg' data-testid={`admin-overview-card-avatar-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
                     <card.icon size={24} />
                   </Avatar>
-                  <div style={{ flex: 1 }}>
-                    <Text size='lg' fw={600}>
+                  <div style={{ flex: 1 }} data-testid={`admin-overview-card-content-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Text size='lg' fw={600} data-testid={`admin-overview-card-value-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {card.value}
                     </Text>
-                    <Text size='sm' c='dimmed'>
+                    <Text size='sm' c='dimmed' data-testid={`admin-overview-card-title-${card.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {card.title}
                     </Text>
                   </div>

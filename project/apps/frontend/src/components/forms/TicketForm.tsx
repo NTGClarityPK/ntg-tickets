@@ -191,7 +191,7 @@ export function TicketForm({
     : [];
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form onSubmit={form.onSubmit(handleSubmit)} data-testid="ticket-form">
       <Stack gap='md'>
         <Grid>
           <Grid.Col span={12}>
@@ -200,6 +200,7 @@ export function TicketForm({
               placeholder={tTickets('titlePlaceholder')}
               required
               {...form.getInputProps('title')}
+              data-testid="ticket-title-input"
             />
           </Grid.Col>
         </Grid>
@@ -210,6 +211,7 @@ export function TicketForm({
           required
           minRows={4}
           {...form.getInputProps('description')}
+          data-testid="ticket-description-input"
         />
 
         <Grid>
@@ -224,6 +226,7 @@ export function TicketForm({
               })) || []}
               {...form.getInputProps('category')}
               onChange={value => handleCategoryChange(value || '')}
+              data-testid="ticket-category-select"
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -233,6 +236,7 @@ export function TicketForm({
               data={currentSubcategories}
               disabled={!form.values.category}
               {...form.getInputProps('subcategory')}
+              data-testid="ticket-subcategory-select"
             />
           </Grid.Col>
         </Grid>
@@ -243,6 +247,7 @@ export function TicketForm({
               label={tTickets('priority')}
               data={priorities}
               {...form.getInputProps('priority')}
+              data-testid="ticket-priority-select"
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 4 }}>
@@ -250,6 +255,7 @@ export function TicketForm({
               label={tTickets('impact')}
               data={impacts}
               {...form.getInputProps('impact')}
+              data-testid="ticket-impact-select"
             />
           </Grid.Col>
         </Grid>
@@ -258,6 +264,7 @@ export function TicketForm({
           label={tTickets('slaLevel')}
           data={slaLevels}
           {...form.getInputProps('slaLevel')}
+          data-testid="ticket-sla-level-select"
         />
 
         {/* Auto-assign Information */}
@@ -276,6 +283,7 @@ export function TicketForm({
           placeholder='Select related tickets'
           data={[]} // This would be populated from API
           {...form.getInputProps('relatedTickets')}
+          data-testid="ticket-related-tickets-select"
         />
 
         {/* Custom Fields Section */}
@@ -299,6 +307,7 @@ export function TicketForm({
               'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ]}
             multiple
+            data-testid="ticket-file-dropzone"
           >
             <Group
               justify='center'
@@ -335,6 +344,7 @@ export function TicketForm({
                     color={theme.colors[theme.primaryColor][9]}
                     variant='subtle'
                     onClick={() => handleFileRemove(index)}
+                    data-testid={`ticket-file-remove-${index}`}
                   >
                     Remove
                   </Button>
@@ -356,10 +366,10 @@ export function TicketForm({
         )}
 
         <Group justify='flex-end' mt='xl'>
-          <Button variant='outline' onClick={onCancel}>
+          <Button variant='outline' onClick={onCancel} data-testid="ticket-form-cancel">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="ticket-form-submit">
             {isEditing ? 'Update Ticket' : 'Create Ticket'}
           </Button>
         </Group>

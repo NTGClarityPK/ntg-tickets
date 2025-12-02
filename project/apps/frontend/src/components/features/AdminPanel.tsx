@@ -356,61 +356,68 @@ export function AdminPanel() {
   };
 
   return (
-    <Container size='xl'>
-      <Stack gap='md'>
-        <Title order={2}>{t('systemAdministration')}</Title>
+    <Container size='xl' data-testid="admin-panel-container">
+      <Stack gap='md' data-testid="admin-panel-stack">
+        <Title order={2} data-testid="admin-panel-title">{t('systemAdministration')}</Title>
 
         <Tabs
           value={activeTab}
           onChange={value => setActiveTab(value || 'users')}
+          data-testid="admin-panel-tabs"
         >
-          <Tabs.List>
-            <Tabs.Tab value='users' leftSection={<IconUsers size={16} />}>
+          <Tabs.List data-testid="admin-panel-tabs-list">
+            <Tabs.Tab value='users' leftSection={<IconUsers size={16} />} data-testid="admin-panel-tab-users">
               {t('users')}
             </Tabs.Tab>
             <Tabs.Tab
               value='custom-fields'
               leftSection={<IconSettings size={16} />}
+              data-testid="admin-panel-tab-custom-fields"
             >
               {t('customFields')}
             </Tabs.Tab>
             <Tabs.Tab
               value='email-templates'
               leftSection={<IconMail size={16} />}
+              data-testid="admin-panel-tab-email-templates"
             >
               {t('emailTemplates')}
             </Tabs.Tab>
             <Tabs.Tab
               value='system-settings'
               leftSection={<IconShield size={16} />}
+              data-testid="admin-panel-tab-system-settings"
             >
               {t('systemSettings')}
             </Tabs.Tab>
             <Tabs.Tab
               value='theme-settings'
               leftSection={<IconPalette size={16} />}
+              data-testid="admin-panel-tab-theme-settings"
             >
               Theme Settings
             </Tabs.Tab>
             <Tabs.Tab
               value='workflows'
               leftSection={<IconSettings size={16} />}
+              data-testid="admin-panel-tab-workflows"
             >
               Workflows
             </Tabs.Tab>
             <Tabs.Tab
               value='analytics'
               leftSection={<IconChartBar size={16} />}
+              data-testid="admin-panel-tab-analytics"
             >
               Analytics
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value='users' pt='md'>
-            <Stack gap='md'>
-              <Group justify='space-between'>
-                <Title order={3}>{t('userManagement')}</Title>
-                <Button onClick={() => setShowUserForm(true)}>
+          <Tabs.Panel value='users' pt='md' data-testid="admin-panel-users-panel">
+            <Stack gap='md' data-testid="admin-panel-users-stack">
+              <Group justify='space-between' data-testid="admin-panel-users-header">
+                <Title order={3} data-testid="admin-panel-users-title">{t('userManagement')}</Title>
+                <Button onClick={() => setShowUserForm(true)} data-testid="admin-panel-add-user-button">
                   {t('addUser')}
                 </Button>
               </Group>
@@ -768,6 +775,7 @@ export function AdminPanel() {
         }}
         title={editingItem ? 'Edit User' : 'Add User'}
         size='lg'
+        data-testid="admin-panel-user-modal"
       >
         <UserForm
           onSubmit={handleUserSubmit}
@@ -788,6 +796,7 @@ export function AdminPanel() {
         }}
         title={editingItem ? 'Edit Custom Field' : 'Add Custom Field'}
         size='lg'
+        data-testid="admin-panel-custom-field-modal"
       >
         <CustomFieldForm
           onSubmit={handleCustomFieldSubmit}
@@ -809,6 +818,7 @@ export function AdminPanel() {
         title={editingItem ? 'Edit Email Template' : 'Add Email Template'}
         size='xl'
         styles={{ body: { maxHeight: '80vh', overflowY: 'auto' } }}
+        data-testid="admin-panel-email-template-modal"
       >
         <EmailTemplateForm
           onSubmit={handleEmailTemplateSubmit}
@@ -829,6 +839,7 @@ export function AdminPanel() {
         }}
         title='System Settings'
         size='lg'
+        data-testid="admin-panel-system-settings-modal"
       >
         <SystemSettingsForm
           onSubmit={handleSystemSettingsSubmit}

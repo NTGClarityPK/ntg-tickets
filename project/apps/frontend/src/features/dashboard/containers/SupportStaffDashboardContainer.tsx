@@ -134,9 +134,9 @@ export function SupportStaffDashboardContainer() {
 
   if (ticketsLoading || statsLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
+      <Container size='xl' py='md' data-testid="support-staff-dashboard-container-loading">
+        <Group justify='center' py='xl' data-testid="support-staff-dashboard-loading-group">
+          <Loader size='lg' data-testid="support-staff-dashboard-loader" />
         </Group>
       </Container>
     );

@@ -173,23 +173,23 @@ export function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
-          <Text>Loading administrative data...</Text>
+      <Container size='xl' py='md' data-testid="admin-dashboard-loading">
+        <Group justify='center' py='xl' data-testid="admin-dashboard-loading-group">
+          <Loader size='lg' data-testid="admin-dashboard-loader" />
+          <Text data-testid="admin-dashboard-loading-text">Loading administrative data...</Text>
         </Group>
       </Container>
     );
   }
 
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
+    <Container size='xl' py='md' data-testid="admin-dashboard">
+      <Stack gap='md' data-testid="admin-dashboard-content">
         {/* Header */}
-        <Group justify='space-between'>
-          <div>
-            <Title order={2}>Administrative Overview</Title>
-            <Text c='dimmed'>
+        <Group justify='space-between' data-testid="admin-dashboard-header">
+          <div data-testid="admin-dashboard-header-content">
+            <Title order={2} data-testid="admin-dashboard-title">Administrative Overview</Title>
+            <Text c='dimmed' data-testid="admin-dashboard-subtitle">
               System administration and user management metrics
             </Text>
           </div>
@@ -200,29 +200,30 @@ export function AdminDashboard() {
             onClick={handleRefresh}
             disabled={refreshing}
             title='Refresh Data'
+            data-testid="admin-dashboard-refresh-button"
           >
             {refreshing ? <Loader size={16} /> : <IconRefresh size={20} />}
           </ActionIcon>
         </Group>
 
         {/* User Management Stats */}
-        <div>
-          <Title order={3} mb='md'>
+        <div data-testid="admin-dashboard-user-management">
+          <Title order={3} mb='md' data-testid="admin-dashboard-user-management-title">
             User Management
           </Title>
-          <Grid>
+          <Grid data-testid="admin-dashboard-user-management-stats">
             {userStats.map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
-                <Card withBorder>
+              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }} data-testid={`admin-dashboard-user-stat-col-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <Card withBorder data-testid={`admin-dashboard-user-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                   <Group>
-                    <Avatar color={stat.color} size='lg'>
+                    <Avatar color={stat.color} size='lg' data-testid={`admin-dashboard-user-stat-icon-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       <stat.icon size={24} />
                     </Avatar>
-                    <div style={{ flex: 1 }}>
-                      <Text size='lg' fw={600}>
+                    <div style={{ flex: 1 }} data-testid={`admin-dashboard-user-stat-content-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <Text size='lg' fw={600} data-testid={`admin-dashboard-user-stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                         {stat.value}
                       </Text>
-                      <Text size='sm' c='dimmed'>
+                      <Text size='sm' c='dimmed' data-testid={`admin-dashboard-user-stat-label-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                         {stat.title}
                       </Text>
                     </div>
@@ -234,23 +235,23 @@ export function AdminDashboard() {
         </div>
 
         {/* Security & Compliance Stats */}
-        <div>
-          <Title order={3} mb='md'>
+        <div data-testid="admin-dashboard-security">
+          <Title order={3} mb='md' data-testid="admin-dashboard-security-title">
             Security & Compliance
           </Title>
-          <Grid>
+          <Grid data-testid="admin-dashboard-security-stats">
             {securityStats.map(stat => (
-              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
-                <Card withBorder>
+              <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }} data-testid={`admin-dashboard-security-stat-col-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <Card withBorder data-testid={`admin-dashboard-security-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                   <Group>
-                    <Avatar color={stat.color} size='lg'>
+                    <Avatar color={stat.color} size='lg' data-testid={`admin-dashboard-security-stat-icon-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       <stat.icon size={24} />
                     </Avatar>
-                    <div style={{ flex: 1 }}>
-                      <Text size='lg' fw={600}>
+                    <div style={{ flex: 1 }} data-testid={`admin-dashboard-security-stat-content-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <Text size='lg' fw={600} data-testid={`admin-dashboard-security-stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                         {stat.value}
                       </Text>
-                      <Text size='sm' c='dimmed'>
+                      <Text size='sm' c='dimmed' data-testid={`admin-dashboard-security-stat-label-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                         {stat.title}
                       </Text>
                     </div>
@@ -268,6 +269,7 @@ export function AdminDashboard() {
             title='Security Alert'
             color={theme.colors[theme.primaryColor][9]}
             variant='light'
+            data-testid="admin-dashboard-security-alert"
           >
             High number of failed login attempts detected. Consider reviewing
             security logs.

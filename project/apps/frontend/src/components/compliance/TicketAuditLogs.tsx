@@ -77,8 +77,9 @@ export function TicketAuditLogs({
         onClose={onClose}
         title='Ticket Audit Logs'
         size='xl'
+        data-testid="ticket-audit-logs-modal"
       >
-        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
+        <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]} data-testid="ticket-audit-logs-error-alert">
           {error.message || 'Failed to load ticket audit logs'}
         </Alert>
       </Modal>
@@ -96,55 +97,57 @@ export function TicketAuditLogs({
         </Group>
       }
       size='xl'
+      data-testid="ticket-audit-logs-modal"
     >
-      <Stack gap='md'>
-        <Group justify='space-between'>
-          <Text size='sm' c='dimmed'>
+      <Stack gap='md' data-testid="ticket-audit-logs-content">
+        <Group justify='space-between' data-testid="ticket-audit-logs-summary">
+          <Text size='sm' c='dimmed' data-testid="ticket-audit-logs-total-count">
             {auditLogs?.pagination?.total || 0} audit entries for this ticket
           </Text>
-          <Text size='sm' c='dimmed'>
+          <Text size='sm' c='dimmed' data-testid="ticket-audit-logs-ticket-id">
             Ticket ID: {ticketId}
           </Text>
         </Group>
 
         {isLoading ? (
-          <Center h={200}>
-            <Loader size='md' />
+          <Center h={200} data-testid="ticket-audit-logs-loading">
+            <Loader size='md' data-testid="ticket-audit-logs-loader" />
           </Center>
         ) : (
           <>
-            <Card withBorder p='md' radius='md'>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Action</Table.Th>
-                    <Table.Th>User</Table.Th>
-                    <Table.Th>Changes</Table.Th>
-                    <Table.Th>Date</Table.Th>
-                    <Table.Th>Actions</Table.Th>
+            <Card withBorder p='md' radius='md' data-testid="ticket-audit-logs-table-card">
+              <Table striped highlightOnHover data-testid="ticket-audit-logs-table">
+                <Table.Thead data-testid="ticket-audit-logs-table-head">
+                  <Table.Tr data-testid="ticket-audit-logs-table-header-row">
+                    <Table.Th data-testid="ticket-audit-logs-table-header-action">Action</Table.Th>
+                    <Table.Th data-testid="ticket-audit-logs-table-header-user">User</Table.Th>
+                    <Table.Th data-testid="ticket-audit-logs-table-header-changes">Changes</Table.Th>
+                    <Table.Th data-testid="ticket-audit-logs-table-header-date">Date</Table.Th>
+                    <Table.Th data-testid="ticket-audit-logs-table-header-actions">Actions</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
-                <Table.Tbody>
+                <Table.Tbody data-testid="ticket-audit-logs-table-body">
                   {auditLogs?.items?.map((log: AuditLog) => (
-                    <Table.Tr key={log.id}>
-                      <Table.Td>
+                    <Table.Tr key={log.id} data-testid={`ticket-audit-logs-table-row-${log.id}`}>
+                      <Table.Td data-testid={`ticket-audit-logs-table-row-action-${log.id}`}>
                         <Badge
                           color={actionColors[log.action] || 'gray'}
                           variant='light'
+                          data-testid={`ticket-audit-logs-action-badge-${log.id}`}
                         >
                           {log.action}
                         </Badge>
                       </Table.Td>
-                      <Table.Td>
-                        <Group gap='xs'>
+                      <Table.Td data-testid={`ticket-audit-logs-table-row-user-${log.id}`}>
+                        <Group gap='xs' data-testid={`ticket-audit-logs-user-group-${log.id}`}>
                           <IconUser size={14} />
-                          <Text size='sm'>
+                          <Text size='sm' data-testid={`ticket-audit-logs-user-${log.id}`}>
                             {log.user?.name || t('unknown')}
                           </Text>
                         </Group>
                       </Table.Td>
-                      <Table.Td>
-                        <Text size='sm' lineClamp={2}>
+                      <Table.Td data-testid={`ticket-audit-logs-table-row-changes-${log.id}`}>
+                        <Text size='sm' lineClamp={2} data-testid={`ticket-audit-logs-changes-${log.id}`}>
                           {log.fieldName && log.oldValue && log.newValue
                             ? `${log.fieldName}: ${log.oldValue} → ${log.newValue}`
                             : log.metadata
@@ -152,15 +155,15 @@ export function TicketAuditLogs({
                               : 'No details'}
                         </Text>
                       </Table.Td>
-                      <Table.Td>
-                        <Group gap='xs'>
+                      <Table.Td data-testid={`ticket-audit-logs-table-row-date-${log.id}`}>
+                        <Group gap='xs' data-testid={`ticket-audit-logs-date-group-${log.id}`}>
                           <IconCalendar size={14} />
-                          <Text size='sm'>{formatDate(log.createdAt)}</Text>
+                          <Text size='sm' data-testid={`ticket-audit-logs-date-${log.id}`}>{formatDate(log.createdAt)}</Text>
                         </Group>
                       </Table.Td>
-                      <Table.Td>
+                      <Table.Td data-testid={`ticket-audit-logs-table-row-actions-${log.id}`}>
                         <Tooltip label={t('viewDetails')}>
-                          <ActionIcon variant='light' size='sm'>
+                          <ActionIcon variant='light' size='sm' data-testid={`ticket-audit-logs-view-details-${log.id}`}>
                             <IconEye size={14} />
                           </ActionIcon>
                         </Tooltip>
@@ -173,12 +176,13 @@ export function TicketAuditLogs({
 
             {/* Pagination */}
             {auditLogs?.pagination && auditLogs.pagination.totalPages > 1 && (
-              <Group justify='center'>
+              <Group justify='center' data-testid="ticket-audit-logs-pagination-group">
                 <Pagination
                   value={page}
                   onChange={setPage}
                   total={auditLogs.pagination.totalPages}
                   size='sm'
+                  data-testid="ticket-audit-logs-pagination"
                 />
               </Group>
             )}

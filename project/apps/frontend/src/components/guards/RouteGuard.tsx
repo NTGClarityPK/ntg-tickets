@@ -51,19 +51,20 @@ export function RouteGuard({
     }
 
     return (
-      <Container size='sm' py='xl'>
-        <Stack align='center' gap='md'>
-          <IconShield size={64} color={theme.colors[theme.primaryColor][9]} />
-          <Text size='xl' fw={600} ta='center'>
+      <Container size='sm' py='xl' data-testid="route-guard-access-denied">
+        <Stack align='center' gap='md' data-testid="route-guard-access-denied-content">
+          <IconShield size={64} color={theme.colors[theme.primaryColor][9]} data-testid="route-guard-access-denied-icon" />
+          <Text size='xl' fw={600} ta='center' data-testid="route-guard-access-denied-title">
             Access Denied
           </Text>
-          <Text c='dimmed' ta='center'>
+          <Text c='dimmed' ta='center' data-testid="route-guard-access-denied-message">
             You don't have permission to access this page.
           </Text>
-          <Group>
+          <Group data-testid="route-guard-access-denied-actions">
             <Button
               leftSection={<IconHome size={16} />}
               onClick={() => router.push(redirectTo)}
+              data-testid="route-guard-access-denied-dashboard-button"
             >
               Go to Dashboard
             </Button>

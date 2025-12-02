@@ -1066,12 +1066,14 @@ export default function ReportsPage() {
                 size='lg'
                 onClick={() => window.location.reload()}
                 title='Refresh'
+                data-testid="refresh-button"
               >
                 <IconRefresh size={20} />
               </ActionIcon>
               <Button
                 leftSection={<IconFileExport size={16} />}
                 onClick={() => setExportModalOpen(true)}
+                data-testid="export-report-button"
               >
                 Export Report
               </Button>
@@ -1595,6 +1597,7 @@ export default function ReportsPage() {
           opened={exportModalOpen}
           onClose={() => setExportModalOpen(false)}
           title='Export Report'
+          data-testid="export-modal"
         >
           <Stack>
             <Select
@@ -1606,14 +1609,16 @@ export default function ReportsPage() {
               ]}
               value={exportFormat}
               onChange={value => setExportFormat(value || 'pdf')}
+              data-testid="export-format-select"
             />
             <Group justify='flex-end'>
-              <Button variant='light' onClick={() => setExportModalOpen(false)}>
+              <Button variant='light' onClick={() => setExportModalOpen(false)} data-testid="export-modal-cancel">
                 Cancel
               </Button>
               <Button
                 onClick={() => handleExportReport(exportFormat)}
                 loading={exportReport.isPending}
+                data-testid="export-modal-submit"
               >
                 Export
               </Button>

@@ -54,6 +54,7 @@ export function CustomFieldsSection({
             required={field.isRequired}
             value={String(fieldValue)}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
+            data-testid={`custom-field-${field.name}-text`}
           />
         );
 
@@ -67,6 +68,7 @@ export function CustomFieldsSection({
             required={field.isRequired}
             value={typeof fieldValue === 'number' ? fieldValue : undefined}
             onChange={(value) => handleFieldChange(field.name, value || 0)}
+            data-testid={`custom-field-${field.name}-number`}
           />
         );
 
@@ -80,6 +82,7 @@ export function CustomFieldsSection({
             required={field.isRequired}
             value={String(fieldValue)}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
+            data-testid={`custom-field-${field.name}-date`}
           />
         );
 
@@ -94,6 +97,7 @@ export function CustomFieldsSection({
             data={field.options || []}
             value={String(fieldValue)}
             onChange={(value) => handleFieldChange(field.name, value || '')}
+            data-testid={`custom-field-${field.name}-select`}
           />
         );
 
@@ -105,6 +109,7 @@ export function CustomFieldsSection({
             description={field.description}
             checked={fieldValue === true || fieldValue === 'true'}
             onChange={(e) => handleFieldChange(field.name, e.currentTarget.checked)}
+            data-testid={`custom-field-${field.name}-switch`}
           />
         );
 

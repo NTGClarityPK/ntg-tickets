@@ -152,88 +152,89 @@ export function StatusCategorizationModal({
         opened={opened}
         onClose={onClose}
         title={
-          <Group gap="xs">
-            <IconInfoCircle size={20} />
-            <Text fw={600} size="lg">Configure Status Categorization</Text>
+          <Group gap="xs" data-testid="status-categorization-modal-title-group">
+            <IconInfoCircle size={20} data-testid="status-categorization-modal-title-icon" />
+            <Text fw={600} size="lg" data-testid="status-categorization-modal-title-text">Configure Status Categorization</Text>
           </Group>
         }
         size="xl"
         centered
         padding="xl"
+        data-testid="status-categorization-modal"
       >
-      <Stack gap="lg">
-        <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light" radius="md">
-          <Text size="sm">
+      <Stack gap="lg" data-testid="status-categorization-modal-stack">
+        <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light" radius="md" data-testid="status-categorization-info-alert">
+          <Text size="sm" data-testid="status-categorization-info-text">
             Categorize statuses for dashboard statistics. Statuses not selected as Working or Done will be considered as Hold.
           </Text>
         </Alert>
 
         {availableStatuses.length === 0 ? (
-          <Alert color="yellow" variant="light" radius="md">
-            <Text size="sm">
+          <Alert color="yellow" variant="light" radius="md" data-testid="status-categorization-no-statuses-alert">
+            <Text size="sm" data-testid="status-categorization-no-statuses-text">
               No statuses available. Please ensure workflows have transitions defined.
             </Text>
           </Alert>
         ) : (
           <>
             {/* Summary Cards */}
-            <Group gap="md">
-              <Paper p="md" withBorder radius="md" style={{ flex: 1 }}>
-                <Group gap="xs" mb={4}>
-                  <IconClock size={18} color="var(--mantine-color-blue-6)" />
-                  <Text size="sm" fw={500} c="dimmed">Working</Text>
+            <Group gap="md" data-testid="status-categorization-summary-cards">
+              <Paper p="md" withBorder radius="md" style={{ flex: 1 }} data-testid="status-categorization-working-card">
+                <Group gap="xs" mb={4} data-testid="status-categorization-working-header">
+                  <IconClock size={18} color="var(--mantine-color-blue-6)" data-testid="status-categorization-working-icon" />
+                  <Text size="sm" fw={500} c="dimmed" data-testid="status-categorization-working-label">Working</Text>
                 </Group>
-                <Text size="xl" fw={700} c="blue">{workingCount}</Text>
-                <Text size="xs" c="dimmed">statuses selected</Text>
+                <Text size="xl" fw={700} c="blue" data-testid="status-categorization-working-count">{workingCount}</Text>
+                <Text size="xs" c="dimmed" data-testid="status-categorization-working-hint">statuses selected</Text>
               </Paper>
-              <Paper p="md" withBorder radius="md" style={{ flex: 1 }}>
-                <Group gap="xs" mb={4}>
-                  <IconCheck size={18} color="var(--mantine-color-green-6)" />
-                  <Text size="sm" fw={500} c="dimmed">Done</Text>
+              <Paper p="md" withBorder radius="md" style={{ flex: 1 }} data-testid="status-categorization-done-card">
+                <Group gap="xs" mb={4} data-testid="status-categorization-done-header">
+                  <IconCheck size={18} color="var(--mantine-color-green-6)" data-testid="status-categorization-done-icon" />
+                  <Text size="sm" fw={500} c="dimmed" data-testid="status-categorization-done-label">Done</Text>
                 </Group>
-                <Text size="xl" fw={700} c="green">{doneCount}</Text>
-                <Text size="xs" c="dimmed">statuses selected</Text>
+                <Text size="xl" fw={700} c="green" data-testid="status-categorization-done-count">{doneCount}</Text>
+                <Text size="xs" c="dimmed" data-testid="status-categorization-done-hint">statuses selected</Text>
               </Paper>
-              <Paper p="md" withBorder radius="md" style={{ flex: 1 }}>
-                <Group gap="xs" mb={4}>
-                  <IconPlayerPause size={18} color="var(--mantine-color-gray-6)" />
-                  <Text size="sm" fw={500} c="dimmed">Hold</Text>
+              <Paper p="md" withBorder radius="md" style={{ flex: 1 }} data-testid="status-categorization-hold-card">
+                <Group gap="xs" mb={4} data-testid="status-categorization-hold-header">
+                  <IconPlayerPause size={18} color="var(--mantine-color-gray-6)" data-testid="status-categorization-hold-icon" />
+                  <Text size="sm" fw={500} c="dimmed" data-testid="status-categorization-hold-label">Hold</Text>
                 </Group>
-                <Text size="xl" fw={700} c="gray">{holdCount}</Text>
-                <Text size="xs" c="dimmed">statuses (auto)</Text>
+                <Text size="xl" fw={700} c="gray" data-testid="status-categorization-hold-count">{holdCount}</Text>
+                <Text size="xs" c="dimmed" data-testid="status-categorization-hold-hint">statuses (auto)</Text>
               </Paper>
             </Group>
 
-            <Divider label="Select Statuses" labelPosition="center" />
+            <Divider label="Select Statuses" labelPosition="center" data-testid="status-categorization-divider" />
 
             {/* Status Selection by Workflow */}
-            <Tabs defaultValue="working" variant="pills">
-              <Tabs.List grow>
-                <Tabs.Tab value="working" leftSection={<IconClock size={16} />}>
+            <Tabs defaultValue="working" variant="pills" data-testid="status-categorization-tabs">
+              <Tabs.List grow data-testid="status-categorization-tabs-list">
+                <Tabs.Tab value="working" leftSection={<IconClock size={16} />} data-testid="status-categorization-tab-working">
                   Working ({workingCount})
                 </Tabs.Tab>
-                <Tabs.Tab value="done" leftSection={<IconCheck size={16} />}>
+                <Tabs.Tab value="done" leftSection={<IconCheck size={16} />} data-testid="status-categorization-tab-done">
                   Done ({doneCount})
                 </Tabs.Tab>
-                <Tabs.Tab value="hold" leftSection={<IconPlayerPause size={16} />}>
+                <Tabs.Tab value="hold" leftSection={<IconPlayerPause size={16} />} data-testid="status-categorization-tab-hold">
                   Hold ({holdCount})
                 </Tabs.Tab>
               </Tabs.List>
 
-              <Tabs.Panel value="working" pt="md">
-                <div className="invisible-scroll" style={scrollableStyle}>
-                  <Stack gap="md">
+              <Tabs.Panel value="working" pt="md" data-testid="status-categorization-panel-working">
+                <div className="invisible-scroll" style={scrollableStyle} data-testid="status-categorization-working-scroll">
+                  <Stack gap="md" data-testid="status-categorization-working-stack">
                     {statusesByWorkflow.map(([workflowName, statuses]) => (
-                      <Card key={workflowName} withBorder radius="md" p="md">
-                        <Group mb="sm" justify="space-between">
-                          <Badge size="lg" variant="light" color="blue">
+                      <Card key={workflowName} withBorder radius="md" p="md" data-testid={`status-categorization-working-card-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <Group mb="sm" justify="space-between" data-testid={`status-categorization-working-header-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <Badge size="lg" variant="light" color="blue" data-testid={`status-categorization-working-badge-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                             {workflowName}
                           </Badge>
-                          <Text size="xs" c="dimmed">
+                          <Text size="xs" c="dimmed" data-testid={`status-categorization-working-count-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                             {statuses.filter(s => selectedWorking.includes(s.id)).length} / {statuses.length} selected
                           </Text>
                         </Group>
-                        <Group gap="xs">
+                        <Group gap="xs" data-testid={`status-categorization-working-chips-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                           {statuses.map(statusItem => (
                             <Chip
                               key={statusItem.id}
@@ -243,6 +244,7 @@ export function StatusCategorizationModal({
                               size="md"
                               variant="light"
                               color="blue"
+                              data-testid={`status-categorization-working-chip-${statusItem.id}`}
                             >
                               {statusItem.status}
                             </Chip>
@@ -254,20 +256,20 @@ export function StatusCategorizationModal({
                 </div>
               </Tabs.Panel>
 
-              <Tabs.Panel value="done" pt="md">
-                <div className="invisible-scroll" style={scrollableStyle}>
-                  <Stack gap="md">
+              <Tabs.Panel value="done" pt="md" data-testid="status-categorization-panel-done">
+                <div className="invisible-scroll" style={scrollableStyle} data-testid="status-categorization-done-scroll">
+                  <Stack gap="md" data-testid="status-categorization-done-stack">
                     {statusesByWorkflow.map(([workflowName, statuses]) => (
-                      <Card key={workflowName} withBorder radius="md" p="md">
-                        <Group mb="sm" justify="space-between">
-                          <Badge size="lg" variant="light" color="green">
+                      <Card key={workflowName} withBorder radius="md" p="md" data-testid={`status-categorization-done-card-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <Group mb="sm" justify="space-between" data-testid={`status-categorization-done-header-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <Badge size="lg" variant="light" color="green" data-testid={`status-categorization-done-badge-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                             {workflowName}
                           </Badge>
-                          <Text size="xs" c="dimmed">
+                          <Text size="xs" c="dimmed" data-testid={`status-categorization-done-count-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                             {statuses.filter(s => selectedDone.includes(s.id)).length} / {statuses.length} selected
                           </Text>
                         </Group>
-                        <Group gap="xs">
+                        <Group gap="xs" data-testid={`status-categorization-done-chips-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                           {statuses.map(statusItem => (
                             <Chip
                               key={statusItem.id}
@@ -277,6 +279,7 @@ export function StatusCategorizationModal({
                               size="md"
                               variant="light"
                               color="green"
+                              data-testid={`status-categorization-done-chip-${statusItem.id}`}
                             >
                               {statusItem.status}
                             </Chip>
@@ -288,9 +291,9 @@ export function StatusCategorizationModal({
                 </div>
               </Tabs.Panel>
 
-              <Tabs.Panel value="hold" pt="md">
-                <div className="invisible-scroll" style={scrollableStyle}>
-                  <Stack gap="md">
+              <Tabs.Panel value="hold" pt="md" data-testid="status-categorization-panel-hold">
+                <div className="invisible-scroll" style={scrollableStyle} data-testid="status-categorization-hold-scroll">
+                  <Stack gap="md" data-testid="status-categorization-hold-stack">
                     {statusesByWorkflow.map(([workflowName, statuses]) => {
                       const workflowHoldStatuses = statuses.filter(
                         s => !selectedWorking.includes(s.id) && !selectedDone.includes(s.id)
@@ -298,16 +301,16 @@ export function StatusCategorizationModal({
                       if (workflowHoldStatuses.length === 0) return null;
                       
                       return (
-                        <Card key={workflowName} withBorder radius="md" p="md">
-                          <Group mb="sm" justify="space-between">
-                            <Badge size="lg" variant="light" color="gray">
+                        <Card key={workflowName} withBorder radius="md" p="md" data-testid={`status-categorization-hold-card-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <Group mb="sm" justify="space-between" data-testid={`status-categorization-hold-header-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
+                            <Badge size="lg" variant="light" color="gray" data-testid={`status-categorization-hold-badge-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                               {workflowName}
                             </Badge>
-                            <Text size="xs" c="dimmed">
+                            <Text size="xs" c="dimmed" data-testid={`status-categorization-hold-count-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                               {workflowHoldStatuses.length} statuses
                             </Text>
                           </Group>
-                          <Group gap="xs">
+                          <Group gap="xs" data-testid={`status-categorization-hold-chips-${workflowName.toLowerCase().replace(/\s+/g, '-')}`}>
                             {workflowHoldStatuses.map(statusItem => (
                               <Chip
                                 key={statusItem.id}
@@ -316,6 +319,7 @@ export function StatusCategorizationModal({
                                 size="md"
                                 variant="light"
                                 color="gray"
+                                data-testid={`status-categorization-hold-chip-${statusItem.id}`}
                               >
                                 {statusItem.status}
                               </Chip>
@@ -331,13 +335,13 @@ export function StatusCategorizationModal({
           </>
         )}
 
-        <Divider />
+        <Divider data-testid="status-categorization-actions-divider" />
 
-        <Group justify="flex-end" mt="sm">
-          <Button variant="outline" onClick={onClose} size="md">
+        <Group justify="flex-end" mt="sm" data-testid="status-categorization-actions">
+          <Button variant="outline" onClick={onClose} size="md" data-testid="status-categorization-cancel-button">
             Cancel
           </Button>
-          <Button onClick={handleConfirm} size="md" disabled={availableStatuses.length === 0}>
+          <Button onClick={handleConfirm} size="md" disabled={availableStatuses.length === 0} data-testid="status-categorization-confirm-button">
             Confirm & Activate
           </Button>
         </Group>

@@ -216,22 +216,23 @@ export function AdvancedSearch() {
   };
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={2}>Advanced Search</Title>
-          <Text c='dimmed' size='sm'>
+    <Container size='xl' py='md' data-testid="advanced-search-container">
+      <Group justify='space-between' mb='xl' data-testid="advanced-search-header">
+        <div data-testid="advanced-search-header-text">
+          <Title order={2} data-testid="advanced-search-title">Advanced Search</Title>
+          <Text c='dimmed' size='sm' data-testid="advanced-search-subtitle">
             Search tickets with Elasticsearch-powered full-text search
           </Text>
         </div>
-        <Group>
+        <Group data-testid="advanced-search-header-actions">
           {healthLoading ? (
-            <Loader size='sm' />
+            <Loader size='sm' data-testid="advanced-search-health-loader" />
           ) : (
             <Badge
               color={health?.status === 'green' ? theme.primaryColor : theme.colors[theme.primaryColor][9]}
               variant='light'
               leftSection={<IconTrendingUp size={12} />}
+              data-testid="advanced-search-health-badge"
             >
               {health?.status || 'Unknown'}
             </Badge>
@@ -241,6 +242,7 @@ export function AdvancedSearch() {
             size='lg'
             onClick={() => window.location.reload()}
             title='Refresh'
+            data-testid="advanced-search-refresh-button"
           >
             <IconRefresh size={20} />
           </ActionIcon>
@@ -250,27 +252,29 @@ export function AdvancedSearch() {
       <Tabs
         value={activeTab}
         onChange={value => setActiveTab(value || 'search')}
+        data-testid="advanced-search-tabs"
       >
-        <Tabs.List>
-          <Tabs.Tab value='search' leftSection={<IconSearch size={16} />}>
+        <Tabs.List data-testid="advanced-search-tabs-list">
+          <Tabs.Tab value='search' leftSection={<IconSearch size={16} />} data-testid="advanced-search-tab-search">
             Search
           </Tabs.Tab>
-          <Tabs.Tab value='filters' leftSection={<IconFilter size={16} />}>
+          <Tabs.Tab value='filters' leftSection={<IconFilter size={16} />} data-testid="advanced-search-tab-filters">
             Filters
           </Tabs.Tab>
           <Tabs.Tab
             value='aggregations'
             leftSection={<IconTrendingUp size={16} />}
+            data-testid="advanced-search-tab-analytics"
           >
             Analytics
           </Tabs.Tab>
         </Tabs.List>
 
-        <Tabs.Panel value='search'>
-          <Card mt='md'>
-            <Stack>
-              <Title order={4}>Search Tickets</Title>
-              <Group>
+        <Tabs.Panel value='search' data-testid="advanced-search-panel-search">
+          <Card mt='md' data-testid="advanced-search-search-card">
+            <Stack data-testid="advanced-search-search-stack">
+              <Title order={4} data-testid="advanced-search-search-title">Search Tickets</Title>
+              <Group data-testid="advanced-search-search-input-group">
                 <TextInput
                   placeholder='Search tickets...'
                   value={searchQuery}
@@ -282,31 +286,34 @@ export function AdvancedSearch() {
                         variant='subtle'
                         size='sm'
                         onClick={() => setSearchQuery('')}
+                        data-testid="advanced-search-clear-input-button"
                       >
                         <IconX size={14} />
                       </ActionIcon>
                     )
                   }
                   style={{ flex: 1 }}
+                  data-testid="advanced-search-query-input"
                 />
-                <Button onClick={handleSearch} loading={search.isPending}>
+                <Button onClick={handleSearch} loading={search.isPending} data-testid="advanced-search-submit-button">
                   Search
                 </Button>
               </Group>
 
               {/* Search Suggestions */}
               {showSuggestions && suggestions.length > 0 && (
-                <Card padding='sm'>
-                  <Text size='sm' fw={500} mb='xs'>
+                <Card padding='sm' data-testid="advanced-search-suggestions-card">
+                  <Text size='sm' fw={500} mb='xs' data-testid="advanced-search-suggestions-title">
                     Suggestions:
                   </Text>
-                  <Group gap='xs'>
-                    {suggestions.slice(0, 5).map(suggestion => (
+                  <Group gap='xs' data-testid="advanced-search-suggestions-group">
+                    {suggestions.slice(0, 5).map((suggestion, index) => (
                       <Badge
                         key={suggestion}
                         variant='light'
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleSuggestionClick(suggestion)}
+                        data-testid={`advanced-search-suggestion-${index}`}
                       >
                         {suggestion}
                       </Badge>
@@ -317,10 +324,10 @@ export function AdvancedSearch() {
 
               {/* Search Results */}
               {search.isPending ? (
-                <Stack gap='md' mt='md'>
-                  <Skeleton height={20} width={150} />
-                  <Table>
-                    <Table.Thead>
+                <Stack gap='md' mt='md' data-testid="advanced-search-loading">
+                  <Skeleton height={20} width={150} data-testid="advanced-search-loading-skeleton-1" />
+                  <Table data-testid="advanced-search-loading-table">
+                    <Table.Thead data-testid="advanced-search-loading-thead">
                       <Table.Tr>
                         <Table.Th>Title</Table.Th>
                         <Table.Th>Status</Table.Th>
@@ -331,9 +338,9 @@ export function AdvancedSearch() {
                         <Table.Th>Actions</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
-                    <Table.Tbody>
+                    <Table.Tbody data-testid="advanced-search-loading-tbody">
                       {[...Array(5)].map((_, index) => (
-                        <Table.Tr key={index}>
+                        <Table.Tr key={index} data-testid={`advanced-search-loading-row-${index}`}>
                           <Table.Td>
                             <Stack gap='xs'>
                               <Skeleton height={16} width='80%' />
@@ -364,17 +371,17 @@ export function AdvancedSearch() {
                   </Table>
                 </Stack>
               ) : searchResults.length > 0 ? (
-                <Stack>
-                  <Group justify='space-between'>
-                    <Text size='sm' c='dimmed'>
+                <Stack data-testid="advanced-search-results">
+                  <Group justify='space-between' data-testid="advanced-search-results-header">
+                    <Text size='sm' c='dimmed' data-testid="advanced-search-results-count">
                       Found {searchResults.length} results
                     </Text>
-                    <Button variant='light' size='xs' onClick={clearFilters}>
+                    <Button variant='light' size='xs' onClick={clearFilters} data-testid="advanced-search-clear-all-button">
                       Clear All
                     </Button>
                   </Group>
-                  <Table>
-                    <Table.Thead>
+                  <Table data-testid="advanced-search-results-table">
+                    <Table.Thead data-testid="advanced-search-results-thead">
                       <Table.Tr>
                         <Table.Th>Title</Table.Th>
                         <Table.Th>Status</Table.Th>
@@ -385,12 +392,12 @@ export function AdvancedSearch() {
                         <Table.Th>Actions</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
-                    <Table.Tbody>
+                    <Table.Tbody data-testid="advanced-search-results-tbody">
                       {searchResults.map(result => (
-                        <Table.Tr key={result.id}>
-                          <Table.Td>
+                        <Table.Tr key={result.id} data-testid={`advanced-search-result-row-${result.id}`}>
+                          <Table.Td data-testid={`advanced-search-result-title-${result.id}`}>
                             <Stack gap='xs'>
-                              <Text fw={500}>
+                              <Text fw={500} data-testid={`advanced-search-result-title-text-${result.id}`}>
                                 {result.highlights?.title ? (
                                   <span
                                     dangerouslySetInnerHTML={{
@@ -404,7 +411,7 @@ export function AdvancedSearch() {
                                 )}
                               </Text>
                               {result.highlights?.description && (
-                                <Text size='sm' c='dimmed'>
+                                <Text size='sm' c='dimmed' data-testid={`advanced-search-result-description-${result.id}`}>
                                   <span
                                     dangerouslySetInnerHTML={{
                                       __html: formatHighlight(
@@ -416,42 +423,45 @@ export function AdvancedSearch() {
                               )}
                             </Stack>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`advanced-search-result-status-${result.id}`}>
                             <Badge
                               color={getStatusColor(result.status)}
                               variant='light'
                               size='sm'
+                              data-testid={`advanced-search-result-status-badge-${result.id}`}
                             >
                               {result.status}
                             </Badge>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`advanced-search-result-priority-${result.id}`}>
                             <Badge
                               color={getPriorityColor(result.priority)}
                               variant='light'
                               size='sm'
+                              data-testid={`advanced-search-result-priority-badge-${result.id}`}
                             >
                               {result.priority}
                             </Badge>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`advanced-search-result-category-${result.id}`}>
                             <Text size='sm'>{result.category}</Text>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`advanced-search-result-assigned-${result.id}`}>
                             <Text size='sm'>
                               {result.assignedTo?.name || 'Unassigned'}
                             </Text>
                           </Table.Td>
-                          <Table.Td>
-                            <Badge color={theme.primaryColor} variant='light' size='sm'>
+                          <Table.Td data-testid={`advanced-search-result-score-${result.id}`}>
+                            <Badge color={theme.primaryColor} variant='light' size='sm' data-testid={`advanced-search-result-score-badge-${result.id}`}>
                               {Math.round(result.score * 100)}%
                             </Badge>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`advanced-search-result-actions-${result.id}`}>
                             <ActionIcon
                               variant='light'
                               size='sm'
                               onClick={() => handleResultClick(result)}
+                              data-testid={`advanced-search-result-view-button-${result.id}`}
                             >
                               <IconEye size={14} />
                             </ActionIcon>
@@ -466,12 +476,12 @@ export function AdvancedSearch() {
           </Card>
         </Tabs.Panel>
 
-        <Tabs.Panel value='filters'>
-          <Card mt='md'>
-            <Stack>
-              <Title order={4}>Search Filters</Title>
-              <Grid>
-                <Grid.Col span={6}>
+        <Tabs.Panel value='filters' data-testid="advanced-search-panel-filters">
+          <Card mt='md' data-testid="advanced-search-filters-card">
+            <Stack data-testid="advanced-search-filters-stack">
+              <Title order={4} data-testid="advanced-search-filters-title">Search Filters</Title>
+              <Grid data-testid="advanced-search-filters-grid">
+                <Grid.Col span={6} data-testid="advanced-search-filter-status-col">
                   <MultiSelect
                     label='Status'
                     placeholder='Select status'
@@ -480,9 +490,10 @@ export function AdvancedSearch() {
                     onChange={value =>
                       setFilters({ ...filters, status: value })
                     }
+                    data-testid="advanced-search-filter-status"
                   />
                 </Grid.Col>
-                <Grid.Col span={6}>
+                <Grid.Col span={6} data-testid="advanced-search-filter-priority-col">
                   <MultiSelect
                     label='Priority'
                     placeholder='Select priority'
@@ -491,9 +502,10 @@ export function AdvancedSearch() {
                     onChange={value =>
                       setFilters({ ...filters, priority: value })
                     }
+                    data-testid="advanced-search-filter-priority"
                   />
                 </Grid.Col>
-                <Grid.Col span={6}>
+                <Grid.Col span={6} data-testid="advanced-search-filter-date-from-col">
                   <DatePickerInput
                     label='From Date'
                     placeholder='Select start date'
@@ -501,9 +513,10 @@ export function AdvancedSearch() {
                     onChange={(date: Date | null) =>
                       setFilters({ ...filters, dateFrom: date || undefined })
                     }
+                    data-testid="advanced-search-filter-date-from"
                   />
                 </Grid.Col>
-                <Grid.Col span={6}>
+                <Grid.Col span={6} data-testid="advanced-search-filter-date-to-col">
                   <DatePickerInput
                     label='To Date'
                     placeholder='Select end date'
@@ -511,6 +524,7 @@ export function AdvancedSearch() {
                     onChange={(date: Date | null) =>
                       setFilters({ ...filters, dateTo: date || undefined })
                     }
+                    data-testid="advanced-search-filter-date-to"
                   />
                 </Grid.Col>
               </Grid>
@@ -518,15 +532,15 @@ export function AdvancedSearch() {
           </Card>
         </Tabs.Panel>
 
-        <Tabs.Panel value='aggregations'>
-          <Card mt='md'>
-            <Stack>
-              <Title order={4}>Search Analytics</Title>
-              <Text size='sm' c='dimmed'>
+        <Tabs.Panel value='aggregations' data-testid="advanced-search-panel-analytics">
+          <Card mt='md' data-testid="advanced-search-analytics-card">
+            <Stack data-testid="advanced-search-analytics-stack">
+              <Title order={4} data-testid="advanced-search-analytics-title">Search Analytics</Title>
+              <Text size='sm' c='dimmed' data-testid="advanced-search-analytics-description">
                 Aggregated data from your search results
               </Text>
               {aggregations && (
-                <Code block>{JSON.stringify(aggregations, null, 2)}</Code>
+                <Code block data-testid="advanced-search-analytics-code">{JSON.stringify(aggregations, null, 2)}</Code>
               )}
             </Stack>
           </Card>
@@ -539,55 +553,58 @@ export function AdvancedSearch() {
         onClose={() => setDetailModalOpen(false)}
         title='Search Result Details'
         size='lg'
+        data-testid="advanced-search-result-modal"
       >
         {selectedResult && (
-          <Stack>
-            <Group>
+          <Stack data-testid="advanced-search-result-modal-stack">
+            <Group data-testid="advanced-search-result-modal-badges">
               <Badge
                 color={getStatusColor(selectedResult.status)}
                 variant='light'
+                data-testid="advanced-search-result-modal-status-badge"
               >
                 {selectedResult.status}
               </Badge>
               <Badge
                 color={getPriorityColor(selectedResult.priority)}
                 variant='light'
+                data-testid="advanced-search-result-modal-priority-badge"
               >
                 {selectedResult.priority}
               </Badge>
-              <Badge color={theme.primaryColor} variant='light'>
+              <Badge color={theme.primaryColor} variant='light' data-testid="advanced-search-result-modal-score-badge">
                 Score: {Math.round(selectedResult.score * 100)}%
               </Badge>
             </Group>
-            <Divider />
-            <Stack>
-              <Text fw={500}>Title</Text>
-              <Text>{selectedResult.title}</Text>
+            <Divider data-testid="advanced-search-result-modal-divider" />
+            <Stack data-testid="advanced-search-result-modal-title-section">
+              <Text fw={500} data-testid="advanced-search-result-modal-title-label">Title</Text>
+              <Text data-testid="advanced-search-result-modal-title-value">{selectedResult.title}</Text>
             </Stack>
-            <Stack>
-              <Text fw={500}>Description</Text>
-              <Text>{selectedResult.description}</Text>
+            <Stack data-testid="advanced-search-result-modal-description-section">
+              <Text fw={500} data-testid="advanced-search-result-modal-description-label">Description</Text>
+              <Text data-testid="advanced-search-result-modal-description-value">{selectedResult.description}</Text>
             </Stack>
-            <Grid>
-              <Grid.Col span={6}>
-                <Text fw={500}>Category</Text>
-                <Text>{selectedResult.category}</Text>
+            <Grid data-testid="advanced-search-result-modal-details-grid">
+              <Grid.Col span={6} data-testid="advanced-search-result-modal-category-col">
+                <Text fw={500} data-testid="advanced-search-result-modal-category-label">Category</Text>
+                <Text data-testid="advanced-search-result-modal-category-value">{selectedResult.category}</Text>
               </Grid.Col>
-              <Grid.Col span={6}>
-                <Text fw={500}>Assigned To</Text>
-                <Text>{selectedResult.assignedTo?.name || 'Unassigned'}</Text>
+              <Grid.Col span={6} data-testid="advanced-search-result-modal-assigned-col">
+                <Text fw={500} data-testid="advanced-search-result-modal-assigned-label">Assigned To</Text>
+                <Text data-testid="advanced-search-result-modal-assigned-value">{selectedResult.assignedTo?.name || 'Unassigned'}</Text>
               </Grid.Col>
             </Grid>
-            <Grid>
-              <Grid.Col span={6}>
-                <Text fw={500}>Created</Text>
-                <Text>
+            <Grid data-testid="advanced-search-result-modal-dates-grid">
+              <Grid.Col span={6} data-testid="advanced-search-result-modal-created-col">
+                <Text fw={500} data-testid="advanced-search-result-modal-created-label">Created</Text>
+                <Text data-testid="advanced-search-result-modal-created-value">
                   {new Date(selectedResult.createdAt).toLocaleString()}
                 </Text>
               </Grid.Col>
-              <Grid.Col span={6}>
-                <Text fw={500}>Updated</Text>
-                <Text>
+              <Grid.Col span={6} data-testid="advanced-search-result-modal-updated-col">
+                <Text fw={500} data-testid="advanced-search-result-modal-updated-label">Updated</Text>
+                <Text data-testid="advanced-search-result-modal-updated-value">
                   {new Date(selectedResult.updatedAt).toLocaleString()}
                 </Text>
               </Grid.Col>

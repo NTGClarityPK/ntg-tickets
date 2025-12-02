@@ -263,116 +263,123 @@ export default function CustomFieldsPage() {
   ];
 
   return (
-    <Container size='xl' py='md'>
-        <Group justify='space-between' mb='xl'>
-          <div>
-            <Title order={2}>Ticket Creation Fields</Title>
-            <Text c='dimmed' size='sm'>
+    <Container size='xl' py='md' data-testid="custom-fields-page">
+        <Group justify='space-between' mb='xl' data-testid="custom-fields-header">
+          <div data-testid="custom-fields-header-content">
+            <Title order={2} data-testid="custom-fields-title">Ticket Creation Fields</Title>
+            <Text c='dimmed' size='sm' data-testid="custom-fields-subtitle">
               Manage custom fields that appear in the ticket creation form
             </Text>
           </div>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setCreateModalOpen(true)}
+            data-testid="custom-fields-create-button"
           >
             Add Field to Ticket Form
           </Button>
         </Group>
 
-        <Alert color={primaryLight} mb='md'>
-          <Text size='sm'>
+        <Alert color={primaryLight} mb='md' data-testid="custom-fields-info-alert">
+          <Text size='sm' data-testid="custom-fields-info-text">
             <strong>How it works:</strong> All custom fields you create will appear in the ticket creation form for all users. 
             Changes here are immediately reflected in the ticket creation form - no refresh needed!
           </Text>
         </Alert>
 
-      <Card>
-        <Group justify='space-between' mb='md'>
-          <Group>
+      <Card data-testid="custom-fields-card">
+        <Group justify='space-between' mb='md' data-testid="custom-fields-toolbar">
+          <Group data-testid="custom-fields-search-group">
             <TextInput
               placeholder='Search custom fields...'
               leftSection={<IconSearch size={16} />}
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{ width: 300 }}
+              data-testid="custom-fields-search-input"
             />
           </Group>
-          <Group>
+          <Group data-testid="custom-fields-actions-group">
             <ActionIcon
               variant='light'
               onClick={() => refetch()}
               loading={isLoading}
+              data-testid="custom-fields-refresh-button"
             >
               <IconRefresh size={16} />
             </ActionIcon>
           </Group>
         </Group>
 
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Field Name</Table.Th>
-              <Table.Th>Field Type</Table.Th>
-              <Table.Th>Required</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Created</Table.Th>
-              <Table.Th>Actions</Table.Th>
+        <Table data-testid="custom-fields-table">
+          <Table.Thead data-testid="custom-fields-table-head">
+            <Table.Tr data-testid="custom-fields-table-header-row">
+              <Table.Th data-testid="custom-fields-table-header-name">Field Name</Table.Th>
+              <Table.Th data-testid="custom-fields-table-header-type">Field Type</Table.Th>
+              <Table.Th data-testid="custom-fields-table-header-required">Required</Table.Th>
+              <Table.Th data-testid="custom-fields-table-header-status">Status</Table.Th>
+              <Table.Th data-testid="custom-fields-table-header-created">Created</Table.Th>
+              <Table.Th data-testid="custom-fields-table-header-actions">Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>
+          <Table.Tbody data-testid="custom-fields-table-body">
             {paginatedFields.map(field => (
-              <Table.Tr key={field.id}>
-                <Table.Td>
-                  <div>
-                    <Text fw={500}>{field.name}</Text>
+              <Table.Tr key={field.id} data-testid={`custom-fields-table-row-${field.id}`}>
+                <Table.Td data-testid={`custom-fields-table-row-name-${field.id}`}>
+                  <div data-testid={`custom-fields-field-name-${field.id}`}>
+                    <Text fw={500} data-testid={`custom-fields-field-name-text-${field.id}`}>{field.name}</Text>
                     {field.description && (
-                      <Text size='xs' c='dimmed' mt={2}>
+                      <Text size='xs' c='dimmed' mt={2} data-testid={`custom-fields-field-description-${field.id}`}>
                         {field.description}
                       </Text>
                     )}
                   </div>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td data-testid={`custom-fields-table-row-type-${field.id}`}>
                   <Badge
                     color={getFieldTypeColor(field.fieldType)}
                     variant='light'
+                    data-testid={`custom-fields-field-type-badge-${field.id}`}
                   >
                     {field.fieldType}
                   </Badge>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td data-testid={`custom-fields-table-row-required-${field.id}`}>
                   <Badge
                     color={field.isRequired ? primaryDark : primaryDarker}
                     variant='light'
+                    data-testid={`custom-fields-field-required-badge-${field.id}`}
                   >
                     {field.isRequired ? 'Required' : 'Optional'}
                   </Badge>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td data-testid={`custom-fields-table-row-status-${field.id}`}>
                   <Badge
                     color={field.isActive ? primaryLighter : primaryDark}
                     variant='light'
+                    data-testid={`custom-fields-field-status-badge-${field.id}`}
                   >
                     {field.isActive ? 'Shown in Form' : 'Hidden from Form'}
                   </Badge>
                 </Table.Td>
-                <Table.Td>
-                  <Text size='sm' c='dimmed'>
+                <Table.Td data-testid={`custom-fields-table-row-created-${field.id}`}>
+                  <Text size='sm' c='dimmed' data-testid={`custom-fields-field-created-${field.id}`}>
                     {new Date(field.createdAt).toLocaleDateString()}
                   </Text>
                 </Table.Td>
-                <Table.Td>
-                  <Menu>
+                <Table.Td data-testid={`custom-fields-table-row-actions-${field.id}`}>
+                  <Menu data-testid={`custom-fields-field-menu-${field.id}`}>
                     <Menu.Target>
-                      <ActionIcon variant='subtle'>
+                      <ActionIcon variant='subtle' data-testid={`custom-fields-field-menu-button-${field.id}`}>
                         <IconDots size={16} />
                       </ActionIcon>
                     </Menu.Target>
-                    <Menu.Dropdown>
+                    <Menu.Dropdown data-testid={`custom-fields-field-menu-dropdown-${field.id}`}>
                      
                       <Menu.Item
                         leftSection={<IconEdit size={14} />}
                         onClick={() => openEditModal(field)}
+                        data-testid={`custom-fields-field-edit-${field.id}`}
                       >
                         Edit
                       </Menu.Item>
@@ -381,6 +388,7 @@ export default function CustomFieldsPage() {
                         onClick={() => {
                           // Implement duplicate functionality
                         }}
+                        data-testid={`custom-fields-field-duplicate-${field.id}`}
                       >
                         Duplicate
                       </Menu.Item>
@@ -405,10 +413,11 @@ export default function CustomFieldsPage() {
                             });
                           }
                         }}
+                        data-testid={`custom-fields-field-toggle-active-${field.id}`}
                       >
                         {field.isActive ? 'Hide from Ticket Form' : 'Show in Ticket Form'}
                       </Menu.Item>
-                      <Menu.Divider />
+                      <Menu.Divider data-testid={`custom-fields-field-menu-divider-${field.id}`} />
                       <Menu.Item
                         leftSection={<IconTrash size={14} />}
                         color={theme.colors[theme.primaryColor][9]}
@@ -416,6 +425,7 @@ export default function CustomFieldsPage() {
                           setSelectedField(field);
                           setDeleteModalOpen(true);
                         }}
+                        data-testid={`custom-fields-field-delete-${field.id}`}
                       >
                         Delete
                       </Menu.Item>
@@ -428,11 +438,12 @@ export default function CustomFieldsPage() {
         </Table>
 
         {totalPages > 1 && (
-          <Group justify='center' mt='md'>
+          <Group justify='center' mt='md' data-testid="custom-fields-pagination-group">
             <Pagination
               value={currentPage}
               onChange={setCurrentPage}
               total={totalPages}
+              data-testid="custom-fields-pagination"
             />
           </Group>
         )}
@@ -447,19 +458,21 @@ export default function CustomFieldsPage() {
         }}
         title='Add Field to Ticket Form'
         size='lg'
+        data-testid="custom-fields-create-modal"
       >
-        <form onSubmit={createForm.onSubmit(handleCreateField)}>
-          <Stack>
-            <Grid>
-              <Grid.Col span={6}>
+        <form onSubmit={createForm.onSubmit(handleCreateField)} data-testid="custom-fields-create-form">
+          <Stack data-testid="custom-fields-create-form-content">
+            <Grid data-testid="custom-fields-create-form-grid">
+              <Grid.Col span={6} data-testid="custom-fields-create-name-col">
                 <TextInput
                   label='Name'
                   placeholder='field_name'
                   required
                   {...createForm.getInputProps('name')}
+                  data-testid="custom-fields-create-name-input"
                 />
               </Grid.Col>
-              <Grid.Col span={6}>
+              <Grid.Col span={6} data-testid="custom-fields-create-type-col">
                 <Select
                   label='Type'
                   placeholder='Select field type'
@@ -483,6 +496,7 @@ export default function CustomFieldsPage() {
                       }
                     },
                   })}
+                  data-testid="custom-fields-create-type-select"
                 />
               </Grid.Col>
             </Grid>
@@ -491,16 +505,17 @@ export default function CustomFieldsPage() {
               label='Field Description'
               placeholder='Help text shown to users when creating tickets (optional)'
               {...createForm.getInputProps('description')}
+              data-testid="custom-fields-create-description-input"
             />
 
             {createForm.values.fieldType === CustomFieldType.SELECT && (
-              <Card withBorder p='md'>
-                <Stack gap='sm'>
-                  <div>
-                    <Text size='sm' fw={500} mb={4}>
+              <Card withBorder p='md' data-testid="custom-fields-create-options-card">
+                <Stack gap='sm' data-testid="custom-fields-create-options-stack">
+                  <div data-testid="custom-fields-create-options-header">
+                    <Text size='sm' fw={500} mb={4} data-testid="custom-fields-create-options-title">
                       Options
                     </Text>
-                    <Text size='xs' c='dimmed'>
+                    <Text size='xs' c='dimmed' data-testid="custom-fields-create-options-description">
                       Define the available options for this select field
                     </Text>
                   </div>
@@ -513,7 +528,7 @@ export default function CustomFieldsPage() {
                       setCreateOptionIds([...createOptionIds, optionId]);
                     }
                     return (
-                      <Group key={`create-option-${optionId}`} gap='xs'>
+                      <Group key={`create-option-${optionId}`} gap='xs' data-testid={`custom-fields-create-option-group-${optionId}`}>
                         <TextInput
                           placeholder={`Option ${index + 1}`}
                           value={option}
@@ -521,11 +536,13 @@ export default function CustomFieldsPage() {
                             handleOptionChangeCreate(index, e.target.value)
                           }
                           style={{ flex: 1 }}
+                          data-testid={`custom-fields-create-option-input-${optionId}`}
                         />
                         <ActionIcon
                           variant='light'
                           color={theme.colors[theme.primaryColor][9]}
                           onClick={() => handleRemoveOptionCreate(index)}
+                          data-testid={`custom-fields-create-option-remove-${optionId}`}
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
@@ -538,6 +555,7 @@ export default function CustomFieldsPage() {
                     leftSection={<IconPlus size={14} />}
                     onClick={handleAddOptionCreate}
                     size='sm'
+                    data-testid="custom-fields-create-add-option-button"
                   >
                     Add Option
                   </Button>
@@ -545,30 +563,32 @@ export default function CustomFieldsPage() {
               </Card>
             )}
 
-            <Grid>
-              <Grid.Col span={6}>
+            <Grid data-testid="custom-fields-create-switches-grid">
+              <Grid.Col span={6} data-testid="custom-fields-create-required-col">
                 <Switch
                   label='Required'
                   {...createForm.getInputProps('isRequired', {
                     type: 'checkbox',
                   })}
+                  data-testid="custom-fields-create-required-switch"
                 />
               </Grid.Col>
-              <Grid.Col span={6}>
+              <Grid.Col span={6} data-testid="custom-fields-create-active-col">
                 <Switch
                   label='Active'
                   {...createForm.getInputProps('isActive', {
                     type: 'checkbox',
                   })}
+                  data-testid="custom-fields-create-active-switch"
                 />
               </Grid.Col>
             </Grid>
 
-            <Group justify='flex-end' mt='md'>
-              <Button variant='light' onClick={() => setCreateModalOpen(false)}>
+            <Group justify='flex-end' mt='md' data-testid="custom-fields-create-form-actions">
+              <Button variant='light' onClick={() => setCreateModalOpen(false)} data-testid="custom-fields-create-cancel-button">
                 Cancel
               </Button>
-              <Button type='submit' loading={createCustomField.isPending}>
+              <Button type='submit' loading={createCustomField.isPending} data-testid="custom-fields-create-submit-button">
                 Add to Ticket Form
               </Button>
             </Group>
@@ -585,19 +605,21 @@ export default function CustomFieldsPage() {
         }}
         title='Edit Ticket Form Field'
         size='lg'
+        data-testid="custom-fields-edit-modal"
       >
-        <form onSubmit={editForm.onSubmit(handleEditField)}>
-          <Stack>
-            <Grid>
-              <Grid.Col span={6}>
+        <form onSubmit={editForm.onSubmit(handleEditField)} data-testid="custom-fields-edit-form">
+          <Stack data-testid="custom-fields-edit-form-content">
+            <Grid data-testid="custom-fields-edit-form-grid">
+              <Grid.Col span={6} data-testid="custom-fields-edit-name-col">
                 <TextInput
                   label='Name'
                   placeholder='field_name'
                   required
                   {...editForm.getInputProps('name')}
+                  data-testid="custom-fields-edit-name-input"
                 />
               </Grid.Col>
-              <Grid.Col span={6}>
+              <Grid.Col span={6} data-testid="custom-fields-edit-type-col">
                 <Select
                   label='Type'
                   placeholder='Select field type'
@@ -621,6 +643,7 @@ export default function CustomFieldsPage() {
                       }
                     },
                   })}
+                  data-testid="custom-fields-edit-type-select"
                 />
               </Grid.Col>
             </Grid>
@@ -629,16 +652,17 @@ export default function CustomFieldsPage() {
               label='Field Description'
               placeholder='Help text shown to users when creating tickets (optional)'
               {...editForm.getInputProps('description')}
+              data-testid="custom-fields-edit-description-input"
             />
 
             {editForm.values.fieldType === CustomFieldType.SELECT && (
-              <Card withBorder p='md'>
-                <Stack gap='sm'>
-                  <div>
-                    <Text size='sm' fw={500} mb={4}>
+              <Card withBorder p='md' data-testid="custom-fields-edit-options-card">
+                <Stack gap='sm' data-testid="custom-fields-edit-options-stack">
+                  <div data-testid="custom-fields-edit-options-header">
+                    <Text size='sm' fw={500} mb={4} data-testid="custom-fields-edit-options-title">
                       Options
                     </Text>
-                    <Text size='xs' c='dimmed'>
+                    <Text size='xs' c='dimmed' data-testid="custom-fields-edit-options-description">
                       Define the available options for this select field
                     </Text>
                   </div>
@@ -651,7 +675,7 @@ export default function CustomFieldsPage() {
                       setEditOptionIds([...editOptionIds, optionId]);
                     }
                     return (
-                      <Group key={`edit-option-${optionId}`} gap='xs'>
+                      <Group key={`edit-option-${optionId}`} gap='xs' data-testid={`custom-fields-edit-option-group-${optionId}`}>
                         <TextInput
                           placeholder={`Option ${index + 1}`}
                           value={option}
@@ -659,11 +683,13 @@ export default function CustomFieldsPage() {
                             handleOptionChangeEdit(index, e.target.value)
                           }
                           style={{ flex: 1 }}
+                          data-testid={`custom-fields-edit-option-input-${optionId}`}
                         />
                         <ActionIcon
                           variant='light'
                           color={theme.colors[theme.primaryColor][9]}
                           onClick={() => handleRemoveOptionEdit(index)}
+                          data-testid={`custom-fields-edit-option-remove-${optionId}`}
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
@@ -676,6 +702,7 @@ export default function CustomFieldsPage() {
                     leftSection={<IconPlus size={14} />}
                     onClick={handleAddOptionEdit}
                     size='sm'
+                    data-testid="custom-fields-edit-add-option-button"
                   >
                     Add Option
                   </Button>
@@ -683,28 +710,30 @@ export default function CustomFieldsPage() {
               </Card>
             )}
 
-            <Grid>
-              <Grid.Col span={6}>
+            <Grid data-testid="custom-fields-edit-switches-grid">
+              <Grid.Col span={6} data-testid="custom-fields-edit-required-col">
                 <Switch
                   label='Required'
                   {...editForm.getInputProps('isRequired', {
                     type: 'checkbox',
                   })}
+                  data-testid="custom-fields-edit-required-switch"
                 />
               </Grid.Col>
-              <Grid.Col span={6}>
+              <Grid.Col span={6} data-testid="custom-fields-edit-active-col">
                 <Switch
                   label='Active'
                   {...editForm.getInputProps('isActive', { type: 'checkbox' })}
+                  data-testid="custom-fields-edit-active-switch"
                 />
               </Grid.Col>
             </Grid>
 
-            <Group justify='flex-end' mt='md'>
-              <Button variant='light' onClick={() => setEditModalOpen(false)}>
+            <Group justify='flex-end' mt='md' data-testid="custom-fields-edit-form-actions">
+              <Button variant='light' onClick={() => setEditModalOpen(false)} data-testid="custom-fields-edit-cancel-button">
                 Cancel
               </Button>
-              <Button type='submit' loading={updateCustomField.isPending}>
+              <Button type='submit' loading={updateCustomField.isPending} data-testid="custom-fields-edit-submit-button">
                 Update Ticket Form Field
               </Button>
             </Group>
@@ -717,23 +746,25 @@ export default function CustomFieldsPage() {
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         title='Remove Field from Ticket Form'
+        data-testid="custom-fields-delete-modal"
       >
-        <Stack>
-          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning'>
+        <Stack data-testid="custom-fields-delete-modal-content">
+          <Alert color={theme.colors[theme.primaryColor][9]} title='Warning' data-testid="custom-fields-delete-warning-alert">
             Are you sure you want to remove this field from the ticket creation form? 
             This action cannot be undone and the field will no longer appear when users create tickets.
           </Alert>
-          <Text size='sm'>
+          <Text size='sm' data-testid="custom-fields-delete-field-name">
             Field: <strong>{selectedField?.name}</strong>
           </Text>
-          <Group justify='flex-end' mt='md'>
-            <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
+          <Group justify='flex-end' mt='md' data-testid="custom-fields-delete-modal-actions">
+            <Button variant='light' onClick={() => setDeleteModalOpen(false)} data-testid="custom-fields-delete-cancel-button">
               Cancel
             </Button>
             <Button
               color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteField}
               loading={deleteCustomField.isPending}
+              data-testid="custom-fields-delete-confirm-button"
             >
               Remove from Ticket Form
             </Button>

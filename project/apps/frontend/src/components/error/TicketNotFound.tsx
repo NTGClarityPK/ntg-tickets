@@ -54,34 +54,36 @@ export function TicketNotFound() {
   };
 
   return (
-    <Container size='md' py='xl'>
-      <Paper withBorder p='xl' radius='md' shadow='sm'>
-        <Stack gap='lg' align='center'>
-          <IconAlertCircle size={64} color={primaryDark} />
+    <Container size='md' py='xl' data-testid="ticket-not-found">
+      <Paper withBorder p='xl' radius='md' shadow='sm' data-testid="ticket-not-found-paper">
+        <Stack gap='lg' align='center' data-testid="ticket-not-found-content">
+          <IconAlertCircle size={64} color={primaryDark} data-testid="ticket-not-found-icon" />
 
-          <div style={{ textAlign: 'center' }}>
-            <Title order={2} mb='sm'>
+          <div style={{ textAlign: 'center' }} data-testid="ticket-not-found-message">
+            <Title order={2} mb='sm' data-testid="ticket-not-found-title">
               Ticket Not Available
             </Title>
-            <Text c='dimmed' size='lg' mb='md'>
+            <Text c='dimmed' size='lg' mb='md' data-testid="ticket-not-found-description">
               The ticket you are looking for is not available. It may have been deleted or you may not have permission to view it.
             </Text>
-            <Text c='dimmed' size='sm' fw={500}>
+            <Text c='dimmed' size='sm' fw={500} data-testid="ticket-not-found-help">
               Please contact your administrator if you believe this is an error.
             </Text>
           </div>
 
-          <Group>
+          <Group data-testid="ticket-not-found-actions">
             <Button
               variant='outline'
               leftSection={<RTLArrowLeft size={16} />}
               onClick={handleGoBack}
+              data-testid="ticket-not-found-go-back-button"
             >
               Go Back
             </Button>
             <Button
               leftSection={<IconHome size={16} />}
               onClick={handleViewAllTickets}
+              data-testid="ticket-not-found-view-all-button"
             >
               View All Tickets
             </Button>

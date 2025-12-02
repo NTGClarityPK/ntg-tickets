@@ -144,12 +144,12 @@ export default function UserDetailPage() {
           </div>
         </Group>
         <Group>
-          <Button leftSection={<IconEdit size={16} />} onClick={handleEdit}>
+          <Button leftSection={<IconEdit size={16} />} onClick={handleEdit} data-testid="user-detail-edit-button">
             Edit User
           </Button>
-          <Menu shadow='md' width={200}>
+          <Menu shadow='md' width={200} data-testid="user-detail-menu">
             <Menu.Target>
-              <ActionIcon variant='subtle'>
+              <ActionIcon variant='subtle' data-testid="user-detail-menu-button">
                 <IconDots size={16} />
               </ActionIcon>
             </Menu.Target>
@@ -158,6 +158,7 @@ export default function UserDetailPage() {
                 leftSection={<IconTrash size={14} />}
                 color={theme.colors[theme.primaryColor][9]}
                 onClick={handleDelete}
+                data-testid="user-detail-delete-menu-item"
               >
                 Delete User
               </Menu.Item>
@@ -168,10 +169,10 @@ export default function UserDetailPage() {
 
       <Grid>
         <Grid.Col span={8}>
-          <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs value={activeTab} onChange={setActiveTab} data-testid="user-detail-tabs">
             <Tabs.List>
-              <Tabs.Tab value='overview'>Overview</Tabs.Tab>
-              <Tabs.Tab value='activity'>Activity</Tabs.Tab>
+              <Tabs.Tab value='overview' data-testid="user-detail-tab-overview">Overview</Tabs.Tab>
+              <Tabs.Tab value='activity' data-testid="user-detail-tab-activity">Activity</Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value='overview' pt='md'>
@@ -301,6 +302,7 @@ export default function UserDetailPage() {
                   leftSection={<IconEdit size={16} />}
                   onClick={handleEdit}
                   fullWidth
+                  data-testid="user-detail-quick-edit-button"
                 >
                   Edit User
                 </Button>

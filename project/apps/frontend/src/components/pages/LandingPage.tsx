@@ -33,6 +33,7 @@ export function LandingPage() {
         position: 'relative',
         overflow: 'hidden',
       }}
+      data-testid="landing-page"
     >
       {/* Animated Background Elements */}
       <Box
@@ -48,19 +49,20 @@ export function LandingPage() {
             radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.08) 0%, transparent 50%)
           `,
         }}
+        data-testid="landing-page-background"
       />
 
-      <Container size='xl' py='xl' style={{ position: 'relative', zIndex: 1 }}>
+      <Container size='xl' py='xl' style={{ position: 'relative', zIndex: 1 }} data-testid="landing-page-container">
         {/* Language Switcher and Theme Toggle - Top Right */}
-        <Flex justify='flex-end' mb='md' gap='md'>
+        <Flex justify='flex-end' mb='md' gap='md' data-testid="landing-page-controls">
           <LanguageSwitcher />
           <ThemeToggle />
         </Flex>
 
-        <Stack gap='xl'>
+        <Stack gap='xl' data-testid="landing-page-content">
           {/* Hero Section */}
-          <Center py='xl' style={{ minHeight: '80vh' }}>
-            <Stack align='center' gap='xl'>
+          <Center py='xl' style={{ minHeight: '80vh' }} data-testid="landing-page-hero">
+            <Stack align='center' gap='xl' data-testid="landing-page-hero-content">
               {/* Main Title */}
               <Title
                 order={1}
@@ -75,6 +77,7 @@ export function LandingPage() {
                   backgroundClip: 'text',
                   lineHeight: 1.1,
                 }}
+                data-testid="landing-page-title"
               >
                 {t('title')}
               </Title>
@@ -88,12 +91,13 @@ export function LandingPage() {
                   fontSize: '1.25rem',
                   lineHeight: 1.6,
                 }}
+                data-testid="landing-page-subtitle"
               >
                 {t('subtitle')}
               </Text>
 
               {/* CTA Buttons */}
-              <Group mt='xl' gap='md'>
+              <Group mt='xl' gap='md' data-testid="landing-page-cta-buttons">
                 <Button
                   component={Link}
                   href='/auth/signup'
@@ -107,6 +111,7 @@ export function LandingPage() {
                     fontWeight: 600,
                     padding: '16px 32px',
                   }}
+                  data-testid="landing-page-signup-button"
                 >
                   {t('getStarted')}
                 </Button>
@@ -124,6 +129,7 @@ export function LandingPage() {
                     backdropFilter: 'blur(10px)',
                     padding: '16px 32px',
                   }}
+                  data-testid="landing-page-signin-button"
                 >
                   {t('signIn')}
                 </Button>

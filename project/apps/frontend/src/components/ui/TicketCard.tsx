@@ -169,6 +169,7 @@ export function TicketCard({
         style={{
           borderWidth: urgent ? 2 : undefined,
         }}
+        data-testid={`ticket-card-${ticket.id}`}
       >
         <Stack gap='sm'>
           {/* Header */}
@@ -184,7 +185,7 @@ export function TicketCard({
             {showActions && (
               <Menu shadow='md' width={200}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle' size='sm'>
+                  <ActionIcon variant='subtle' size='sm' data-testid={`ticket-card-menu-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
@@ -192,24 +193,28 @@ export function TicketCard({
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={onView}
+                    data-testid={`ticket-card-view-${ticket.id}`}
                   >
                     View Details
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={onEdit}
+                    data-testid={`ticket-card-edit-${ticket.id}`}
                   >
                     Edit Ticket
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconMessage size={14} />}
                     onClick={onComment}
+                    data-testid={`ticket-card-comment-${ticket.id}`}
                   >
                     Add Comment
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconFileText size={14} />}
                     onClick={() => setStatusModalOpened(true)}
+                    data-testid={`ticket-card-status-${ticket.id}`}
                   >
                     Change Status
                   </Menu.Item>
@@ -218,6 +223,7 @@ export function TicketCard({
                     leftSection={<IconTrash size={14} />}
                     style={{ color: primaryDarker }}
                     onClick={onDelete}
+                    data-testid={`ticket-card-delete-${ticket.id}`}
                   >
                     Delete Ticket
                   </Menu.Item>
@@ -332,6 +338,7 @@ export function TicketCard({
                   variant='light'
                   leftSection={<IconEye size={12} />}
                   onClick={onView}
+                  data-testid={`ticket-card-view-button-${ticket.id}`}
                 >
                   View
                 </Button>
@@ -340,6 +347,7 @@ export function TicketCard({
                   variant='light'
                   leftSection={<IconMessage size={12} />}
                   onClick={onComment}
+                  data-testid={`ticket-card-comment-button-${ticket.id}`}
                 >
                   Comment
                 </Button>
@@ -348,6 +356,7 @@ export function TicketCard({
                   variant='light'
                   leftSection={<IconFileText size={12} />}
                   onClick={() => setStatusModalOpened(true)}
+                  data-testid={`ticket-card-status-button-${ticket.id}`}
                 >
                   Status
                 </Button>
@@ -366,6 +375,7 @@ export function TicketCard({
         }}
         title={tTickets('changeStatus')}
         size='md'
+        data-testid={`ticket-status-modal-${ticket.id}`}
       >
         <Stack gap='md'>
           <Select
@@ -384,6 +394,7 @@ export function TicketCard({
             onChange={value =>
               setNewStatus((value as typeof ticket.status) || ticket.status)
             }
+            data-testid={`ticket-status-select-${ticket.id}`}
           />
           
           <Textarea
@@ -393,6 +404,7 @@ export function TicketCard({
             value={statusComment}
             onChange={e => setStatusComment(e.target.value)}
             minRows={2}
+            data-testid={`ticket-status-comment-${ticket.id}`}
           />
 
           <Group justify='flex-end'>
@@ -402,6 +414,7 @@ export function TicketCard({
                 setStatusModalOpened(false);
                 setStatusComment('');
               }}
+              data-testid={`ticket-status-cancel-${ticket.id}`}
             >
               Cancel
             </Button>
@@ -409,6 +422,7 @@ export function TicketCard({
               onClick={handleStatusChange}
               loading={updateStatusMutation.isPending}
               disabled={updateStatusMutation.isPending}
+              data-testid={`ticket-status-submit-${ticket.id}`}
             >
               Update Status
             </Button>

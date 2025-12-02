@@ -198,11 +198,13 @@ export function AppHeader({
             onClick={toggleMobile}
             hiddenFrom='sm'
             size='sm'
+            data-testid="mobile-menu-toggle"
           />
           <Group
             gap='xs'
             style={{ cursor: 'pointer' }}
             onClick={() => router.push('/')}
+            data-testid="logo-brand"
           >
             {/* Logo */}
             {(() => {
@@ -236,7 +238,7 @@ export function AppHeader({
         {/* Right side - Actions */}
         <Group gap='xs' style={{ overflow: 'visible' }}>
           {/* Notifications - Always visible (most important) */}
-          <Menu shadow='md' width={400}>
+            <Menu shadow='md' width={400} data-testid="notifications-menu">
             <Menu.Target>
               <Box style={{ position: 'relative', overflow: 'visible', display: 'inline-block' }}>
                 <ActionIcon 
@@ -247,6 +249,7 @@ export function AppHeader({
                     position: 'relative'
                   }} 
                   size='lg'
+                  data-testid="notifications-button"
                 >
                   <IconBell size={20} />
                 </ActionIcon>
@@ -271,6 +274,7 @@ export function AppHeader({
                       zIndex: 10,
                       pointerEvents: 'none'
                     }}
+                    data-testid="notifications-badge"
                   >
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Badge>
@@ -294,6 +298,7 @@ export function AppHeader({
                       // Navigate to notification or related page
                       router.push('/notifications');
                     }}
+                    data-testid={`notification-item-${notification.id}`}
                     style={{
                       transition: 'background-color 0.2s ease, color 0.2s ease',
                       marginBottom: '4px',
@@ -387,6 +392,7 @@ export function AppHeader({
                   transition: 'background-color 0.2s ease, color 0.2s ease',
                   marginBottom: '4px',
                 }}
+                data-testid="view-all-notifications"
                 onMouseEnter={e => {
                   e.currentTarget.style.backgroundColor = isDark
                     ? primaryDark
@@ -418,10 +424,10 @@ export function AppHeader({
           </Menu>
 
           {/* User Profile - Always visible (personal) */}
-          <Menu shadow='md' width={isMobile ? 200 : 250}>
+          <Menu shadow='md' width={isMobile ? 200 : 250} data-testid="user-menu">
             <Menu.Target>
               {isMobile ? (
-                <ActionIcon variant='subtle' style={{ color: primary }} size='lg'>
+                <ActionIcon variant='subtle' style={{ color: primary }} size='lg' data-testid="user-menu-mobile">
                   <Avatar size='sm' src={user?.avatar} />
                 </ActionIcon>
               ) : (
@@ -429,6 +435,7 @@ export function AppHeader({
                   variant='subtle'
                   style={{ color: primary }}
                   leftSection={<Avatar size='sm' src={user?.avatar} />}
+                  data-testid="user-menu-button"
                 >
                   <Group gap='xs'>
                     <div>
@@ -484,6 +491,7 @@ export function AppHeader({
                       transition: 'background-color 0.2s ease',
                       marginBottom: '4px',
                     }}
+                    data-testid="switch-role-menu-item"
                     onMouseEnter={e => {
                       e.currentTarget.style.backgroundColor = isDark
                         ? primaryDark
@@ -506,6 +514,7 @@ export function AppHeader({
                   transition: 'background-color 0.2s ease',
                   marginBottom: '4px',
                 }}
+                data-testid="profile-menu-item"
                 onMouseEnter={e => {
                   e.currentTarget.style.backgroundColor = isDark
                     ? primaryDark
@@ -527,6 +536,7 @@ export function AppHeader({
                     transition: 'background-color 0.2s ease',
                     marginBottom: '4px',
                   }}
+                  data-testid="theme-settings-menu-item"
                   onMouseEnter={e => {
                     e.currentTarget.style.backgroundColor = isDark
                       ? primaryDark
@@ -549,6 +559,7 @@ export function AppHeader({
                       transition: 'background-color 0.2s ease',
                       marginBottom: '4px',
                     }}
+                    data-testid="help-menu-item"
                     onMouseEnter={e => {
                       e.currentTarget.style.backgroundColor = isDark
                         ? primaryDark
@@ -570,6 +581,7 @@ export function AppHeader({
                   transition: 'background-color 0.2s ease',
                   marginBottom: '4px',
                 }}
+                data-testid="logout-menu-item"
                 onMouseEnter={e => {
                   e.currentTarget.style.backgroundColor = isDark
                     ? primaryDark
@@ -594,6 +606,7 @@ export function AppHeader({
                 size='lg'
                 onClick={onHelpClick}
                 title='Help & Support'
+                data-testid="help-button"
               >
                 <IconHelp size={20} />
               </ActionIcon>

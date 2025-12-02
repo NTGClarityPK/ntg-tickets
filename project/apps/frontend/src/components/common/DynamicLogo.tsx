@@ -32,7 +32,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
     // If we have a custom logo and it hasn't errored, render it
     if (logoSrc && !imageError) {
       return (
-        <Box className={className}>
+        <Box className={className} data-testid="dynamic-logo-icon">
           <Image
             src={logoSrc}
             alt="Logo"
@@ -40,6 +40,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
             height={size}
             fit="contain"
             onError={() => setImageError(true)}
+            data-testid="dynamic-logo-image"
           />
         </Box>
       );
@@ -59,6 +60,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
       <Box
         className={className}
         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        data-testid="dynamic-logo-text"
       >
         <DynamicLogo size={size} variant='icon' />
         <span
@@ -70,6 +72,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}
+          data-testid="dynamic-logo-text-label"
         >
           NTG Ticket
         </span>
@@ -87,9 +90,10 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
     <Box
       className={className}
       style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+      data-testid="dynamic-logo-full"
     >
       <DynamicLogo size={size} variant='icon' />
-      <div>
+      <div data-testid="dynamic-logo-text-container">
         <div
           style={{
             fontSize: `${size * 0.5}px`,
@@ -100,6 +104,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
             WebkitTextFillColor: 'transparent',
             lineHeight: 1,
           }}
+          data-testid="dynamic-logo-title"
         >
           NTG Ticket
         </div>
@@ -110,6 +115,7 @@ export function DynamicLogo({ size = 40, variant = 'full', className }: DynamicL
             fontWeight: 500,
             lineHeight: 1,
           }}
+          data-testid="dynamic-logo-subtitle"
         >
           IT Support System
         </div>

@@ -135,8 +135,8 @@ export function SearchBar({
   }, [isFocused, recentSearches.length, localValue]);
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
-      <Group>
+    <div style={{ position: 'relative', width: '100%' }} data-testid="search-bar-container">
+      <Group data-testid="search-bar-group">
         <TextInput
           placeholder={placeholder}
           value={localValue}
@@ -156,9 +156,9 @@ export function SearchBar({
           }}
           leftSection={
             isLoading || isDebouncing ? (
-              <Loader size='xs' />
+              <Loader size='xs' data-testid="search-bar-loader" />
             ) : (
-              <IconSearch size={16} />
+              <IconSearch size={16} data-testid="search-bar-icon" />
             )
           }
           rightSection={
@@ -168,18 +168,21 @@ export function SearchBar({
                 size='sm'
                 onClick={handleClear}
                 style={{ cursor: 'pointer' }}
+                data-testid="search-clear-button"
               >
                 <IconX size={14} />
               </ActionIcon>
             ) : null
           }
           style={{ flex: 1 }}
+          data-testid="search-input"
         />
         {showFilters && (
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             onClick={onSimpleFilters || onAdvancedSearch}
+            data-testid="search-filters-button"
           >
             Filters
           </Button>
@@ -196,6 +199,7 @@ export function SearchBar({
             zIndex: 1000,
             marginTop: 4,
           }}
+          data-testid="search-recent-history-container"
         >
           <SearchHistory
             recentSearches={recentSearches}
@@ -217,6 +221,7 @@ export function SearchBar({
             zIndex: 1000,
             marginTop: 4,
           }}
+          data-testid="search-suggestions-container"
         >
           <SearchSuggestions
             query={localValue}

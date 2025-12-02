@@ -478,8 +478,9 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
           borderBottom: '1px solid #e9ecef',
           padding: '8px',
         }}
+        data-testid="rich-text-editor-toolbar"
       >
-        <Group gap='xs' wrap='wrap'>
+        <Group gap='xs' wrap='wrap' data-testid="rich-text-editor-toolbar-group">
           {toolbarItemsToRender.map(item => {
             switch (item) {
               case 'bold':
@@ -489,6 +490,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       variant={editor.isActive('bold') ? 'filled' : 'subtle'}
                       onClick={() => handleTextFormat('bold')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-bold"
                     >
                       <IconBold size={16} />
                     </ActionIcon>
@@ -501,6 +503,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       variant={editor.isActive('italic') ? 'filled' : 'subtle'}
                       onClick={() => handleTextFormat('italic')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-italic"
                     >
                       <IconItalic size={16} />
                     </ActionIcon>
@@ -515,6 +518,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleTextFormat('underline')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-underline"
                     >
                       <IconUnderline size={16} />
                     </ActionIcon>
@@ -527,6 +531,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       variant={editor.isActive('strike') ? 'filled' : 'subtle'}
                       onClick={() => handleTextFormat('strikethrough')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-strikethrough"
                     >
                       <IconStrikethrough size={16} />
                     </ActionIcon>
@@ -539,6 +544,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       variant={editor.isActive('code') ? 'filled' : 'subtle'}
                       onClick={() => handleTextFormat('code')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-code"
                     >
                       <IconCode size={16} />
                     </ActionIcon>
@@ -555,6 +561,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(1)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h1"
                     >
                       <IconH1 size={16} />
                     </ActionIcon>
@@ -571,6 +578,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(2)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h2"
                     >
                       <IconH2 size={16} />
                     </ActionIcon>
@@ -587,6 +595,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(3)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h3"
                     >
                       <IconH3 size={16} />
                     </ActionIcon>
@@ -603,6 +612,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(4)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h4"
                     >
                       <IconH4 size={16} />
                     </ActionIcon>
@@ -619,6 +629,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(5)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h5"
                     >
                       <IconH5 size={16} />
                     </ActionIcon>
@@ -635,6 +646,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleHeadingInsert(6)}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-h6"
                     >
                       <IconH6 size={16} />
                     </ActionIcon>
@@ -649,6 +661,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleListInsert('bullet')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-bullet-list"
                     >
                       <IconList size={16} />
                     </ActionIcon>
@@ -663,6 +676,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={() => handleListInsert('ordered')}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-ordered-list"
                     >
                       <IconListNumbers size={16} />
                     </ActionIcon>
@@ -679,6 +693,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                         editor.chain().focus().toggleBlockquote().run()
                       }
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-blockquote"
                     >
                       <IconQuote size={16} />
                     </ActionIcon>
@@ -693,6 +708,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       }
                       onClick={handleCodeBlockInsert}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-code-block"
                     >
                       <IconCode size={16} />
                     </ActionIcon>
@@ -706,6 +722,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                         editor.chain().focus().setHorizontalRule().run()
                       }
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-horizontal-rule"
                     >
                       <IconMinus size={16} />
                     </ActionIcon>
@@ -718,6 +735,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                       variant={editor.isActive('link') ? 'filled' : 'subtle'}
                       onClick={handleLinkInsert}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-link"
                     >
                       <IconLink size={16} />
                     </ActionIcon>
@@ -741,6 +759,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                         input.click();
                       }}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-image"
                     >
                       <IconPhoto size={16} />
                     </ActionIcon>
@@ -749,42 +768,46 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
               case 'table':
                 return (
                   <Tooltip label='Table' key={item}>
-                    <ActionIcon onClick={handleTableInsert} disabled={disabled}>
+                    <ActionIcon onClick={handleTableInsert} disabled={disabled} data-testid="rich-text-editor-toolbar-table">
                       <IconTable size={16} />
                     </ActionIcon>
                   </Tooltip>
                 );
               case 'textAlign':
                 return (
-                  <Menu key={item}>
+                  <Menu key={item} data-testid="rich-text-editor-toolbar-text-align-menu">
                     <MenuTarget>
-                      <ActionIcon disabled={disabled}>
+                      <ActionIcon disabled={disabled} data-testid="rich-text-editor-toolbar-text-align-button">
                         <IconAlignLeft size={16} />
                       </ActionIcon>
                     </MenuTarget>
-                    <MenuDropdown>
-                      <MenuLabel>Text Alignment</MenuLabel>
+                    <MenuDropdown data-testid="rich-text-editor-toolbar-text-align-dropdown">
+                      <MenuLabel data-testid="rich-text-editor-toolbar-text-align-label">Text Alignment</MenuLabel>
                       <MenuItem
                         leftSection={<IconAlignLeft size={16} />}
                         onClick={() => handleTextAlign('left')}
+                        data-testid="rich-text-editor-toolbar-text-align-left"
                       >
                         Left
                       </MenuItem>
                       <MenuItem
                         leftSection={<IconAlignCenter size={16} />}
                         onClick={() => handleTextAlign('center')}
+                        data-testid="rich-text-editor-toolbar-text-align-center"
                       >
                         Center
                       </MenuItem>
                       <MenuItem
                         leftSection={<IconAlignRight size={16} />}
                         onClick={() => handleTextAlign('right')}
+                        data-testid="rich-text-editor-toolbar-text-align-right"
                       >
                         Right
                       </MenuItem>
                       <MenuItem
                         leftSection={<IconAlignJustified size={16} />}
                         onClick={() => handleTextAlign('justify')}
+                        data-testid="rich-text-editor-toolbar-text-align-justify"
                       >
                         Justify
                       </MenuItem>
@@ -799,22 +822,24 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                     onClose={() => setShowColorPicker(false)}
                     position='bottom'
                     withArrow
+                    data-testid="rich-text-editor-toolbar-text-color-popover"
                   >
                     <Popover.Target>
                       <ActionIcon
                         onClick={() => setShowColorPicker(!showColorPicker)}
                         disabled={disabled}
+                        data-testid="rich-text-editor-toolbar-text-color-button"
                       >
                         <IconColorPicker size={16} />
                       </ActionIcon>
                     </Popover.Target>
-                    <Popover.Dropdown>
+                    <Popover.Dropdown data-testid="rich-text-editor-toolbar-text-color-dropdown">
                       <Stack gap='xs'>
-                        <Text size='sm' fw={500}>
+                        <Text size='sm' fw={500} data-testid="rich-text-editor-toolbar-text-color-title">
                           Text Color
                         </Text>
-                        <Group gap='xs'>
-                          {textColors.map(color => (
+                        <Group gap='xs' data-testid="rich-text-editor-toolbar-text-color-swatches">
+                          {textColors.map((color, index) => (
                             <ColorSwatch
                               key={color}
                               color={color}
@@ -824,6 +849,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                                 setShowColorPicker(false);
                               }}
                               style={{ cursor: 'pointer' }}
+                              data-testid={`rich-text-editor-toolbar-text-color-swatch-${index}`}
                             />
                           ))}
                         </Group>
@@ -839,6 +865,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                     onClose={() => setShowHighlightPicker(false)}
                     position='bottom'
                     withArrow
+                    data-testid="rich-text-editor-toolbar-highlight-popover"
                   >
                     <Popover.Target>
                       <ActionIcon
@@ -846,17 +873,18 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                           setShowHighlightPicker(!showHighlightPicker)
                         }
                         disabled={disabled}
+                        data-testid="rich-text-editor-toolbar-highlight-button"
                       >
                         <IconHighlight size={16} />
                       </ActionIcon>
                     </Popover.Target>
-                    <Popover.Dropdown>
+                    <Popover.Dropdown data-testid="rich-text-editor-toolbar-highlight-dropdown">
                       <Stack gap='xs'>
-                        <Text size='sm' fw={500}>
+                        <Text size='sm' fw={500} data-testid="rich-text-editor-toolbar-highlight-title">
                           Highlight Color
                         </Text>
-                        <Group gap='xs'>
-                          {highlightColors.map(color => (
+                        <Group gap='xs' data-testid="rich-text-editor-toolbar-highlight-swatches">
+                          {highlightColors.map((color, index) => (
                             <ColorSwatch
                               key={color}
                               color={color}
@@ -866,6 +894,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                                 setShowHighlightPicker(false);
                               }}
                               style={{ cursor: 'pointer' }}
+                              data-testid={`rich-text-editor-toolbar-highlight-swatch-${index}`}
                             />
                           ))}
                         </Group>
@@ -879,6 +908,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                     <ActionIcon
                       onClick={handleUndo}
                       disabled={disabled || !editor.can().undo()}
+                      data-testid="rich-text-editor-toolbar-undo"
                     >
                       <RTLArrowLeft size={16} />
                     </ActionIcon>
@@ -890,6 +920,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                     <ActionIcon
                       onClick={handleRedo}
                       disabled={disabled || !editor.can().redo()}
+                      data-testid="rich-text-editor-toolbar-redo"
                     >
                       <RTLArrowRight size={16} />
                     </ActionIcon>
@@ -901,6 +932,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
                     <ActionIcon
                       onClick={handleClearFormatting}
                       disabled={disabled}
+                      data-testid="rich-text-editor-toolbar-clear-formatting"
                     >
                       <IconClearFormatting size={16} />
                     </ActionIcon>
@@ -918,12 +950,12 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <Stack gap='xs' className={className} style={style}>
+    <Stack gap='xs' className={className} style={style} data-testid="rich-text-editor-wrapper">
       {label && (
-        <Text size='sm' fw={500}>
+        <Text size='sm' fw={500} data-testid="rich-text-editor-label">
           {label}
           {required && withAsterisk && (
-            <Text component='span' c={theme.colors[theme.primaryColor][9]}>
+            <Text component='span' c={theme.colors[theme.primaryColor][9]} data-testid="rich-text-editor-required-asterisk">
               {' '}
               *
             </Text>
@@ -932,7 +964,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
       )}
 
       {description && (
-        <Text size='xs' c='dimmed'>
+        <Text size='xs' c='dimmed' data-testid="rich-text-editor-description">
           {description}
         </Text>
       )}
@@ -945,6 +977,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
           borderRadius: '4px',
           overflow: 'hidden',
         }}
+        data-testid="rich-text-editor-container"
       >
         {toolbarPosition === 'top' && renderToolbar()}
 
@@ -954,6 +987,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
             minHeight: `${minHeight}px`,
             maxHeight: `${maxHeight}px`,
           }}
+          data-testid="rich-text-editor"
         >
           <RichTextEditor.Content
             style={{
@@ -961,6 +995,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
               maxHeight: `${maxHeight}px`,
               overflow: 'auto',
             }}
+            data-testid="rich-text-editor-content"
           />
         </RichTextEditor>
 
@@ -968,7 +1003,7 @@ export const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
       </Box>
 
       {error && (
-        <Text size='xs' c={theme.colors[theme.primaryColor][9]}>
+        <Text size='xs' c={theme.colors[theme.primaryColor][9]} data-testid="rich-text-editor-error">
           {error}
         </Text>
       )}

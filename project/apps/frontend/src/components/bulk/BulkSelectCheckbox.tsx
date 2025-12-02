@@ -20,6 +20,7 @@ export const BulkSelectCheckbox = forwardRef<
       checked={checked}
       indeterminate={indeterminate}
       onChange={event => onChange(event.currentTarget.checked)}
+      data-testid="bulk-select-checkbox"
       {...props}
     />
   );

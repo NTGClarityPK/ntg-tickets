@@ -150,24 +150,25 @@ export function EmailTemplateForm({
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap='md'>
+    <form onSubmit={form.onSubmit(handleSubmit)} data-testid="email-template-form">
+      <Stack gap='md' data-testid="email-template-form-stack">
         {isEditing && initialData && (
-          <Alert color='blue' title='Editing Current Template'>
-            <Text size='sm'>
+          <Alert color='blue' title='Editing Current Template' data-testid="email-template-editing-alert">
+            <Text size='sm' data-testid="email-template-editing-message">
               You are editing the <strong>{initialData.name}</strong> template. 
               All fields below are editable except the template type.
             </Text>
           </Alert>
         )}
         
-        <Grid>
+        <Grid data-testid="email-template-form-grid">
           <Grid.Col span={6}>
             <TextInput
               label='Template Name'
               placeholder='Enter template name'
               required
               {...form.getInputProps('name')}
+              data-testid="email-template-name-input"
             />
           </Grid.Col>
           <Grid.Col span={6}>
@@ -179,13 +180,14 @@ export function EmailTemplateForm({
               disabled={isEditing}
               {...form.getInputProps('type')}
               description={isEditing ? 'Template type cannot be changed when editing' : ''}
+              data-testid="email-template-type-select"
             />
           </Grid.Col>
         </Grid>
 
         {form.values.type && (
-          <Alert color='blue' title='Email Recipients'>
-            <Text size='sm'>{getRecipients(form.values.type)}</Text>
+          <Alert color='blue' title='Email Recipients' data-testid="email-template-recipients-alert">
+            <Text size='sm' data-testid="email-template-recipients-text">{getRecipients(form.values.type)}</Text>
           </Alert>
         )}
 
@@ -194,10 +196,11 @@ export function EmailTemplateForm({
           placeholder='Enter email subject'
           required
           {...form.getInputProps('subject')}
+          data-testid="email-template-subject-input"
         />
 
-        <div>
-          <Text size='sm' fw={500} mb='xs'>
+        <div data-testid="email-template-html-section">
+          <Text size='sm' fw={500} mb='xs' data-testid="email-template-html-label">
             HTML Content
           </Text>
           <Textarea
@@ -209,20 +212,21 @@ export function EmailTemplateForm({
             ref={htmlTextareaRef}
             styles={{ input: { fontFamily: 'monospace', fontSize: '13px' } }}
             {...form.getInputProps('html')}
+            data-testid="email-template-html-textarea"
           />
-          <Text size='xs' color='dimmed' mt='xs'>
+          <Text size='xs' color='dimmed' mt='xs' data-testid="email-template-html-hint">
             Use Handlebars syntax for variables. Click on variables below to insert them into your template.
           </Text>
         </div>
 
-        <Alert color={theme.primaryColor} title='Available Template Variables'>
-          <Text size='sm' mb='md'>
+        <Alert color={theme.primaryColor} title='Available Template Variables' data-testid="email-template-variables-alert">
+          <Text size='sm' mb='md' data-testid="email-template-variables-hint">
             Click on a variable to insert it into your template at the cursor position.
           </Text>
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }} data-testid="email-template-variables-list">
             <Grid gutter='xs'>
               {availableVariables.map((variable) => (
-                <Grid.Col key={variable.value} span={6}>
+                <Grid.Col key={variable.value} span={6} data-testid={`email-template-variable-${variable.value.replace(/[{}]/g, '').replace(/\./g, '-')}`}>
                   <Group gap='xs' wrap='nowrap' style={{ alignItems: 'flex-start' }}>
                     <Code
                       style={{
@@ -263,10 +267,11 @@ export function EmailTemplateForm({
                           autoClose: 2000,
                         });
                       }}
+                      data-testid={`email-template-variable-code-${variable.value.replace(/[{}]/g, '').replace(/\./g, '-')}`}
                     >
                       {variable.value}
           </Code>
-                    <Text size='xs' color='dimmed' style={{ flex: 1, lineHeight: 1.4 }}>
+                    <Text size='xs' color='dimmed' style={{ flex: 1, lineHeight: 1.4 }} data-testid={`email-template-variable-label-${variable.value.replace(/[{}]/g, '').replace(/\./g, '-')}`}>
                       {variable.label}
                     </Text>
                   </Group>
@@ -280,13 +285,14 @@ export function EmailTemplateForm({
           label='Active'
           description='Template is available for use'
           {...form.getInputProps('isActive', { type: 'checkbox' })}
+          data-testid="email-template-active-switch"
         />
 
-        <Group justify='flex-end' mt='xl'>
-          <Button variant='outline' onClick={onCancel}>
+        <Group justify='flex-end' mt='xl' data-testid="email-template-form-actions">
+          <Button variant='outline' onClick={onCancel} data-testid="email-template-form-cancel">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="email-template-form-submit">
             {isEditing ? 'Update Template' : 'Create Template'}
           </Button>
         </Group>

@@ -195,12 +195,13 @@ export function BulkActionsBar({
           </Group>
 
           <Group>
-            <Menu shadow='md' width={200}>
+            <Menu shadow='md' width={200} data-testid="bulk-status-menu">
               <Menu.Target>
                 <Button
                   variant='light'
                   leftSection={<IconEdit size={16} />}
                   disabled={isProcessing}
+                  data-testid="bulk-update-status-button"
                 >
                   Update Status
                 </Button>
@@ -213,6 +214,7 @@ export function BulkActionsBar({
                       setNewStatus(option.value as TicketStatus);
                       setStatusModalOpen(true);
                     }}
+                    data-testid={`bulk-status-option-${option.value}`}
                   >
                     {option.label}
                   </Menu.Item>
@@ -220,12 +222,13 @@ export function BulkActionsBar({
               </Menu.Dropdown>
             </Menu>
 
-            <Menu shadow='md' width={200}>
+            <Menu shadow='md' width={200} data-testid="bulk-priority-menu">
               <Menu.Target>
                 <Button
                   variant='light'
                   leftSection={<IconTag size={16} />}
                   disabled={isProcessing}
+                  data-testid="bulk-update-priority-button"
                 >
                   Update Priority
                 </Button>
@@ -251,14 +254,15 @@ export function BulkActionsBar({
                 leftSection={<IconUser size={16} />}
                 onClick={() => setAssignModalOpen(true)}
                 disabled={isProcessing}
+                data-testid="bulk-assign-button"
               >
                 Assign
               </Button>
             )}
 
-            <Menu shadow='md' width={200}>
+            <Menu shadow='md' width={200} data-testid="bulk-actions-menu">
               <Menu.Target>
-                <ActionIcon variant='light' color={theme.colors[theme.primaryColor][9]} disabled={isProcessing}>
+                <ActionIcon variant='light' color={theme.colors[theme.primaryColor][9]} disabled={isProcessing} data-testid="bulk-actions-menu-button">
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -266,6 +270,7 @@ export function BulkActionsBar({
                 <Menu.Item
                   leftSection={<IconMail size={14} />}
                   onClick={() => setNotifyModalOpen(true)}
+                  data-testid="bulk-notify-menu-item"
                 >
                   Send Notification
                 </Menu.Item>
@@ -274,6 +279,7 @@ export function BulkActionsBar({
                   leftSection={<IconTrash size={14} />}
                   color={theme.colors[theme.primaryColor][9]}
                   onClick={() => setDeleteModalOpen(true)}
+                  data-testid="bulk-delete-menu-item"
                 >
                   Delete Tickets
                 </Menu.Item>
@@ -285,6 +291,7 @@ export function BulkActionsBar({
               onClick={onClearSelection}
               title='Clear selection'
               disabled={isProcessing}
+              data-testid="bulk-clear-selection-button"
             >
               <IconX size={16} />
             </ActionIcon>
@@ -298,6 +305,7 @@ export function BulkActionsBar({
         onClose={() => setStatusModalOpen(false)}
         title={`Update Status for ${selectedCount} Tickets`}
         centered
+        data-testid="bulk-status-modal"
       >
         <Stack gap='md'>
           <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
@@ -319,14 +327,16 @@ export function BulkActionsBar({
             value={bulkNote}
             onChange={e => setBulkNote(e.target.value)}
             minRows={3}
+            data-testid="bulk-status-note-input"
           />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setStatusModalOpen(false)}>
+            <Button variant='outline' onClick={() => setStatusModalOpen(false)} data-testid="bulk-status-modal-cancel">
               Cancel
             </Button>
             <Button
               onClick={handleBulkStatusUpdate}
               loading={isProcessing}
+              data-testid="bulk-status-modal-submit"
             >
               Update Status
             </Button>
@@ -340,6 +350,7 @@ export function BulkActionsBar({
         onClose={() => setAssignModalOpen(false)}
         title={`Assign ${selectedCount} Tickets`}
         centered
+        data-testid="bulk-assign-modal"
       >
         <Stack gap='md'>
           <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
@@ -360,6 +371,7 @@ export function BulkActionsBar({
             required
             disabled={usersLoading}
             leftSection={usersLoading ? <Loader size='xs' /> : undefined}
+            data-testid="bulk-assign-select"
           />
           <Textarea
             label='Note (optional)'
@@ -367,15 +379,17 @@ export function BulkActionsBar({
             value={bulkNote}
             onChange={e => setBulkNote(e.target.value)}
             minRows={3}
+            data-testid="bulk-assign-note-input"
           />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setAssignModalOpen(false)}>
+            <Button variant='outline' onClick={() => setAssignModalOpen(false)} data-testid="bulk-assign-modal-cancel">
               Cancel
             </Button>
             <Button
               onClick={handleBulkAssign}
               disabled={!selectedAssignee || isProcessing}
               loading={isProcessing}
+              data-testid="bulk-assign-modal-submit"
             >
               Assign Tickets
             </Button>
@@ -389,6 +403,7 @@ export function BulkActionsBar({
         onClose={() => setPriorityModalOpen(false)}
         title={`Update Priority for ${selectedCount} Tickets`}
         centered
+        data-testid="bulk-priority-modal"
       >
         <Stack gap='md'>
           <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
@@ -401,15 +416,17 @@ export function BulkActionsBar({
             value={bulkNote}
             onChange={e => setBulkNote(e.target.value)}
             minRows={3}
+            data-testid="bulk-priority-note-input"
           />
           <Group justify='flex-end'>
             <Button
               variant='outline'
               onClick={() => setPriorityModalOpen(false)}
+              data-testid="bulk-priority-modal-cancel"
             >
               Cancel
             </Button>
-            <Button onClick={handleBulkPriorityUpdate} loading={isProcessing}>
+            <Button onClick={handleBulkPriorityUpdate} loading={isProcessing} data-testid="bulk-priority-modal-submit">
               Update Priority
             </Button>
           </Group>
@@ -422,6 +439,7 @@ export function BulkActionsBar({
         onClose={() => setDeleteModalOpen(false)}
         title={`Delete ${selectedCount} Tickets`}
         centered
+        data-testid="bulk-delete-modal"
       >
         <Stack gap='md'>
           <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
@@ -438,9 +456,10 @@ export function BulkActionsBar({
             onChange={e => setBulkNote(e.target.value)}
             minRows={3}
             required
+            data-testid="bulk-delete-reason-input"
           />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setDeleteModalOpen(false)}>
+            <Button variant='outline' onClick={() => setDeleteModalOpen(false)} data-testid="bulk-delete-modal-cancel">
               Cancel
             </Button>
             <Button
@@ -448,6 +467,7 @@ export function BulkActionsBar({
               onClick={handleBulkDelete}
               disabled={!bulkNote.trim() || isProcessing}
               loading={isProcessing}
+              data-testid="bulk-delete-modal-confirm"
             >
               Delete Tickets
             </Button>
@@ -461,6 +481,7 @@ export function BulkActionsBar({
         onClose={() => setNotifyModalOpen(false)}
         title={`Send Notification to ${selectedCount} Tickets`}
         centered
+        data-testid="bulk-notify-modal"
       >
         <Stack gap='md'>
           <Alert icon={<IconAlertCircle size={16} />} color={theme.colors[theme.primaryColor][9]}>
@@ -474,15 +495,17 @@ export function BulkActionsBar({
             onChange={e => setBulkNote(e.target.value)}
             minRows={4}
             required
+            data-testid="bulk-notify-message-input"
           />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setNotifyModalOpen(false)}>
+            <Button variant='outline' onClick={() => setNotifyModalOpen(false)} data-testid="bulk-notify-modal-cancel">
               Cancel
             </Button>
             <Button
               onClick={handleBulkNotify}
               disabled={!bulkNote.trim() || isProcessing}
               loading={isProcessing}
+              data-testid="bulk-notify-modal-submit"
             >
               Send Notification
             </Button>

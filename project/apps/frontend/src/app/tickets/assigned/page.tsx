@@ -133,10 +133,10 @@ function AssignedTicketsPageContent() {
 
   if (isLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading assigned tickets...</Text>
+      <Container size='xl' py='md' data-testid="assigned-tickets-page-loading">
+        <Group justify='center' mt='xl' data-testid="assigned-tickets-page-loading-group">
+          <Loader size='lg' data-testid="assigned-tickets-page-loader" />
+          <Text data-testid="assigned-tickets-page-loading-text">Loading assigned tickets...</Text>
         </Group>
       </Container>
     );
@@ -144,8 +144,8 @@ function AssignedTicketsPageContent() {
 
   if (error) {
     return (
-      <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
+      <Container size='xl' py='md' data-testid="assigned-tickets-page-error">
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]} data-testid="assigned-tickets-page-error-alert">
           Failed to load tickets: {String(error)}
         </Alert>
       </Container>
@@ -153,13 +153,13 @@ function AssignedTicketsPageContent() {
   }
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={1}>Assigned to Me</Title>
-          <Text c='dimmed'>Tickets assigned to you</Text>
+    <Container size='xl' py='md' data-testid="assigned-tickets-page">
+      <Group justify='space-between' mb='xl' data-testid="assigned-tickets-page-header">
+        <div data-testid="assigned-tickets-page-header-content">
+          <Title order={1} data-testid="assigned-tickets-page-title">Assigned to Me</Title>
+          <Text c='dimmed' data-testid="assigned-tickets-page-subtitle">Tickets assigned to you</Text>
           {hasActiveFilters() && (
-            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs' data-testid="assigned-tickets-page-filter-count">
               Showing {assignedTickets.length} of {pagination?.total || 0}{' '}
               tickets
             </Text>
@@ -167,8 +167,8 @@ function AssignedTicketsPageContent() {
         </div>
       </Group>
 
-      <Grid mb='md'>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <Grid mb='md' data-testid="assigned-tickets-page-toolbar">
+        <Grid.Col span={{ base: 12, md: 6 }} data-testid="assigned-tickets-page-search-col">
           <SearchBar
             key={searchFilters.search || 'empty'}
             value={searchFilters.search}
@@ -187,17 +187,18 @@ function AssignedTicketsPageContent() {
             isLoading={isFetching}
           />
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="assigned-tickets-page-advanced-col">
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={() => setAdvancedSearchOpen(true)}
+            data-testid="assigned-tickets-page-advanced-button"
           >
             Advanced
           </Button>
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="assigned-tickets-page-reset-col">
           {hasActiveFilters() && (
             <Button
               variant='outline'
@@ -207,6 +208,7 @@ function AssignedTicketsPageContent() {
                 clearFilters();
                 setCurrentPage(1);
               }}
+              data-testid="assigned-tickets-page-reset-filters-button"
             >
               Reset Filters
             </Button>
@@ -214,48 +216,52 @@ function AssignedTicketsPageContent() {
         </Grid.Col>
       </Grid>
 
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="assigned-tickets-page-list">
         {assignedTickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
-            <Group justify='space-between' mb='sm'>
-              <Group gap='sm'>
-                <Badge color={statusColors[ticket.status]} variant='light'>
+          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder data-testid={`assigned-ticket-card-${ticket.id}`}>
+            <Group justify='space-between' mb='sm' data-testid={`assigned-ticket-header-${ticket.id}`}>
+              <Group gap='sm' data-testid={`assigned-ticket-badges-${ticket.id}`}>
+                <Badge color={statusColors[ticket.status]} variant='light' data-testid={`assigned-ticket-status-badge-${ticket.id}`}>
                   {ticket.status.replace('_', ' ')}
                 </Badge>
                 <Badge
                   color={priorityColors[ticket.priority]}
                   variant='outline'
+                  data-testid={`assigned-ticket-priority-badge-${ticket.id}`}
                 >
                   {ticket.priority}
                 </Badge>
-                <Text size='sm' c='dimmed'>
+                <Text size='sm' c='dimmed' data-testid={`assigned-ticket-number-${ticket.id}`}>
                   {ticket.ticketNumber}
                 </Text>
               </Group>
-              <Menu shadow='md' width={200}>
+              <Menu shadow='md' width={200} data-testid={`assigned-ticket-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`assigned-ticket-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown data-testid={`assigned-ticket-menu-dropdown-${ticket.id}`}>
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => handleViewTicket(ticket.id)}
+                    data-testid={`assigned-ticket-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => handleEditTicket(ticket.id)}
+                    data-testid={`assigned-ticket-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
-                  <Menu.Divider />
+                  <Menu.Divider data-testid={`assigned-ticket-menu-divider-${ticket.id}`} />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
                     onClick={() => handleEditTicket(ticket.id)}
+                    data-testid={`assigned-ticket-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -268,25 +274,26 @@ function AssignedTicketsPageContent() {
               mb='xs'
               style={{ cursor: 'pointer' }}
               onClick={() => handleViewTicket(ticket.id)}
+              data-testid={`assigned-ticket-title-${ticket.id}`}
             >
               {ticket.title}
             </Text>
 
-            <Text size='sm' c='dimmed' mb='sm' lineClamp={2}>
+            <Text size='sm' c='dimmed' mb='sm' lineClamp={2} data-testid={`assigned-ticket-description-${ticket.id}`}>
               {stripHtmlTags(ticket.description)}
             </Text>
 
-            <Group justify='space-between'>
-              <Group gap='md'>
-                <Text size='sm'>{ticket.requester?.name}</Text>
-                <Text size='sm'>
+            <Group justify='space-between' data-testid={`assigned-ticket-footer-${ticket.id}`}>
+              <Group gap='md' data-testid={`assigned-ticket-info-${ticket.id}`}>
+                <Text size='sm' data-testid={`assigned-ticket-requester-${ticket.id}`}>{ticket.requester?.name}</Text>
+                <Text size='sm' data-testid={`assigned-ticket-created-date-${ticket.id}`}>
                   {new Date(ticket.createdAt).toLocaleDateString('en-US')}
                 </Text>
                 {ticket.assignedTo && (
-                  <Text size='sm'>Assigned to {ticket.assignedTo.name}</Text>
+                  <Text size='sm' data-testid={`assigned-ticket-assigned-${ticket.id}`}>Assigned to {ticket.assignedTo.name}</Text>
                 )}
               </Group>
-              <Badge variant='light' color='gray'>
+              <Badge variant='light' color='gray' data-testid={`assigned-ticket-category-badge-${ticket.id}`}>
                 {ticket.category?.customName || ticket.category?.name || 'Unknown'}
               </Badge>
             </Group>
@@ -295,17 +302,17 @@ function AssignedTicketsPageContent() {
       </Stack>
 
       {assignedTickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <IconTicket size={48} color='var(--mantine-color-dimmed)' />
-            <Text size='lg' fw={500}>
+        <Card shadow='sm' padding='xl' radius='md' withBorder data-testid="assigned-tickets-page-empty-state">
+          <Stack align='center' gap='md' data-testid="assigned-tickets-page-empty-state-content">
+            <IconTicket size={48} color='var(--mantine-color-dimmed)' data-testid="assigned-tickets-page-empty-state-icon" />
+            <Text size='lg' fw={500} data-testid="assigned-tickets-page-empty-state-title">
               No assigned tickets
             </Text>
-            <Text c='dimmed' ta='center'>
+            <Text c='dimmed' ta='center' data-testid="assigned-tickets-page-empty-state-message">
               No tickets match your current filters.
             </Text>
             {canCreateTicket && (
-              <Button onClick={() => router.push('/tickets/create')}>
+              <Button onClick={() => router.push('/tickets/create')} data-testid="assigned-tickets-page-empty-state-create-button">
                 Create New Ticket
               </Button>
             )}
@@ -314,11 +321,12 @@ function AssignedTicketsPageContent() {
       )}
 
       {(pagination?.totalPages || 0) > 1 && (
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="assigned-tickets-page-pagination-group">
           <Pagination
             value={currentPage}
             onChange={setCurrentPage}
             total={pagination?.totalPages || 1}
+            data-testid="assigned-tickets-page-pagination"
           />
         </Group>
       )}

@@ -133,7 +133,7 @@ export function RoleSwitcher({
   // Don't show switcher if user has only one role
   if (userRoles.length <= 1) {
     return (
-      <Badge size='xs' color={getRoleBadgeColor(activeRole)}>
+      <Badge size='xs' color={getRoleBadgeColor(activeRole)} data-testid="role-switcher-single-badge">
         {getRoleLabel(activeRole)}
       </Badge>
     );
@@ -141,14 +141,14 @@ export function RoleSwitcher({
 
   if (isMobile) {
     return (
-      <Menu shadow='md' width={200}>
+      <Menu shadow='md' width={200} data-testid="role-switcher-mobile-menu">
         <Menu.Target>
-          <ActionIcon variant='subtle' color={theme.colors[theme.primaryColor][9]} size='sm' loading={loading}>
+          <ActionIcon variant='subtle' color={theme.colors[theme.primaryColor][9]} size='sm' loading={loading} data-testid="role-switcher-mobile-button">
             <IconRefresh size={14} />
           </ActionIcon>
         </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Label>{t('switchRole')}</Menu.Label>
+        <Menu.Dropdown data-testid="role-switcher-mobile-dropdown">
+          <Menu.Label data-testid="role-switcher-mobile-label">{t('switchRole')}</Menu.Label>
           {userRoles.map(role => (
             <Menu.Item
               key={role}
@@ -159,12 +159,14 @@ export function RoleSwitcher({
                   size='xs'
                   color={getRoleBadgeColor(role)}
                   variant={role === activeRole ? 'filled' : 'light'}
+                  data-testid={`role-switcher-mobile-badge-${role.toLowerCase()}`}
                 >
                   {getRoleLabel(role)}
                 </Badge>
               }
+              data-testid={`role-switcher-mobile-item-${role.toLowerCase()}`}
             >
-              <Text size='sm'>
+              <Text size='sm' data-testid={`role-switcher-mobile-text-${role.toLowerCase()}`}>
                 {role === activeRole
                   ? `${getRoleLabel(role)} (Current)`
                   : getRoleLabel(role)}
@@ -177,7 +179,7 @@ export function RoleSwitcher({
   }
 
   return (
-    <Menu shadow='md' width={250}>
+    <Menu shadow='md' width={250} data-testid="role-switcher-menu">
       <Menu.Target>
         <Button
           variant='subtle'
@@ -185,19 +187,20 @@ export function RoleSwitcher({
           size='xs'
           rightSection={<IconChevronDown size={12} />}
           loading={loading}
+          data-testid="role-switcher-button"
         >
-          <Group gap='xs'>
-            <Badge size='xs' color={getRoleBadgeColor(activeRole)}>
+          <Group gap='xs' data-testid="role-switcher-button-content">
+            <Badge size='xs' color={getRoleBadgeColor(activeRole)} data-testid="role-switcher-active-badge">
               {getRoleLabel(activeRole)}
             </Badge>
-            <Text size='xs' c='dimmed'>
+            <Text size='xs' c='dimmed' data-testid="role-switcher-count">
               {userRoles.length > 1 ? `+${userRoles.length - 1}` : ''}
             </Text>
           </Group>
         </Button>
       </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Label>{t('switchRole')}</Menu.Label>
+      <Menu.Dropdown data-testid="role-switcher-dropdown">
+        <Menu.Label data-testid="role-switcher-label">{t('switchRole')}</Menu.Label>
         {userRoles.map(role => (
           <Menu.Item
             key={role}
@@ -208,12 +211,14 @@ export function RoleSwitcher({
                 size='xs'
                 color={getRoleBadgeColor(role)}
                 variant={role === activeRole ? 'filled' : 'light'}
+                data-testid={`role-switcher-badge-${role.toLowerCase()}`}
               >
                 {getRoleLabel(role)}
               </Badge>
             }
+            data-testid={`role-switcher-item-${role.toLowerCase()}`}
           >
-            <Text size='sm'>
+            <Text size='sm' data-testid={`role-switcher-text-${role.toLowerCase()}`}>
               {role === activeRole
                 ? `${getRoleLabel(role)} (Current)`
                 : getRoleLabel(role)}

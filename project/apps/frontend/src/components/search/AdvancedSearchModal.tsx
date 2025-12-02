@@ -360,8 +360,9 @@ export function AdvancedSearchModal({
       title={tTickets('advancedSearch')}
       size='lg'
       centered
+      data-testid="advanced-search-modal"
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(handleSubmit)} data-testid="advanced-search-form">
         <Stack gap='md'>
           {/* Active Filters */}
           {activeFilters.length > 0 && (
@@ -408,6 +409,7 @@ export function AdvancedSearchModal({
               placeholder={tTickets('searchPlaceholder')}
               leftSection={<IconSearch size={16} />}
               {...form.getInputProps('query')}
+              data-testid="advanced-search-query-input"
             />
           </Card>
 
@@ -619,10 +621,10 @@ export function AdvancedSearchModal({
 
           {/* Actions */}
           <Group justify='flex-end' mt='md'>
-            <Button variant='outline' onClick={onClose}>
+            <Button variant='outline' onClick={onClose} data-testid="advanced-search-cancel-button">
               {t('cancel')}
             </Button>
-            <Button type='submit' leftSection={<IconSearch size={16} />}>
+            <Button type='submit' leftSection={<IconSearch size={16} />} data-testid="advanced-search-submit-button">
               {t('search')}
             </Button>
           </Group>

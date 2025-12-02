@@ -115,15 +115,16 @@ export function CustomFieldForm({
   const currentFieldType = form.values.fieldType;
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap='md'>
-        <Grid>
+    <form onSubmit={form.onSubmit(handleSubmit)} data-testid="custom-field-form">
+      <Stack gap='md' data-testid="custom-field-form-stack">
+        <Grid data-testid="custom-field-form-grid">
           <Grid.Col span={8}>
             <TextInput
               label='Field Name'
               placeholder='Enter field name'
               required
               {...form.getInputProps('name')}
+              data-testid="custom-field-name-input"
             />
           </Grid.Col>
           <Grid.Col span={4}>
@@ -133,23 +134,25 @@ export function CustomFieldForm({
               required
               data={fieldTypes}
               {...form.getInputProps('fieldType')}
+              data-testid="custom-field-type-select"
             />
           </Grid.Col>
         </Grid>
 
         {currentFieldType === CustomFieldType.SELECT && (
-          <Alert color={theme.primaryColor} title='Select Options'>
+          <Alert color={theme.primaryColor} title='Select Options' data-testid="custom-field-select-alert">
             For SELECT field type, you need to provide options. This would be
             implemented with a dynamic options editor.
           </Alert>
         )}
 
-        <Grid>
+        <Grid data-testid="custom-field-switches-grid">
           <Grid.Col span={6}>
             <Switch
               label='Required'
               description='This field must be filled'
               {...form.getInputProps('isRequired', { type: 'checkbox' })}
+              data-testid="custom-field-required-switch"
             />
           </Grid.Col>
           <Grid.Col span={6}>
@@ -157,15 +160,16 @@ export function CustomFieldForm({
               label='Active'
               description='Field is available for use'
               {...form.getInputProps('isActive', { type: 'checkbox' })}
+              data-testid="custom-field-active-switch"
             />
           </Grid.Col>
         </Grid>
 
-        <Group justify='flex-end' mt='xl'>
-          <Button variant='outline' onClick={onCancel}>
+        <Group justify='flex-end' mt='xl' data-testid="custom-field-form-actions">
+          <Button variant='outline' onClick={onCancel} data-testid="custom-field-form-cancel">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="custom-field-form-submit">
             {isEditing ? 'Update Field' : 'Create Field'}
           </Button>
         </Group>

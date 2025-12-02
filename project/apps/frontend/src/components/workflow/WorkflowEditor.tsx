@@ -56,8 +56,9 @@ interface StatusNodeData {
   isInitial?: boolean;
 }
 
-const StatusNode = ({ data, selected }: { data: StatusNodeData; selected: boolean }) => {
+const StatusNode = ({ data, selected, id }: { data: StatusNodeData; selected: boolean; id: string }) => {
   const theme = useMantineTheme();
+  const nodeId = id || 'unknown';
   return (
     <div
       style={{
@@ -71,17 +72,19 @@ const StatusNode = ({ data, selected }: { data: StatusNodeData; selected: boolea
         position: 'relative',
         margin: '8px',
       }}
+      data-testid={`workflow-node-${nodeId}`}
     >
       <Handle
         type="target"
         position={Position.Top}
         style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
+        data-testid={`workflow-node-handle-target-${nodeId}`}
       />
-      <Text size="sm" fw={500} style={{ lineHeight: 1.4 }}>
+      <Text size="sm" fw={500} style={{ lineHeight: 1.4 }} data-testid={`workflow-node-label-${nodeId}`}>
         {data.label}
       </Text>
       {data.isInitial && (
-        <Badge size="xs" color={theme.primaryColor} style={{ marginTop: '6px' }}>
+        <Badge size="xs" color={theme.primaryColor} style={{ marginTop: '6px' }} data-testid={`workflow-node-initial-badge-${nodeId}`}>
           Start
         </Badge>
       )}
@@ -89,6 +92,7 @@ const StatusNode = ({ data, selected }: { data: StatusNodeData; selected: boolea
         type="source"
         position={Position.Bottom}
         style={{ background: data.color || '#1976d2', width: 12, height: 12 }}
+        data-testid={`workflow-node-handle-source-${nodeId}`}
       />
     </div>
   );
@@ -745,26 +749,26 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
   });
 
   return (
-    <Container size="xl">
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Title order={2}>{isReadOnly ? 'Workflow Viewer' : 'Workflow Editor'}</Title>
-          <Group>
+    <Container size="xl" data-testid="workflow-editor-container">
+      <Stack gap="md" data-testid="workflow-editor-stack">
+        <Group justify="space-between" data-testid="workflow-editor-header">
+          <Title order={2} data-testid="workflow-editor-title">{isReadOnly ? 'Workflow Viewer' : 'Workflow Editor'}</Title>
+          <Group data-testid="workflow-editor-actions">
             {onCancel && (
-              <Button variant="outline" onClick={onCancel}>
+              <Button variant="outline" onClick={onCancel} data-testid="workflow-editor-cancel-button">
                 {isReadOnly ? 'Close' : 'Cancel'}
               </Button>
             )}
             {onSave && (
-              <Button onClick={handleSave} leftSection={<IconCheck size={16} />}>
+              <Button onClick={handleSave} leftSection={<IconCheck size={16} />} data-testid="workflow-editor-save-button">
                 Save Workflow
               </Button>
             )}
           </Group>
         </Group>
 
-        <Card withBorder>
-          <Stack gap="md">
+        <Card withBorder data-testid="workflow-editor-info-card">
+          <Stack gap="md" data-testid="workflow-editor-info-stack">
             <Group>
               <TextInput
                 label="Workflow Name"
@@ -773,6 +777,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                 onChange={(e) => setWorkflowName(e.target.value)}
                 readOnly={isReadOnly}
                 style={{ flex: 1 }}
+                data-testid="workflow-editor-name-input"
               />
             </Group>
             <Textarea
@@ -782,26 +787,28 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
               onChange={(e) => setWorkflowDescription(e.target.value)}
               readOnly={isReadOnly}
               rows={2}
+              data-testid="workflow-editor-description-input"
             />
           </Stack>
         </Card>
 
-        <Card withBorder>
-          <Stack gap="md">
-            <Group justify="space-between">
-              <Title order={4}>Workflow Diagram</Title>
+        <Card withBorder data-testid="workflow-editor-diagram-card">
+          <Stack gap="md" data-testid="workflow-editor-diagram-stack">
+            <Group justify="space-between" data-testid="workflow-editor-diagram-header">
+              <Title order={4} data-testid="workflow-editor-diagram-title">Workflow Diagram</Title>
               {!isReadOnly && (
                 <Button
                   size="sm"
                   leftSection={<IconPlus size={16} />}
                   onClick={addNode}
+                  data-testid="workflow-editor-add-state-button"
                 >
                   Add State
                 </Button>
               )}
             </Group>
 
-            <div style={{ height: isReadOnly ? '1000px' : '600px', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
+            <div style={{ height: isReadOnly ? '1000px' : '600px', border: '1px solid #e0e0e0', borderRadius: '8px' }} data-testid="workflow-editor-canvas-wrapper">
               <ReactFlow
                 nodes={nodes}
                 edges={displayEdges}
@@ -823,15 +830,16 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                   style: { strokeWidth: 2.5 },
                   markerEnd: { type: MarkerType.ArrowClosed, width: 22, height: 22 },
                 }}
+                data-testid="workflow-editor-reactflow"
               >
-                <Controls />
-                <MiniMap />
-                <Background />
+                <Controls data-testid="workflow-editor-controls" />
+                <MiniMap data-testid="workflow-editor-minimap" />
+                <Background data-testid="workflow-editor-background" />
               </ReactFlow>
             </div>
 
-            <Alert color={theme.primaryColor} variant="light">
-              <Text size="sm">
+            <Alert color={theme.primaryColor} variant="light" data-testid="workflow-editor-help-alert">
+              <Text size="sm" data-testid="workflow-editor-help-text">
                 {isReadOnly
                   ? 'This is a read-only view of the workflow. You cannot make changes.'
                   : 'Click states to edit or click arrows to configure transitions.'}
@@ -842,15 +850,15 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
 
         {/* Transition Summary - Only show in read-only mode */}
         {isReadOnly && edges.length > 0 && (
-          <Card withBorder>
-            <Stack gap="md">
-              <Title order={4}>Transition Permissions & Actions</Title>
-              <Text size="sm" c="dimmed">
+          <Card withBorder data-testid="workflow-editor-transition-summary-card">
+            <Stack gap="md" data-testid="workflow-editor-transition-summary-stack">
+              <Title order={4} data-testid="workflow-editor-transition-summary-title">Transition Permissions & Actions</Title>
+              <Text size="sm" c="dimmed" data-testid="workflow-editor-transition-summary-description">
                 This table shows which roles can perform each transition and what actions are executed.
               </Text>
-              <ScrollArea>
-                <Table>
-                  <Table.Thead>
+              <ScrollArea data-testid="workflow-editor-transition-summary-scroll">
+                <Table data-testid="workflow-editor-transition-summary-table">
+                  <Table.Thead data-testid="workflow-editor-transition-summary-thead">
                     <Table.Tr>
                       <Table.Th>Transition</Table.Th>
                       <Table.Th>From</Table.Th>
@@ -860,33 +868,33 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                       <Table.Th>Conditions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
-                  <Table.Tbody>
+                  <Table.Tbody data-testid="workflow-editor-transition-summary-tbody">
                     {edges.map((edge) => {
                       const roles = edge.data?.roles || [];
                       const actions = edge.data?.actions || [];
                       const conditions = edge.data?.conditions || [];
                       return (
-                        <Table.Tr key={edge.id}>
-                          <Table.Td>
+                        <Table.Tr key={edge.id} data-testid={`workflow-editor-transition-row-${edge.id}`}>
+                          <Table.Td data-testid={`workflow-editor-transition-name-${edge.id}`}>
                             <Text fw={500}>
                               {edge.data?.isCreateTransition ? 'Create Ticket' : String(edge.label || 'Unnamed')}
                             </Text>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`workflow-editor-transition-from-${edge.id}`}>
                             <Badge variant="light" color="gray">
                               {getNodeLabel(edge.source)}
                             </Badge>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`workflow-editor-transition-to-${edge.id}`}>
                             <Badge variant="light" color="gray">
                               {getNodeLabel(edge.target)}
                             </Badge>
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`workflow-editor-transition-roles-${edge.id}`}>
                             {roles.length > 0 ? (
                               <Group gap={4}>
                                 {roles.map((role: string) => (
-                                  <Badge key={role} size="sm" variant="light" color={theme.primaryColor}>
+                                  <Badge key={role} size="sm" variant="light" color={theme.primaryColor} data-testid={`workflow-editor-transition-role-${edge.id}-${role.toLowerCase()}`}>
                                     {formatRoleName(role)}
                                   </Badge>
                                 ))}
@@ -897,11 +905,11 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                               </Text>
                             )}
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`workflow-editor-transition-actions-${edge.id}`}>
                             {actions.length > 0 ? (
                               <Group gap={4}>
                                 {actions.map((action: string) => (
-                                  <Badge key={action} size="sm" variant="light" color={theme.primaryColor}>
+                                  <Badge key={action} size="sm" variant="light" color={theme.primaryColor} data-testid={`workflow-editor-transition-action-${edge.id}-${action.toLowerCase()}`}>
                                     {action.replace(/_/g, ' ')}
                                   </Badge>
                                 ))}
@@ -912,11 +920,11 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                               </Text>
                             )}
                           </Table.Td>
-                          <Table.Td>
+                          <Table.Td data-testid={`workflow-editor-transition-conditions-${edge.id}`}>
                             {conditions.length > 0 ? (
                               <Group gap={4}>
                                 {conditions.map((condition: string) => (
-                                  <Badge key={condition} size="sm" variant="light" color="orange">
+                                  <Badge key={condition} size="sm" variant="light" color="orange" data-testid={`workflow-editor-transition-condition-${edge.id}-${condition.toLowerCase()}`}>
                                     {condition.replace(/_/g, ' ')}
                                   </Badge>
                                 ))}
@@ -943,12 +951,13 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           onClose={() => setShowNodeModal(false)}
           title="Configure State"
           size="md"
+          data-testid="workflow-editor-node-modal"
         >
           {selectedNode && (
-            <Stack gap="md">
+            <Stack gap="md" data-testid="workflow-editor-node-modal-stack">
               {selectedNode.id === 'create' && (
-                <Alert color={theme.primaryColor} variant="light">
-                  <Text size="sm">
+                <Alert color={theme.primaryColor} variant="light" data-testid="workflow-editor-node-modal-create-alert">
+                  <Text size="sm" data-testid="workflow-editor-node-modal-create-message">
                     The "Create Ticket" state is required and cannot be renamed or deleted.
                   </Text>
                 </Alert>
@@ -969,6 +978,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                     data: { ...selectedNode.data, label: newLabel }
                   });
                 }}
+                data-testid="workflow-editor-node-modal-name-input"
               />
 
               <TextInput
@@ -986,9 +996,10 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                     data: { ...selectedNode.data, color: newColor }
                   });
                 }}
+                data-testid="workflow-editor-node-modal-color-input"
               />
 
-              <Group justify="flex-end">
+              <Group justify="flex-end" data-testid="workflow-editor-node-modal-actions">
                 {selectedNode.id !== 'create' && selectedNode.id !== 'new' && (
                   <Button
                     variant="outline"
@@ -998,11 +1009,12 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                       deleteNode(selectedNode.id);
                       setShowNodeModal(false);
                     }}
+                    data-testid="workflow-editor-node-modal-delete-button"
                   >
                     Delete State
                   </Button>
                 )}
-                <Button onClick={() => setShowNodeModal(false)}>
+                <Button onClick={() => setShowNodeModal(false)} data-testid="workflow-editor-node-modal-close-button">
                   Close
                 </Button>
               </Group>
@@ -1016,12 +1028,13 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
           onClose={() => setShowEdgeModal(false)}
           title={selectedEdge?.data?.isCreateTransition ? "Configure Ticket Creation" : "Configure Transition"}
           size="lg"
+          data-testid="workflow-editor-edge-modal"
         >
           {selectedEdge && (
-            <Stack gap="md">
+            <Stack gap="md" data-testid="workflow-editor-edge-modal-stack">
               {selectedEdge.data?.isCreateTransition && (
-                <Alert color={theme.primaryColor} variant="light">
-                  <Text size="sm">
+                <Alert color={theme.primaryColor} variant="light" data-testid="workflow-editor-edge-modal-create-alert">
+                  <Text size="sm" data-testid="workflow-editor-edge-modal-create-message">
                     This is the ticket creation transition. Configure who can create tickets.
                   </Text>
                 </Alert>
@@ -1040,6 +1053,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                     setSelectedEdge(updatedEdge);
                     updateEdge(selectedEdge.id, { label: newLabel });
                   }}
+                  data-testid="workflow-editor-edge-modal-name-input"
                 />
               )}
 
@@ -1058,6 +1072,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                     data: { ...selectedEdge.data, roles: value },
                   });
                 }}
+                data-testid="workflow-editor-edge-modal-roles-select"
               />
 
               {!selectedEdge.data?.isCreateTransition && (
@@ -1076,6 +1091,7 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                       data: { ...selectedEdge.data, conditions: value },
                     });
                   }}
+                  data-testid="workflow-editor-edge-modal-conditions-select"
                 />
               )}
 
@@ -1095,10 +1111,11 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                       data: { ...selectedEdge.data, actions: value },
                     });
                   }}
+                  data-testid="workflow-editor-edge-modal-actions-select"
                 />
               )}
 
-              <Group justify="flex-end">
+              <Group justify="flex-end" data-testid="workflow-editor-edge-modal-actions">
                 {!selectedEdge.data?.isCreateTransition && (
                   <Button
                     variant="outline"
@@ -1108,11 +1125,12 @@ export function WorkflowEditor({ workflow, onSave, onCancel }: WorkflowEditorPro
                       deleteEdge(selectedEdge.id);
                       setShowEdgeModal(false);
                     }}
+                    data-testid="workflow-editor-edge-modal-delete-button"
                   >
                     Delete Transition
                   </Button>
                 )}
-                <Button onClick={() => setShowEdgeModal(false)}>
+                <Button onClick={() => setShowEdgeModal(false)} data-testid="workflow-editor-edge-modal-close-button">
                   Close
                 </Button>
               </Group>

@@ -34,10 +34,10 @@ export function SearchHistory({
 
   if (recentSearches.length === 0) {
     return (
-      <Paper withBorder p='md' radius='md' bg='gray.0'>
-        <Stack align='center' gap='sm'>
-          <IconHistory size={24} color='var(--mantine-color-dimmed)' />
-          <Text size='sm' c='dimmed' ta='center'>
+      <Paper withBorder p='md' radius='md' bg='gray.0' data-testid="search-history-empty">
+        <Stack align='center' gap='sm' data-testid="search-history-empty-stack">
+          <IconHistory size={24} color='var(--mantine-color-dimmed)' data-testid="search-history-empty-icon" />
+          <Text size='sm' c='dimmed' ta='center' data-testid="search-history-empty-message">
             No recent searches
           </Text>
         </Stack>
@@ -46,10 +46,10 @@ export function SearchHistory({
   }
 
   return (
-    <Paper withBorder shadow='md' p='sm' radius='md'>
-      <Stack gap='xs'>
-        <Group justify='space-between' mb='xs'>
-          <Text size='sm' fw={500} c='dimmed'>
+    <Paper withBorder shadow='md' p='sm' radius='md' data-testid="search-history-container">
+      <Stack gap='xs' data-testid="search-history-stack">
+        <Group justify='space-between' mb='xs' data-testid="search-history-header">
+          <Text size='sm' fw={500} c='dimmed' data-testid="search-history-title">
             Recent Searches
           </Text>
           <Button
@@ -58,17 +58,18 @@ export function SearchHistory({
             color={theme.colors[theme.primaryColor][9]}
             leftSection={<IconTrash size={12} />}
             onClick={onClearHistory}
+            data-testid="search-history-clear-all-button"
           >
             Clear All
           </Button>
         </Group>
 
-        <Divider />
+        <Divider data-testid="search-history-divider" />
 
-        <div style={{ maxHeight: 200 }}>
-          <ScrollArea.Autosize>
-            <Stack gap='xs'>
-              {recentSearches.slice(0, maxItems).map(search => (
+        <div style={{ maxHeight: 200 }} data-testid="search-history-list-container">
+          <ScrollArea.Autosize data-testid="search-history-scroll">
+            <Stack gap='xs' data-testid="search-history-list">
+              {recentSearches.slice(0, maxItems).map((search, index) => (
                 <Group
                   key={search}
                   justify='space-between'
@@ -84,10 +85,11 @@ export function SearchHistory({
                   onMouseEnter={() => setHoveredItem(search)}
                   onMouseLeave={() => setHoveredItem(null)}
                   onClick={() => onSearchClick(search)}
+                  data-testid={`search-history-item-${index}`}
                 >
-                  <Group gap='xs'>
-                    <IconClock size={14} color='var(--mantine-color-dimmed)' />
-                    <Text size='sm' style={{ flex: 1 }}>
+                  <Group gap='xs' data-testid={`search-history-item-content-${index}`}>
+                    <IconClock size={14} color='var(--mantine-color-dimmed)' data-testid={`search-history-item-icon-${index}`} />
+                    <Text size='sm' style={{ flex: 1 }} data-testid={`search-history-item-text-${index}`}>
                       {search}
                     </Text>
                   </Group>
@@ -101,6 +103,7 @@ export function SearchHistory({
                       onRemoveSearch(search);
                     }}
                     style={{ opacity: hoveredItem === search ? 1 : 0 }}
+                    data-testid={`search-history-item-remove-${index}`}
                   >
                     <IconX size={10} />
                   </ActionIcon>

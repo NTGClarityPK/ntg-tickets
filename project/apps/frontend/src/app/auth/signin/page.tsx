@@ -212,9 +212,9 @@ export default function SignInPage() {
     switch (currentStep) {
       case 'login':
         return (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="signin-form">
             <Stack gap='lg'>
-              <Box>
+              <Box data-testid="signin-header">
                 <Title order={2} size='1.8rem' fw={700} mb='xs'>
                   Welcome Back
                 </Title>
@@ -229,6 +229,7 @@ export default function SignInPage() {
                   color={theme.colors[theme.primaryColor][9]}
                   variant='light'
                   radius='md'
+                  data-testid="signin-error-alert"
                 >
                   {error}
                 </Alert>
@@ -285,6 +286,7 @@ export default function SignInPage() {
                   },
                 })}
                 disabled={loading}
+                data-testid="signin-email-input"
               />
 
               <PasswordInput
@@ -312,6 +314,7 @@ export default function SignInPage() {
                   },
                 })}
                 disabled={loading}
+                data-testid="signin-password-input"
               />
 
               <Group justify='space-between'>
@@ -320,6 +323,7 @@ export default function SignInPage() {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.currentTarget.checked)}
                   disabled={loading}
+                  data-testid="signin-remember-me"
                 />
                 <Text
                   component='a'
@@ -327,6 +331,7 @@ export default function SignInPage() {
                   size='sm'
                   c={primary}
                   style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  data-testid="forgot-password-link"
                 >
                   Forgot password?
                 </Text>
@@ -344,6 +349,7 @@ export default function SignInPage() {
                   border: 'none',
                   fontWeight: 600,
                 }}
+                data-testid="signin-submit-button"
               >
                 Sign In
               </Button>
@@ -356,6 +362,7 @@ export default function SignInPage() {
                   c={primary}
                   fw={600}
                   style={{ cursor: 'pointer' }}
+                  data-testid="signup-link"
                 >
                   Sign up
                 </Text>

@@ -47,11 +47,11 @@ export default function TestWorkflowPage() {
   }, []);
 
   if (loading) {
-    return <Container><Text>Loading...</Text></Container>;
+    return <Container data-testid="test-workflow-page-loading"><Text data-testid="test-workflow-page-loading-text">Loading...</Text></Container>;
   }
 
   if (error) {
-    return <Container><Alert color={theme.colors[theme.primaryColor][9]}>{error}</Alert></Container>;
+    return <Container data-testid="test-workflow-page-error"><Alert color={theme.colors[theme.primaryColor][9]} data-testid="test-workflow-page-error-alert">{error}</Alert></Container>;
   }
 
   const createEdge = workflow?.definition?.edges?.find((edge: { data?: { isCreateTransition?: boolean }; source: string }) => 
@@ -59,14 +59,14 @@ export default function TestWorkflowPage() {
   );
 
   return (
-    <Container size="xl" py="md">
-      <Stack gap="md">
-        <Title>Workflow Debug Page</Title>
+    <Container size="xl" py="md" data-testid="test-workflow-page">
+      <Stack gap="md" data-testid="test-workflow-page-stack">
+        <Title data-testid="test-workflow-page-title">Workflow Debug Page</Title>
         
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>Current User Info:</Text>
-            <Code block>{JSON.stringify({
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-user-info-card">
+          <Stack gap="sm" data-testid="test-workflow-page-user-info-stack">
+            <Text fw={700} data-testid="test-workflow-page-user-info-title">Current User Info:</Text>
+            <Code block data-testid="test-workflow-page-user-info-code">{JSON.stringify({
               id: user?.id,
               name: user?.name,
               email: user?.email,
@@ -76,19 +76,19 @@ export default function TestWorkflowPage() {
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>Can Create Ticket:</Text>
-            <Text size="xl" c={canCreate ? theme.primaryColor : theme.colors[theme.primaryColor][9]}>
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-can-create-card">
+          <Stack gap="sm" data-testid="test-workflow-page-can-create-stack">
+            <Text fw={700} data-testid="test-workflow-page-can-create-title">Can Create Ticket:</Text>
+            <Text size="xl" c={canCreate ? theme.primaryColor : theme.colors[theme.primaryColor][9]} data-testid="test-workflow-page-can-create-value">
               {canCreateLoading ? 'Checking...' : canCreate ? 'YES ✓' : 'NO ✗'}
             </Text>
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>Workflow Info:</Text>
-            <Code block>{JSON.stringify({
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-workflow-info-card">
+          <Stack gap="sm" data-testid="test-workflow-page-workflow-info-stack">
+            <Text fw={700} data-testid="test-workflow-page-workflow-info-title">Workflow Info:</Text>
+            <Code block data-testid="test-workflow-page-workflow-info-code">{JSON.stringify({
               id: workflow?.id,
               name: workflow?.name,
               status: workflow?.status,
@@ -98,35 +98,35 @@ export default function TestWorkflowPage() {
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>Create Ticket Edge (from workflow definition):</Text>
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-create-edge-card">
+          <Stack gap="sm" data-testid="test-workflow-page-create-edge-stack">
+            <Text fw={700} data-testid="test-workflow-page-create-edge-title">Create Ticket Edge (from workflow definition):</Text>
             {createEdge ? (
-              <Code block>{JSON.stringify(createEdge, null, 2)}</Code>
+              <Code block data-testid="test-workflow-page-create-edge-code">{JSON.stringify(createEdge, null, 2)}</Code>
             ) : (
-              <Alert color={theme.colors[theme.primaryColor][4]}>No create edge found!</Alert>
+              <Alert color={theme.colors[theme.primaryColor][4]} data-testid="test-workflow-page-create-edge-alert">No create edge found!</Alert>
             )}
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>All Edges:</Text>
-            <Code block>{JSON.stringify(workflow?.definition?.edges || [], null, 2)}</Code>
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-all-edges-card">
+          <Stack gap="sm" data-testid="test-workflow-page-all-edges-stack">
+            <Text fw={700} data-testid="test-workflow-page-all-edges-title">All Edges:</Text>
+            <Code block data-testid="test-workflow-page-all-edges-code">{JSON.stringify(workflow?.definition?.edges || [], null, 2)}</Code>
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>All Transitions (from database):</Text>
-            <Code block>{JSON.stringify(workflow?.transitions || [], null, 2)}</Code>
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-transitions-card">
+          <Stack gap="sm" data-testid="test-workflow-page-transitions-stack">
+            <Text fw={700} data-testid="test-workflow-page-transitions-title">All Transitions (from database):</Text>
+            <Code block data-testid="test-workflow-page-transitions-code">{JSON.stringify(workflow?.transitions || [], null, 2)}</Code>
           </Stack>
         </Card>
 
-        <Card shadow="sm" padding="lg" withBorder>
-          <Stack gap="sm">
-            <Text fw={700}>Full Workflow Definition:</Text>
-            <Code block>{JSON.stringify(workflow?.definition || {}, null, 2)}</Code>
+        <Card shadow="sm" padding="lg" withBorder data-testid="test-workflow-page-full-definition-card">
+          <Stack gap="sm" data-testid="test-workflow-page-full-definition-stack">
+            <Text fw={700} data-testid="test-workflow-page-full-definition-title">Full Workflow Definition:</Text>
+            <Code block data-testid="test-workflow-page-full-definition-code">{JSON.stringify(workflow?.definition || {}, null, 2)}</Code>
           </Stack>
         </Card>
 
@@ -135,6 +135,7 @@ export default function TestWorkflowPage() {
           size='lg'
           onClick={fetchWorkflow}
           title='Refresh Data'
+          data-testid="test-workflow-page-refresh-button"
         >
           <IconRefresh size={20} />
         </ActionIcon>

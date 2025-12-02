@@ -60,10 +60,10 @@ export default function EditUserPage() {
 
   if (isLoading) {
     return (
-      <Container size='md' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading user details...</Text>
+      <Container size='md' py='md' data-testid="edit-user-page-loading">
+        <Group justify='center' mt='xl' data-testid="edit-user-page-loading-group">
+          <Loader size='lg' data-testid="edit-user-page-loader" />
+          <Text data-testid="edit-user-page-loading-text">Loading user details...</Text>
         </Group>
       </Container>
     );
@@ -71,15 +71,16 @@ export default function EditUserPage() {
 
   if (error || !user) {
     return (
-      <Container size='md' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
+      <Container size='md' py='md' data-testid="edit-user-page-error">
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]} data-testid="edit-user-page-error-alert">
           Failed to load user: {error?.message || 'User not found'}
         </Alert>
-        <Group mt='md'>
+        <Group mt='md' data-testid="edit-user-page-error-actions">
           <Button
             variant='outline'
             leftSection={<RTLArrowLeft size={16} />}
             onClick={() => router.push('/admin/users')}
+            data-testid="edit-user-page-error-back-button"
           >
             Back to Users
           </Button>
@@ -89,22 +90,23 @@ export default function EditUserPage() {
   }
 
   return (
-    <Container size='md' py='md'>
-      <Group mb='xl'>
+    <Container size='md' py='md' data-testid="edit-user-page">
+      <Group mb='xl' data-testid="edit-user-page-header">
         <Button
           variant='subtle'
           leftSection={<RTLArrowLeft size={16} />}
           onClick={handleCancel}
+          data-testid="edit-user-page-back-button"
         >
           Back to Users
         </Button>
-        <div>
-          <Title order={1}>Edit User</Title>
-          <Text c='dimmed'>Update user information and settings</Text>
+        <div data-testid="edit-user-page-header-content">
+          <Title order={1} data-testid="edit-user-page-title">Edit User</Title>
+          <Text c='dimmed' data-testid="edit-user-page-subtitle">Update user information and settings</Text>
         </div>
       </Group>
 
-      <Card shadow='sm' padding='lg' radius='md' withBorder>
+      <Card shadow='sm' padding='lg' radius='md' withBorder data-testid="edit-user-page-card">
         <UserForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
@@ -119,6 +121,7 @@ export default function EditUserPage() {
           title='Error'
           color={theme.colors[theme.primaryColor][9]}
           mt='md'
+          data-testid="edit-user-page-update-error-alert"
         >
           Failed to update user. Please check the form and try again.
         </Alert>

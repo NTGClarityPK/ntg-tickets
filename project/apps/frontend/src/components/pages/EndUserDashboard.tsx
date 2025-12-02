@@ -78,31 +78,32 @@ export function EndUserDashboard() {
 
   if (ticketsLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
+      <Container size='xl' py='md' data-testid="end-user-dashboard-loading">
+        <Group justify='center' py='xl' data-testid="end-user-dashboard-loading-group">
+          <Loader size='lg' data-testid="end-user-dashboard-loader" />
         </Group>
       </Container>
     );
   }
 
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
+    <Container size='xl' py='md' data-testid="end-user-dashboard">
+      <Stack gap='md' data-testid="end-user-dashboard-content">
         {/* Header */}
-        <Group justify='space-between'>
-          <div>
-            <Title order={2}>
+        <Group justify='space-between' data-testid="end-user-dashboard-header">
+          <div data-testid="end-user-dashboard-header-content">
+            <Title order={2} data-testid="end-user-dashboard-title">
               {t('welcome')}, {user?.name}!
             </Title>
-            <Text c='dimmed'>{t('subtitle')}</Text>
+            <Text c='dimmed' data-testid="end-user-dashboard-subtitle">{t('subtitle')}</Text>
           </div>
-          <Group>
+          <Group data-testid="end-user-dashboard-actions">
             <Button
               className="pdf-hide-elements"
               variant='outline'
               leftSection={<IconSearch size={16} />}
               onClick={() => router.push('/tickets')}
+              data-testid="end-user-dashboard-search-button"
             >
               Search Tickets
             </Button>
@@ -110,19 +111,19 @@ export function EndUserDashboard() {
         </Group>
 
         {/* Stats Cards */}
-        <Grid>
+        <Grid data-testid="end-user-dashboard-stats">
           {stats.map(stat => (
-            <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
-              <Card withBorder>
+            <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }} data-testid={`end-user-dashboard-stat-col-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+              <Card withBorder data-testid={`end-user-dashboard-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                 <Group>
-                  <Avatar color={stat.color} size='lg'>
+                  <Avatar color={stat.color} size='lg' data-testid={`end-user-dashboard-stat-icon-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                     <stat.icon size={24} />
                   </Avatar>
-                  <div>
-                    <Text size='lg' fw={600}>
+                  <div data-testid={`end-user-dashboard-stat-content-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Text size='lg' fw={600} data-testid={`end-user-dashboard-stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {stat.value}
                     </Text>
-                    <Text size='sm' c='dimmed'>
+                    <Text size='sm' c='dimmed' data-testid={`end-user-dashboard-stat-label-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {stat.title}
                     </Text>
                   </div>
@@ -133,12 +134,13 @@ export function EndUserDashboard() {
         </Grid>
 
         {/* Quick Actions */}
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="end-user-dashboard-quick-actions">
           <Button
             variant='filled'
             leftSection={<IconSearch size={16} />}
             onClick={() => router.push('/tickets')}
             size='lg'
+            data-testid="end-user-dashboard-view-all-button"
           >
             View All My Tickets
           </Button>
@@ -148,6 +150,7 @@ export function EndUserDashboard() {
               leftSection={<IconTicket size={16} />}
               onClick={() => router.push('/tickets/create')}
               size='lg'
+              data-testid="end-user-dashboard-create-ticket-button"
             >
               Create New Ticket
             </Button>

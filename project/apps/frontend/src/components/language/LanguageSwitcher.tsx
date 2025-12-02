@@ -73,6 +73,7 @@ export function LanguageSwitcher() {
         width='target'
         withinPortal
         shadow='md'
+        data-testid="language-switcher-menu"
       >
         <Menu.Target>
           <Button
@@ -82,6 +83,7 @@ export function LanguageSwitcher() {
             style={{
               minWidth: 120,
             }}
+            data-testid="language-switcher-button"
           >
             <Text size='sm'>{currentLanguage.name}</Text>
           </Button>
@@ -114,6 +116,7 @@ export function LanguageSwitcher() {
                   transition: 'background-color 0.2s ease, color 0.2s ease',
                   marginBottom: '4px',
                 }}
+                data-testid={`language-option-${language.code}`}
                 onMouseEnter={e => {
                   if (!isSelected) {
                     e.currentTarget.style.backgroundColor = hoverBg;

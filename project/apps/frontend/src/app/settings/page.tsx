@@ -147,6 +147,7 @@ export default function SettingsPage() {
             color={saved ? mantineTheme.primaryColor : mantineTheme.primaryColor}
             loading={isLoading}
             onClick={() => form.onSubmit(handleSave)()}
+            data-testid="settings-save-button"
           >
             {saved ? 'Saved!' : t('saveChanges')}
           </Button>
@@ -164,15 +165,15 @@ export default function SettingsPage() {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={setActiveTab} data-testid="settings-tabs">
         <Tabs.List>
-          <Tabs.Tab value='appearance' leftSection={<IconPalette size={16} />}>
+          <Tabs.Tab value='appearance' leftSection={<IconPalette size={16} />} data-testid="settings-tab-appearance">
             {t('appearance')}
           </Tabs.Tab>
-          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />}>
+          <Tabs.Tab value='notifications' leftSection={<IconBell size={16} />} data-testid="settings-tab-notifications">
             {t('notifications')}
           </Tabs.Tab>
-          <Tabs.Tab value='privacy' leftSection={<IconShield size={16} />}>
+          <Tabs.Tab value='privacy' leftSection={<IconShield size={16} />} data-testid="settings-tab-privacy">
             {t('privacy')}
           </Tabs.Tab>
         </Tabs.List>
@@ -182,7 +183,7 @@ export default function SettingsPage() {
             <Title order={3} mb='md'>
               Appearance Settings
             </Title>
-            <form onSubmit={form.onSubmit(handleSave)}>
+            <form onSubmit={form.onSubmit(handleSave)} data-testid="settings-appearance-form">
               <Stack gap='md'>
                 <Grid>
                   <Grid.Col span={6}>
@@ -195,6 +196,7 @@ export default function SettingsPage() {
                         { value: 'auto', label: 'Auto (System)' },
                       ]}
                       {...form.getInputProps('theme')}
+                      data-testid="settings-theme-select"
                     />
                   </Grid.Col>
                   <Grid.Col span={6}>
@@ -206,6 +208,7 @@ export default function SettingsPage() {
                         { value: 'ar', label: 'العربية' },
                       ]}
                       {...form.getInputProps('language')}
+                      data-testid="settings-language-select"
                     />
                   </Grid.Col>
                 </Grid>
@@ -261,7 +264,7 @@ export default function SettingsPage() {
             <Title order={3} mb='md'>
               Notification Settings
             </Title>
-            <form onSubmit={form.onSubmit(handleSave)}>
+            <form onSubmit={form.onSubmit(handleSave)} data-testid="settings-notifications-form">
               <Stack gap='md'>
                 <Switch
                   label='Email Notifications'
@@ -269,6 +272,7 @@ export default function SettingsPage() {
                   {...form.getInputProps('emailNotifications', {
                     type: 'checkbox',
                   })}
+                  data-testid="settings-email-notifications-switch"
                 />
                 <Switch
                   label='Push Notifications'
@@ -276,6 +280,7 @@ export default function SettingsPage() {
                   {...form.getInputProps('pushNotifications', {
                     type: 'checkbox',
                   })}
+                  data-testid="settings-push-notifications-switch"
                 />
                 <Switch
                   label='SMS Notifications'
@@ -283,6 +288,7 @@ export default function SettingsPage() {
                   {...form.getInputProps('smsNotifications', {
                     type: 'checkbox',
                   })}
+                  data-testid="settings-sms-notifications-switch"
                 />
 
                 <Divider />
@@ -297,6 +303,7 @@ export default function SettingsPage() {
                     { value: 'weekly', label: 'Weekly Digest' },
                   ]}
                   {...form.getInputProps('notificationFrequency')}
+                  data-testid="settings-notification-frequency-select"
                 />
 
                 <Divider />

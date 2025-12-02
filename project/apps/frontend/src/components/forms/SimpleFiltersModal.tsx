@@ -106,6 +106,7 @@ export function SimpleFiltersModal({
         </Group>
       }
       size='md'
+      data-testid="simple-filters-modal"
     >
       <Stack gap='md'>
         <Text size='sm' c='dimmed'>
@@ -119,6 +120,7 @@ export function SimpleFiltersModal({
           value={selectedStatus}
           onChange={value => setSelectedStatus(value)}
           clearable
+          data-testid="simple-filters-status-select"
         />
 
         <MultiSelect
@@ -128,6 +130,7 @@ export function SimpleFiltersModal({
           value={selectedPriority}
           onChange={value => setSelectedPriority(value)}
           clearable
+          data-testid="simple-filters-priority-select"
         />
 
         <MultiSelect
@@ -137,6 +140,7 @@ export function SimpleFiltersModal({
           value={selectedCategory}
           onChange={value => setSelectedCategory(value)}
           clearable
+          data-testid="simple-filters-category-select"
         />
 
         {hasActiveFilters && (
@@ -167,14 +171,15 @@ export function SimpleFiltersModal({
             variant='subtle'
             onClick={handleClear}
             disabled={!hasActiveFilters}
+            data-testid="simple-filters-clear-button"
           >
             Clear All
           </Button>
           <Group>
-            <Button variant='outline' onClick={onClose}>
+            <Button variant='outline' onClick={onClose} data-testid="simple-filters-cancel-button">
               Cancel
             </Button>
-            <Button onClick={handleApply}>Apply Filters</Button>
+            <Button onClick={handleApply} data-testid="simple-filters-apply-button">Apply Filters</Button>
           </Group>
         </Group>
       </Stack>

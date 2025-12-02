@@ -131,7 +131,7 @@ export function UserForm({
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form onSubmit={form.onSubmit(handleSubmit)} data-testid="user-form">
       <Stack gap='md'>
         <Grid>
           <Grid.Col span={6}>
@@ -140,6 +140,7 @@ export function UserForm({
               placeholder='Enter full name'
               required
               {...form.getInputProps('name')}
+              data-testid="user-name-input"
             />
           </Grid.Col>
           <Grid.Col span={6}>
@@ -149,6 +150,7 @@ export function UserForm({
               required
               type='email'
               {...form.getInputProps('email')}
+              data-testid="user-email-input"
             />
           </Grid.Col>
         </Grid>
@@ -164,6 +166,7 @@ export function UserForm({
                 disabled: !!(role.value === UserRole.ADMIN && isAdminRoleDisabled),
               }))}
               {...form.getInputProps('roles')}
+              data-testid="user-roles-select"
             />
             {isAdminRoleDisabled && (
               <Text size='xs' c='dimmed' mt={4}>
@@ -176,6 +179,7 @@ export function UserForm({
               label='Active'
               description='User can access the system'
               {...form.getInputProps('isActive', { type: 'checkbox' })}
+              data-testid="user-active-switch"
             />
           </Grid.Col>
         </Grid>
@@ -190,6 +194,7 @@ export function UserForm({
                   required
                   description='Must contain uppercase, lowercase, number, and special character'
                   {...form.getInputProps('password')}
+                  data-testid="user-password-input"
                 />
               </Grid.Col>
               <Grid.Col span={6}>
@@ -199,6 +204,7 @@ export function UserForm({
                   required
                   description='Re-enter the password to confirm'
                   {...form.getInputProps('confirmPassword')}
+                  data-testid="user-confirm-password-input"
                 />
               </Grid.Col>
             </Grid>
@@ -242,10 +248,10 @@ export function UserForm({
         )}
 
         <Group justify='flex-end' mt='xl'>
-          <Button variant='outline' onClick={onCancel}>
+          <Button variant='outline' onClick={onCancel} data-testid="user-form-cancel">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="user-form-submit">
             {isEditing ? 'Update User' : 'Create User'}
           </Button>
         </Group>

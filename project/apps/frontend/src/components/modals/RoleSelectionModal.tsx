@@ -94,7 +94,7 @@ export function RoleSelectionModal({
           <Title order={3} fw={600}>
             {t('selectRole')}
           </Title>
-          <ActionIcon variant='subtle' color='gray' onClick={onClose} size='sm'>
+          <ActionIcon variant='subtle' color='gray' onClick={onClose} size='sm' data-testid="role-modal-close">
             <IconX size={16} />
           </ActionIcon>
         </Group>
@@ -104,10 +104,11 @@ export function RoleSelectionModal({
       closeOnClickOutside={false}
       closeOnEscape={false}
       withCloseButton={false}
+      data-testid="role-selection-modal"
     >
-      <Stack gap='lg'>
-        <Box>
-          <Text size='sm' c='dimmed' mb='md'>
+      <Stack gap='lg' data-testid="role-selection-modal-stack">
+        <Box data-testid="role-selection-modal-header">
+          <Text size='sm' c='dimmed' mb='md' data-testid="role-selection-modal-description">
             {t('youHaveMultipleRoles')}
           </Text>
           {error && (
@@ -117,13 +118,14 @@ export function RoleSelectionModal({
               variant='light'
               radius='md'
               mb='md'
+              data-testid="role-selection-modal-error-alert"
             >
-              <Text size='sm'>{error}</Text>
+              <Text size='sm' data-testid="role-selection-modal-error-text">{error}</Text>
             </Alert>
           )}
         </Box>
 
-        <Stack gap='md'>
+        <Stack gap='md' data-testid="role-selection-modal-roles-stack">
           {availableRoles.map(
             ({ role, icon: Icon, color, title, description }) => (
               <Card
@@ -138,22 +140,24 @@ export function RoleSelectionModal({
                   opacity: 1,
                 }}
                 onClick={() => handleRoleClick(role)}
+                data-testid={`role-card-${role}`}
               >
-                <Group justify='space-between' mb='sm'>
-                  <Group gap='sm'>
+                <Group justify='space-between' mb='sm' data-testid={`role-card-content-${role}`}>
+                  <Group gap='sm' data-testid={`role-card-info-${role}`}>
                     <ThemeIcon
                       size='lg'
                       radius='md'
                       variant='light'
                       color={color}
+                      data-testid={`role-card-icon-${role}`}
                     >
                       <Icon size={20} />
                     </ThemeIcon>
-                    <Box>
-                      <Text fw={600} size='lg'>
+                    <Box data-testid={`role-card-text-${role}`}>
+                      <Text fw={600} size='lg' data-testid={`role-card-title-${role}`}>
                         {title}
                       </Text>
-                      <Text size='sm' c='dimmed'>
+                      <Text size='sm' c='dimmed' data-testid={`role-card-description-${role}`}>
                         {description}
                       </Text>
                     </Box>
@@ -162,6 +166,7 @@ export function RoleSelectionModal({
                     color={color}
                     variant='light'
                     size='sm'
+                    data-testid={`role-card-badge-${role}`}
                   >
                     {role.replace('_', ' ')}
                   </Badge>

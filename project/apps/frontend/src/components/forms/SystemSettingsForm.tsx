@@ -133,25 +133,26 @@ export function SystemSettingsForm({
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap='md'>
-        <Title order={4}>General Settings</Title>
-        <Grid>
+    <form onSubmit={form.onSubmit(handleSubmit)} data-testid="system-settings-form">
+      <Stack gap='md' data-testid="system-settings-form-stack">
+        <Title order={4} data-testid="system-settings-general-title">General Settings</Title>
+        <Grid data-testid="system-settings-general-grid">
           <Grid.Col span={6}>
-            <TextInput label='Site Name' {...form.getInputProps('siteName')} />
+            <TextInput label='Site Name' {...form.getInputProps('siteName')} data-testid="system-settings-site-name-input" />
           </Grid.Col>
           <Grid.Col span={6}>
-            <TextInput label='Timezone' {...form.getInputProps('timezone')} />
+            <TextInput label='Timezone' {...form.getInputProps('timezone')} data-testid="system-settings-timezone-input" />
           </Grid.Col>
         </Grid>
 
         <TextInput
           label='Site Description'
           {...form.getInputProps('siteDescription')}
+          data-testid="system-settings-site-description-input"
         />
 
-        <Divider />
-        <Title order={4}>Ticket Settings</Title>
+        <Divider data-testid="system-settings-ticket-divider" />
+        <Title order={4} data-testid="system-settings-ticket-title">Ticket Settings</Title>
         <Grid>
           <Grid.Col span={6}>
             <Switch
@@ -406,11 +407,18 @@ export function SystemSettingsForm({
           </Text>
         </Alert>
 
-        <Group justify='flex-end' mt='xl'>
-          <Button variant='outline' onClick={onCancel}>
+        <Alert color={theme.colors[theme.primaryColor][4]} title='Important' data-testid="system-settings-important-alert">
+          <Text size='sm' data-testid="system-settings-important-message">
+            Some settings may require a system restart to take effect. Please
+            test changes in a staging environment before applying to production.
+          </Text>
+        </Alert>
+
+        <Group justify='flex-end' mt='xl' data-testid="system-settings-form-actions">
+          <Button variant='outline' onClick={onCancel} data-testid="system-settings-form-cancel">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="system-settings-form-submit">
             Save Settings
           </Button>
         </Group>

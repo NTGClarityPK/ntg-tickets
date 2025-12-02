@@ -217,7 +217,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
           leftSection={<item.icon size={16} />}
           rightSection={
             item.badge !== undefined ? (
-              <Badge size='sm' variant='light' color={color}>
+              <Badge size='sm' variant='light' color={color} data-testid={`nav-badge-${item.href.replace(/\//g, '-')}`}>
                 {item.badge}
               </Badge>
             ) : null
@@ -228,17 +228,18 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
             router.push(item.href);
             onMobileClose?.();
           }}
+          data-testid={`nav-link-${item.href.replace(/\//g, '-')}`}
         />
       );
     });
   };
 
   return (
-    <AppShell.Navbar p='md'>
-      <ScrollArea h='100%'>
-        <Stack gap='xs'>
+    <AppShell.Navbar p='md' data-testid="app-navbar">
+      <ScrollArea h='100%' data-testid="app-navbar-scroll">
+        <Stack gap='xs' data-testid="app-navbar-stack">
           {/* Essential Navigation - Always visible */}
-          <Text size='xs' tt='uppercase' fw={700} c='dimmed' mb='xs'>
+          <Text size='xs' tt='uppercase' fw={700} c='dimmed' mb='xs' data-testid="app-navbar-navigation-label">
             {t('navigation')}
           </Text>
           {renderNavItems(essentialItems)}
@@ -246,7 +247,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
           {/* Ticket Management - Collapsible on all devices */}
           {ticketItems.some(item => item.show) && (
             <>
-              <Divider my='sm' />
+              <Divider my='sm' data-testid="app-navbar-tickets-divider" />
               <Button
                 variant='subtle'
                 leftSection={
@@ -260,11 +261,12 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
                 size='sm'
                 justify='flex-start'
                 fullWidth
+                data-testid="tickets-section-toggle"
               >
                 {tTickets('title')}
               </Button>
-              <Collapse in={ticketsExpanded}>
-                <Stack gap='xs' pl='md'>
+              <Collapse in={ticketsExpanded} data-testid="app-navbar-tickets-collapse">
+                <Stack gap='xs' pl='md' data-testid="app-navbar-tickets-stack">
                   {renderNavItems(ticketItems, primary)}
                 </Stack>
               </Collapse>
@@ -274,7 +276,7 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
           {/* Admin Section - Collapsible on all devices */}
           {adminItems.some(item => item.show) && (
             <>
-              <Divider my='sm' />
+              <Divider my='sm' data-testid="app-navbar-admin-divider" />
               <Button
                 variant='subtle'
                 leftSection={
@@ -288,11 +290,12 @@ export function AppNavbar({ onMobileClose }: AppNavbarProps) {
                 size='sm'
                 justify='flex-start'
                 fullWidth
+                data-testid="admin-section-toggle"
               >
                 {tAdmin('title')}
               </Button>
-              <Collapse in={adminExpanded}>
-                <Stack gap='xs' pl='md'>
+              <Collapse in={adminExpanded} data-testid="app-navbar-admin-collapse">
+                <Stack gap='xs' pl='md' data-testid="app-navbar-admin-stack">
                   {renderNavItems(adminItems, primary)}
                   {renderNavItems(additionalAdminItems, primary)}
                 </Stack>

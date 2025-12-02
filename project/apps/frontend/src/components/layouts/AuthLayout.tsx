@@ -30,6 +30,7 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
         padding: '20px',
         position: 'relative',
       }}
+      data-testid="auth-layout-container"
     >
       {/* Language Switcher and Theme Toggle - Overlay */}
       <Box
@@ -41,6 +42,7 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
           display: 'flex',
           gap: '8px',
         }}
+        data-testid="auth-layout-controls"
       >
         <LanguageSwitcher />
         <ThemeToggle />
@@ -58,6 +60,7 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
           justifyContent: 'center',
         }}
         visibleFrom='md'
+        data-testid="auth-layout-decorative-side"
       >
         <Box
           style={{
@@ -65,6 +68,7 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
             color: 'white',
             zIndex: 10,
           }}
+          data-testid="auth-layout-decorative-content"
         >
           <Box
             style={{
@@ -80,13 +84,14 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
               backdropFilter: 'blur(10px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
             }}
+            data-testid="auth-layout-icon-wrapper"
           >
-            <IconTicket size={60} stroke={2} />
+            <IconTicket size={60} stroke={2} data-testid="auth-layout-icon" />
           </Box>
-          <Title order={1} size='2.5rem' fw={800} mb='md' c='white'>
+          <Title order={1} size='2.5rem' fw={800} mb='md' c='white' data-testid="auth-layout-title">
             Ticket Management
           </Title>
-          <Text size='lg' c='white' opacity={0.9}>
+          <Text size='lg' c='white' opacity={0.9} data-testid="auth-layout-subtitle">
             Streamline your IT support operations
           </Text>
         </Box>
@@ -103,6 +108,7 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
           width: '100%',
           flex: 1,
         }}
+        data-testid="auth-layout-form-side"
       >
         <Card
           shadow='xl'
@@ -118,9 +124,10 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
             flexDirection: 'column',
             justifyContent: 'center',
           }}
+          data-testid="auth-layout-card"
         >
           {/* App Name Header */}
-          <Box ta='center' mb='xl'>
+          <Box ta='center' mb='xl' data-testid="auth-layout-app-header">
             <Title
               order={1}
               size='2.2rem'
@@ -131,12 +138,15 @@ export function AuthLayout({ children, maxWidth = 480 }: AuthLayoutProps) {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
+              data-testid="auth-layout-app-name"
             >
               NTG Ticket
             </Title>
           </Box>
 
-          {children}
+          <div data-testid="auth-layout-children">
+            {children}
+          </div>
         </Card>
       </Box>
     </Box>

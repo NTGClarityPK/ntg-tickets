@@ -245,6 +245,7 @@ export function FileUpload({
         accept={acceptedTypes}
         maxFiles={maxFiles}
         disabled={disabled || files.length >= maxFiles}
+        data-testid="file-upload-dropzone"
       >
         <Group
           justify='center'
@@ -335,6 +336,7 @@ export function FileUpload({
                         color='blue'
                         onClick={() => retryUpload(fileUpload)}
                         title='Retry upload'
+                        data-testid={`file-upload-retry-${fileUpload.id}`}
                       >
                         <IconRefresh size={14} />
                       </ActionIcon>
@@ -346,6 +348,7 @@ export function FileUpload({
                       color={theme.colors[theme.primaryColor][9]}
                       onClick={() => removeFile(fileUpload.id)}
                       title='Remove file'
+                      data-testid={`file-upload-remove-${fileUpload.id}`}
                     >
                       <IconTrash size={14} />
                     </ActionIcon>

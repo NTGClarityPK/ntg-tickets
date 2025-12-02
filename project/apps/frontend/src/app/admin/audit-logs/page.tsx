@@ -175,6 +175,7 @@ export default function AuditLogsPage() {
             onClick={() => refetch()}
             disabled={isLoading}
             title='Refresh'
+            data-testid="audit-logs-refresh-button"
           >
             {isLoading ? <Loader size={16} /> : <IconRefresh size={20} />}
           </ActionIcon>
@@ -182,6 +183,7 @@ export default function AuditLogsPage() {
             leftSection={<IconDownload size={16} />}
             onClick={handleExport}
             loading={false}
+            data-testid="audit-logs-export-button"
           >
             Export
           </Button>
@@ -200,6 +202,7 @@ export default function AuditLogsPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 leftSection={<IconSearch size={16} />}
+                data-testid="audit-logs-search-input"
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
@@ -212,6 +215,7 @@ export default function AuditLogsPage() {
                   setFilters({ ...filters, action: value || undefined })
                 }
                 clearable
+                data-testid="audit-logs-action-select"
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
@@ -224,10 +228,11 @@ export default function AuditLogsPage() {
                   setFilters({ ...filters, fieldName: value || undefined })
                 }
                 clearable
+                data-testid="audit-logs-field-select"
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-              <Button onClick={handleSearch} fullWidth mt='xl'>
+              <Button onClick={handleSearch} fullWidth mt='xl' data-testid="audit-logs-apply-filters-button">
                 Apply Filters
               </Button>
             </Grid.Col>
@@ -239,6 +244,7 @@ export default function AuditLogsPage() {
                 onChange={(date: Date | null) =>
                   setFilters({ ...filters, dateFrom: date || undefined })
                 }
+                data-testid="audit-logs-date-from"
               />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
@@ -249,24 +255,25 @@ export default function AuditLogsPage() {
                 onChange={(date: Date | null) =>
                   setFilters({ ...filters, dateTo: date || undefined })
                 }
+                data-testid="audit-logs-date-to"
               />
             </Grid.Col>
           </Grid>
         </Stack>
       </Card>
 
-      <Tabs value={activeTab} onChange={value => setActiveTab(value || 'all')}>
+      <Tabs value={activeTab} onChange={value => setActiveTab(value || 'all')} data-testid="audit-logs-tabs">
         <Tabs.List>
-          <Tabs.Tab value='all' leftSection={<IconDatabase size={16} />}>
+          <Tabs.Tab value='all' leftSection={<IconDatabase size={16} />} data-testid="audit-logs-tab-all">
             All Logs
           </Tabs.Tab>
-          <Tabs.Tab value='tickets' leftSection={<IconTicket size={16} />}>
+          <Tabs.Tab value='tickets' leftSection={<IconTicket size={16} />} data-testid="audit-logs-tab-tickets">
             Ticket Changes
           </Tabs.Tab>
-          <Tabs.Tab value='users' leftSection={<IconUser size={16} />}>
+          <Tabs.Tab value='users' leftSection={<IconUser size={16} />} data-testid="audit-logs-tab-users">
             User Activities
           </Tabs.Tab>
-          <Tabs.Tab value='system' leftSection={<IconSettings size={16} />}>
+          <Tabs.Tab value='system' leftSection={<IconSettings size={16} />} data-testid="audit-logs-tab-system">
             System Events
           </Tabs.Tab>
         </Tabs.List>
@@ -377,6 +384,7 @@ export default function AuditLogsPage() {
                                   variant='light'
                                   size='sm'
                                   onClick={() => handleLogClick(log)}
+                                  data-testid={`audit-log-view-${log.id}`}
                                 >
                                   <IconEye size={14} />
                                 </ActionIcon>
@@ -395,6 +403,7 @@ export default function AuditLogsPage() {
                         onChange={handlePageChange}
                         total={auditLogs.pagination.totalPages}
                         size='sm'
+                        data-testid="audit-logs-pagination"
                       />
                     </Group>
                   )}
@@ -618,6 +627,7 @@ export default function AuditLogsPage() {
         title='Audit Log Details'
         size='lg'
         fullScreen
+        data-testid="audit-log-detail-modal"
       >
         {selectedLog && (
           <Stack>

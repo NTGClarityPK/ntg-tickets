@@ -128,5 +128,5 @@ export default function CreateTicketPage() {
     return <div>Checking permissions...</div>;
   }
 
-  return <DynamicTicketForm onSubmit={handleSubmit} loading={createTicketMutation.isPending} />;
+  return <DynamicTicketForm onSubmit={handleSubmit} loading={createTicketMutation.isPending} data-testid="create-ticket-form" />;
 }

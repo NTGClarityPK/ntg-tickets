@@ -182,10 +182,10 @@ export default function MyTicketsPage() {
 
   if (isLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading your tickets...</Text>
+      <Container size='xl' py='md' data-testid="my-tickets-page-loading">
+        <Group justify='center' mt='xl' data-testid="my-tickets-page-loading-group">
+          <Loader size='lg' data-testid="my-tickets-page-loader" />
+          <Text data-testid="my-tickets-page-loading-text">Loading your tickets...</Text>
         </Group>
       </Container>
     );
@@ -193,8 +193,8 @@ export default function MyTicketsPage() {
 
   if (error) {
     return (
-      <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
+      <Container size='xl' py='md' data-testid="my-tickets-page-error">
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]} data-testid="my-tickets-page-error-alert">
           Failed to load tickets: {String(error)}
         </Alert>
       </Container>
@@ -202,13 +202,13 @@ export default function MyTicketsPage() {
   }
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={1}>My Tickets</Title>
-          <Text c='dimmed'>Tickets created by or assigned to you</Text>
+    <Container size='xl' py='md' data-testid="my-tickets-page">
+      <Group justify='space-between' mb='xl' data-testid="my-tickets-page-header">
+        <div data-testid="my-tickets-page-header-content">
+          <Title order={1} data-testid="my-tickets-page-title">My Tickets</Title>
+          <Text c='dimmed' data-testid="my-tickets-page-subtitle">Tickets created by or assigned to you</Text>
           {hasActiveFilters() && (
-            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs' data-testid="my-tickets-page-filter-count">
               Showing {myTickets.length} of {pagination?.total || 0} tickets
             </Text>
           )}
@@ -217,14 +217,15 @@ export default function MyTicketsPage() {
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => router.push('/tickets/create')}
+            data-testid="my-tickets-page-create-button"
           >
             Create Ticket
           </Button>
         )}
       </Group>
 
-      <Grid mb='md'>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <Grid mb='md' data-testid="my-tickets-page-toolbar">
+        <Grid.Col span={{ base: 12, md: 6 }} data-testid="my-tickets-page-search-col">
           <SearchBar
             key={searchFilters.search || 'empty'}
             value={searchFilters.search}
@@ -245,23 +246,25 @@ export default function MyTicketsPage() {
             isLoading={isFetching}
           />
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="my-tickets-page-advanced-col">
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={() => setAdvancedSearchOpen(true)}
+            data-testid="my-tickets-page-advanced-button"
           >
             Advanced
           </Button>
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="my-tickets-page-clear-col">
           {hasActiveFilters() && (
             <Button
               variant='outline'
               leftSection={<IconX size={16} />}
               fullWidth
               onClick={clearFilters}
+              data-testid="my-tickets-page-clear-filters-button"
             >
               Clear Filters
             </Button>
@@ -269,44 +272,47 @@ export default function MyTicketsPage() {
         </Grid.Col>
       </Grid>
 
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="my-tickets-page-list">
         {myTickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
-            <Group justify='space-between' mb='sm'>
-              <Group gap='sm'>
-                <Badge color={statusColors[ticket.status]} variant='light'>
+          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder data-testid={`my-ticket-card-${ticket.id}`}>
+            <Group justify='space-between' mb='sm' data-testid={`my-ticket-header-${ticket.id}`}>
+              <Group gap='sm' data-testid={`my-ticket-badges-${ticket.id}`}>
+                <Badge color={statusColors[ticket.status]} variant='light' data-testid={`my-ticket-status-badge-${ticket.id}`}>
                   {ticket.status.replace('_', ' ')}
                 </Badge>
                 <Badge
                   color={priorityColors[ticket.priority]}
                   variant='outline'
+                  data-testid={`my-ticket-priority-badge-${ticket.id}`}
                 >
                   {ticket.priority}
                 </Badge>
-                <Text size='sm' c='dimmed'>
+                <Text size='sm' c='dimmed' data-testid={`my-ticket-number-${ticket.id}`}>
                   {ticket.ticketNumber}
                 </Text>
               </Group>
-              <Menu shadow='md' width={200}>
+              <Menu shadow='md' width={200} data-testid={`my-ticket-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`my-ticket-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown data-testid={`my-ticket-menu-dropdown-${ticket.id}`}>
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => handleViewTicket(ticket.id)}
+                    data-testid={`my-ticket-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => handleEditTicket(ticket.id)}
+                    data-testid={`my-ticket-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
-                  <Menu.Divider />
+                  <Menu.Divider data-testid={`my-ticket-menu-divider-${ticket.id}`} />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
@@ -314,6 +320,7 @@ export default function MyTicketsPage() {
                       setSelectedTicket(ticket);
                       setDeleteModalOpen(true);
                     }}
+                    data-testid={`my-ticket-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -326,25 +333,26 @@ export default function MyTicketsPage() {
               mb='xs'
               style={{ cursor: 'pointer' }}
               onClick={() => handleViewTicket(ticket.id)}
+              data-testid={`my-ticket-title-${ticket.id}`}
             >
               {ticket.title}
             </Text>
 
-            <Text size='sm' c='dimmed' mb='sm' lineClamp={2}>
+            <Text size='sm' c='dimmed' mb='sm' lineClamp={2} data-testid={`my-ticket-description-${ticket.id}`}>
               {stripHtmlTags(ticket.description)}
             </Text>
 
-            <Group justify='space-between'>
-              <Group gap='md'>
-                <Text size='sm'>{ticket.requester.name}</Text>
-                <Text size='sm'>
+            <Group justify='space-between' data-testid={`my-ticket-footer-${ticket.id}`}>
+              <Group gap='md' data-testid={`my-ticket-info-${ticket.id}`}>
+                <Text size='sm' data-testid={`my-ticket-requester-${ticket.id}`}>{ticket.requester.name}</Text>
+                <Text size='sm' data-testid={`my-ticket-created-date-${ticket.id}`}>
                   {new Date(ticket.createdAt).toLocaleDateString('en-US')}
                 </Text>
                 {ticket.assignedTo && (
-                  <Text size='sm'>Assigned to {ticket.assignedTo.name}</Text>
+                  <Text size='sm' data-testid={`my-ticket-assigned-${ticket.id}`}>Assigned to {ticket.assignedTo.name}</Text>
                 )}
               </Group>
-              <Badge variant='light' color='gray'>
+              <Badge variant='light' color='gray' data-testid={`my-ticket-category-badge-${ticket.id}`}>
                 {ticket.category?.customName || ticket.category?.name || 'Unknown'}
               </Badge>
             </Group>
@@ -353,17 +361,17 @@ export default function MyTicketsPage() {
       </Stack>
 
       {myTickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <IconTicket size={48} color='var(--mantine-color-dimmed)' />
-            <Text size='lg' fw={500}>
+        <Card shadow='sm' padding='xl' radius='md' withBorder data-testid="my-tickets-page-empty-state">
+          <Stack align='center' gap='md' data-testid="my-tickets-page-empty-state-content">
+            <IconTicket size={48} color='var(--mantine-color-dimmed)' data-testid="my-tickets-page-empty-state-icon" />
+            <Text size='lg' fw={500} data-testid="my-tickets-page-empty-state-title">
               No tickets found
             </Text>
-            <Text c='dimmed' ta='center'>
+            <Text c='dimmed' ta='center' data-testid="my-tickets-page-empty-state-message">
               No tickets match your current filters.
             </Text>
             {canCreateTicket && (
-              <Button onClick={() => router.push('/tickets/create')}>
+              <Button onClick={() => router.push('/tickets/create')} data-testid="my-tickets-page-empty-state-create-button">
                 Create your first ticket
               </Button>
             )}
@@ -372,11 +380,12 @@ export default function MyTicketsPage() {
       )}
 
       {(pagination?.totalPages || 0) > 1 && (
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="my-tickets-page-pagination-group">
           <Pagination
             value={currentPage}
             onChange={setCurrentPage}
             total={pagination?.totalPages || 1}
+            data-testid="my-tickets-page-pagination"
           />
         </Group>
       )}
@@ -459,18 +468,20 @@ export default function MyTicketsPage() {
         }}
         title='Delete Ticket'
         centered
+        data-testid="my-tickets-page-delete-modal"
       >
-        <Text mb='md'>
+        <Text mb='md' data-testid="my-tickets-page-delete-modal-message">
           Are you sure you want to delete ticket #{selectedTicket?.ticketNumber}
           ? This action cannot be undone.
         </Text>
-        <Group justify='flex-end'>
+        <Group justify='flex-end' data-testid="my-tickets-page-delete-modal-actions">
           <Button
             variant='light'
             onClick={() => {
               setDeleteModalOpen(false);
               setSelectedTicket(null);
             }}
+            data-testid="my-tickets-page-delete-modal-cancel-button"
           >
             Cancel
           </Button>
@@ -482,6 +493,7 @@ export default function MyTicketsPage() {
               }
             }}
             loading={deleteTicketMutation.isPending}
+            data-testid="my-tickets-page-delete-modal-confirm-button"
           >
             Delete
           </Button>

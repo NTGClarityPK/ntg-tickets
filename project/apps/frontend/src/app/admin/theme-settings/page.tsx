@@ -314,6 +314,7 @@ export default function ThemeSettingsPage() {
               leftSection={<IconRefresh size={16} />}
               onClick={handleReset}
               loading={resetThemeMutation.isPending}
+              data-testid="theme-settings-reset-button"
             >
               Reset to Default
             </Button>
@@ -321,18 +322,19 @@ export default function ThemeSettingsPage() {
               variant="outline"
               leftSection={<IconPalette size={16} />}
               onClick={() => handlePreview(form.values.primaryColor)}
+              data-testid="theme-settings-preview-button"
             >
               Preview
             </Button>
           </Group>
         </Group>
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        <form onSubmit={form.onSubmit(handleSubmit)} data-testid="theme-settings-form">
           <Grid>
             <Grid.Col span={{ base: 12, md: 8 }}>
               <Stack gap="lg">
                 {/* Primary Color Section */}
-                <Paper p="lg" withBorder>
+                <Paper p="lg" withBorder data-testid="theme-settings-primary-color-section">
                   <Stack gap="md">
                     <Group>
                       <IconPalette size={20} style={{ color: primary }} />
@@ -349,6 +351,7 @@ export default function ThemeSettingsPage() {
                       onChange={(value) => form.setFieldValue('primaryColor', value)}
                       withEyeDropper={false}
                       format="hex"
+                      data-testid="theme-settings-color-input"
                     />
 
                     <div>
@@ -363,6 +366,7 @@ export default function ThemeSettingsPage() {
                             size={32}
                             style={{ cursor: 'pointer' }}
                             onClick={() => form.setFieldValue('primaryColor', color)}
+                            data-testid={`theme-settings-preset-color-${color}`}
                           />
                         ))}
                       </Group>
@@ -387,6 +391,7 @@ export default function ThemeSettingsPage() {
                       accept="image/*"
                       leftSection={<IconUpload size={16} />}
                       value={form.values.logoFile}
+                      data-testid="theme-settings-logo-input"
                       onChange={(file) => {
                         if (file && file.size > 2 * 1024 * 1024) {
                           notifications.show({
@@ -492,6 +497,7 @@ export default function ThemeSettingsPage() {
 
                 {/* Save Button */}
                 <Button
+                  data-testid="theme-settings-save-button"
                   type="submit"
                   fullWidth
                   size="lg"
@@ -519,6 +525,7 @@ export default function ThemeSettingsPage() {
         onClose={() => setPreviewMode(false)}
         title="Color Preview"
         size="lg"
+        data-testid="theme-settings-preview-modal"
       >
         <Stack gap="md">
           <Text size="sm" c="dimmed">
@@ -536,13 +543,13 @@ export default function ThemeSettingsPage() {
           </Paper>
 
           <Group justify="flex-end">
-            <Button variant="outline" onClick={() => setPreviewMode(false)}>
+            <Button variant="outline" onClick={() => setPreviewMode(false)} data-testid="theme-settings-preview-modal-close">
               Close
             </Button>
             <Button onClick={() => {
               form.setFieldValue('primaryColor', previewColor);
               setPreviewMode(false);
-            }}>
+            }} data-testid="theme-settings-preview-modal-use-color">
               Use This Color
             </Button>
           </Group>

@@ -228,89 +228,91 @@ export default function InvitationsPage() {
   };
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="lg">
-        <Group justify="space-between">
-          <Box>
-            <Title order={2}>User Invitations</Title>
-            <Text c="dimmed">Invite users to join your organization</Text>
+    <Container size="xl" py="xl" data-testid="invitations-page">
+      <Stack gap="lg" data-testid="invitations-page-stack">
+        <Group justify="space-between" data-testid="invitations-page-header">
+          <Box data-testid="invitations-page-header-content">
+            <Title order={2} data-testid="invitations-page-title">User Invitations</Title>
+            <Text c="dimmed" data-testid="invitations-page-subtitle">Invite users to join your organization</Text>
           </Box>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setIsModalOpen(true)}
+            data-testid="invitations-page-invite-button"
           >
             Invite User
           </Button>
         </Group>
 
-        <Paper withBorder radius="md">
-          <Tabs value={activeTab} onChange={setActiveTab}>
-            <Tabs.List>
-              <Tabs.Tab value="pending" leftSection={<IconClock size={14} />}>
+        <Paper withBorder radius="md" data-testid="invitations-page-paper">
+          <Tabs value={activeTab} onChange={setActiveTab} data-testid="invitations-page-tabs">
+            <Tabs.List data-testid="invitations-page-tabs-list">
+              <Tabs.Tab value="pending" leftSection={<IconClock size={14} />} data-testid="invitations-page-tab-pending">
                 Pending
               </Tabs.Tab>
-              <Tabs.Tab value="accepted" leftSection={<IconCheck size={14} />}>
+              <Tabs.Tab value="accepted" leftSection={<IconCheck size={14} />} data-testid="invitations-page-tab-accepted">
                 Accepted
               </Tabs.Tab>
-              <Tabs.Tab value="expired" leftSection={<IconX size={14} />}>
+              <Tabs.Tab value="expired" leftSection={<IconX size={14} />} data-testid="invitations-page-tab-expired">
                 Expired
               </Tabs.Tab>
             </Tabs.List>
 
-            <Tabs.Panel value={activeTab || 'pending'} p="md">
+            <Tabs.Panel value={activeTab || 'pending'} p="md" data-testid={`invitations-page-panel-${activeTab || 'pending'}`}>
               {isLoading ? (
-                <Center py="xl">
-                  <Loader />
+                <Center py="xl" data-testid="invitations-page-loading">
+                  <Loader data-testid="invitations-page-loader" />
                 </Center>
               ) : invitations.length === 0 ? (
-                <Center py="xl">
-                  <Stack align="center" gap="md">
-                    <IconMail size={48} color="gray" />
-                    <Text c="dimmed">No {activeTab} invitations</Text>
+                <Center py="xl" data-testid="invitations-page-empty-state">
+                  <Stack align="center" gap="md" data-testid="invitations-page-empty-state-content">
+                    <IconMail size={48} color="gray" data-testid="invitations-page-empty-state-icon" />
+                    <Text c="dimmed" data-testid="invitations-page-empty-state-text">No {activeTab} invitations</Text>
                   </Stack>
                 </Center>
               ) : (
-                <Table>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Email</Table.Th>
-                      <Table.Th>Name</Table.Th>
-                      <Table.Th>Roles</Table.Th>
-                      <Table.Th>Invited By</Table.Th>
-                      <Table.Th>Date</Table.Th>
-                      <Table.Th>Status</Table.Th>
-                      <Table.Th>Actions</Table.Th>
+                <Table data-testid="invitations-page-table">
+                  <Table.Thead data-testid="invitations-page-table-head">
+                    <Table.Tr data-testid="invitations-page-table-head-row">
+                      <Table.Th data-testid="invitations-page-table-header-email">Email</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-name">Name</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-roles">Roles</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-invited-by">Invited By</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-date">Date</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-status">Status</Table.Th>
+                      <Table.Th data-testid="invitations-page-table-header-actions">Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
-                  <Table.Tbody>
+                  <Table.Tbody data-testid="invitations-page-table-body">
                     {invitations.map((invitation) => (
-                      <Table.Tr key={invitation.id}>
-                        <Table.Td>{invitation.email}</Table.Td>
-                        <Table.Td>{invitation.name || '-'}</Table.Td>
-                        <Table.Td>
-                          <Group gap={4}>
+                      <Table.Tr key={invitation.id} data-testid={`invitations-page-table-row-${invitation.id}`}>
+                        <Table.Td data-testid={`invitations-page-table-cell-email-${invitation.id}`}>{invitation.email}</Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-name-${invitation.id}`}>{invitation.name || '-'}</Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-roles-${invitation.id}`}>
+                          <Group gap={4} data-testid={`invitations-page-table-cell-roles-group-${invitation.id}`}>
                             {invitation.roles.map((role) => (
-                              <Badge key={role} size="sm" variant="light">
+                              <Badge key={role} size="sm" variant="light" data-testid={`invitations-page-table-cell-role-badge-${invitation.id}-${role}`}>
                                 {role.replace('_', ' ')}
                               </Badge>
                             ))}
                           </Group>
                         </Table.Td>
-                        <Table.Td>{invitation.inviter?.name || '-'}</Table.Td>
-                        <Table.Td>{formatDate(invitation.createdAt)}</Table.Td>
-                        <Table.Td>{getStatusBadge(invitation.status)}</Table.Td>
-                        <Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-inviter-${invitation.id}`}>{invitation.inviter?.name || '-'}</Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-date-${invitation.id}`}>{formatDate(invitation.createdAt)}</Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-status-${invitation.id}`}>{getStatusBadge(invitation.status)}</Table.Td>
+                        <Table.Td data-testid={`invitations-page-table-cell-actions-${invitation.id}`}>
                           {invitation.status === 'pending' && (
-                            <Menu>
+                            <Menu data-testid={`invitations-page-menu-${invitation.id}`}>
                               <Menu.Target>
-                                <ActionIcon variant="subtle">
+                                <ActionIcon variant="subtle" data-testid={`invitations-page-menu-button-${invitation.id}`}>
                                   <IconDotsVertical size={16} />
                                 </ActionIcon>
                               </Menu.Target>
-                              <Menu.Dropdown>
+                              <Menu.Dropdown data-testid={`invitations-page-menu-dropdown-${invitation.id}`}>
                                 <Menu.Item
                                   leftSection={<IconRefresh size={14} />}
                                   onClick={() => handleResend(invitation.id)}
+                                  data-testid={`invitations-page-menu-resend-${invitation.id}`}
                                 >
                                   Resend
                                 </Menu.Item>
@@ -318,6 +320,7 @@ export default function InvitationsPage() {
                                   color="red"
                                   leftSection={<IconTrash size={14} />}
                                   onClick={() => handleCancel(invitation.id)}
+                                  data-testid={`invitations-page-menu-cancel-${invitation.id}`}
                                 >
                                   Cancel
                                 </Menu.Item>
@@ -325,11 +328,12 @@ export default function InvitationsPage() {
                             </Menu>
                           )}
                           {invitation.status === 'expired' && (
-                            <Tooltip label="Resend invitation">
+                            <Tooltip label="Resend invitation" data-testid={`invitations-page-tooltip-${invitation.id}`}>
                               <ActionIcon
                                 variant="subtle"
                                 color="blue"
                                 onClick={() => handleResend(invitation.id)}
+                                data-testid={`invitations-page-resend-button-${invitation.id}`}
                               >
                                 <IconRefresh size={16} />
                               </ActionIcon>
@@ -355,20 +359,23 @@ export default function InvitationsPage() {
         }}
         title="Invite User"
         size="md"
+        data-testid="invitations-page-invite-modal"
       >
-        <form onSubmit={form.onSubmit(handleInvite)}>
-          <Stack gap="md">
+        <form onSubmit={form.onSubmit(handleInvite)} data-testid="invitations-page-invite-form">
+          <Stack gap="md" data-testid="invitations-page-invite-form-stack">
             <TextInput
               label="Email Address"
               placeholder="user@example.com"
               required
               {...form.getInputProps('email')}
+              data-testid="invitations-page-invite-email-input"
             />
 
             <TextInput
               label="Name (Optional)"
               placeholder="John Smith"
               {...form.getInputProps('name')}
+              data-testid="invitations-page-invite-name-input"
             />
 
             <MultiSelect
@@ -377,18 +384,19 @@ export default function InvitationsPage() {
               data={roleOptions}
               required
               {...form.getInputProps('roles')}
+              data-testid="invitations-page-invite-roles-select"
             />
 
-            <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light">
+            <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light" data-testid="invitations-page-invite-info-alert">
               The user will receive an email with a link to set up their account.
               The invitation expires in 30 days.
             </Alert>
 
-            <Group justify="flex-end" mt="md">
-              <Button variant="subtle" onClick={() => setIsModalOpen(false)}>
+            <Group justify="flex-end" mt="md" data-testid="invitations-page-invite-form-actions">
+              <Button variant="subtle" onClick={() => setIsModalOpen(false)} data-testid="invitations-page-invite-cancel-button">
                 Cancel
               </Button>
-              <Button type="submit" loading={isSubmitting}>
+              <Button type="submit" loading={isSubmitting} data-testid="invitations-page-invite-submit-button">
                 Send Invitation
               </Button>
             </Group>

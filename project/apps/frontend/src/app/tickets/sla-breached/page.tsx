@@ -114,10 +114,10 @@ function SLABreachedTicketsPageContent() {
   // Quick action helpers removed in the simplified cards UI
 
   return (
-    <Container size='xl' py='md'>
+    <Container size='xl' py='md' data-testid="sla-breached-tickets-page">
 
-      <Grid mb='md'>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <Grid mb='md' data-testid="sla-breached-tickets-toolbar">
+        <Grid.Col span={{ base: 12, md: 6 }} data-testid="sla-breached-tickets-search-col">
           <SearchBar
             key={searchFilters.search || 'empty'}
             value={searchFilters.search}
@@ -136,17 +136,18 @@ function SLABreachedTicketsPageContent() {
             isLoading={isFetching}
           />
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="sla-breached-tickets-advanced-col">
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={() => setAdvancedSearchOpen(true)}
+            data-testid="sla-breached-tickets-advanced-button"
           >
             Advanced
           </Button>
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="sla-breached-tickets-reset-col">
           {hasActiveFilters() && (
             <Button
               variant='outline'
@@ -156,6 +157,7 @@ function SLABreachedTicketsPageContent() {
                 clearFilters();
                 setCurrentPage(1);
               }}
+              data-testid="sla-breached-tickets-reset-filters-button"
             >
               Reset Filters
             </Button>
@@ -163,34 +165,37 @@ function SLABreachedTicketsPageContent() {
         </Grid.Col>
       </Grid>
 
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="sla-breached-tickets-list">
         {tickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
-            <Group justify='space-between' mb='sm'>
-              <Menu shadow='md' width={200}>
+          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder data-testid={`sla-breached-ticket-card-${ticket.id}`}>
+            <Group justify='space-between' mb='sm' data-testid={`sla-breached-ticket-header-${ticket.id}`}>
+              <Menu shadow='md' width={200} data-testid={`sla-breached-ticket-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`sla-breached-ticket-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown data-testid={`sla-breached-ticket-menu-dropdown-${ticket.id}`}>
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => router.push(`/tickets/${ticket.id}`)}
+                    data-testid={`sla-breached-ticket-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+                    data-testid={`sla-breached-ticket-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
-                  <Menu.Divider />
+                  <Menu.Divider data-testid={`sla-breached-ticket-menu-divider-${ticket.id}`} />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
                     onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+                    data-testid={`sla-breached-ticket-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -203,17 +208,18 @@ function SLABreachedTicketsPageContent() {
               mb='xs'
               style={{ cursor: 'pointer' }}
               onClick={() => router.push(`/tickets/${ticket.id}`)}
+              data-testid={`sla-breached-ticket-title-${ticket.id}`}
             >
               {ticket.title}
             </Text>
 
-            <Text size='sm' c='dimmed' mb='sm' lineClamp={2}>
+            <Text size='sm' c='dimmed' mb='sm' lineClamp={2} data-testid={`sla-breached-ticket-description-${ticket.id}`}>
               {stripHtmlTags(ticket.description)}
             </Text>
 
-            <Group justify='space-between'>
-              <Group gap='md'>
-                <Text size='sm'>
+            <Group justify='space-between' data-testid={`sla-breached-ticket-footer-${ticket.id}`}>
+              <Group gap='md' data-testid={`sla-breached-ticket-info-${ticket.id}`}>
+                <Text size='sm' data-testid={`sla-breached-ticket-breach-hours-${ticket.id}`}>
                   Breach:{' '}
                   {ticket.closedAt && ticket.dueDate
                     ? Math.round(
@@ -224,26 +230,26 @@ function SLABreachedTicketsPageContent() {
                     : 0}
                   h
                 </Text>
-                <Text size='sm'>
+                <Text size='sm' data-testid={`sla-breached-ticket-closed-date-${ticket.id}`}>
                   Closed:{' '}
                   {ticket.closedAt
                     ? new Date(ticket.closedAt).toLocaleDateString('en-US')
                     : '—'}
                 </Text>
-                <Text size='sm'>
+                <Text size='sm' data-testid={`sla-breached-ticket-due-date-${ticket.id}`}>
                   Due:{' '}
                   {ticket.dueDate
                     ? new Date(ticket.dueDate).toLocaleDateString('en-US')
                     : '—'}
                 </Text>
                 {ticket.assignedTo && (
-                  <Group gap={4}>
+                  <Group gap={4} data-testid={`sla-breached-ticket-assigned-${ticket.id}`}>
                     <IconTicket size={14} />
-                    <Text size='sm'>Assigned to {ticket.assignedTo.name}</Text>
+                    <Text size='sm' data-testid={`sla-breached-ticket-assigned-name-${ticket.id}`}>Assigned to {ticket.assignedTo.name}</Text>
                   </Group>
                 )}
               </Group>
-              <Badge variant='light' color={theme.colors[theme.primaryColor][9]}>
+              <Badge variant='light' color={theme.colors[theme.primaryColor][9]} data-testid={`sla-breached-ticket-badge-${ticket.id}`}>
                 Breached
               </Badge>
             </Group>
@@ -252,12 +258,12 @@ function SLABreachedTicketsPageContent() {
       </Stack>
 
       {tickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <Text size='lg' fw={500}>
+        <Card shadow='sm' padding='xl' radius='md' withBorder data-testid="sla-breached-tickets-empty-state">
+          <Stack align='center' gap='md' data-testid="sla-breached-tickets-empty-state-content">
+            <Text size='lg' fw={500} data-testid="sla-breached-tickets-empty-state-title">
               No breached tickets
             </Text>
-            <Text c='dimmed' ta='center'>
+            <Text c='dimmed' ta='center' data-testid="sla-breached-tickets-empty-state-message">
               No tickets match your current filters.
             </Text>
           </Stack>
@@ -265,11 +271,12 @@ function SLABreachedTicketsPageContent() {
       )}
 
       {(pagination?.totalPages || 0) > 1 && (
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="sla-breached-tickets-pagination-group">
           <Pagination
             value={currentPage}
             onChange={setCurrentPage}
             total={pagination?.totalPages || 1}
+            data-testid="sla-breached-tickets-pagination"
           />
         </Group>
       )}

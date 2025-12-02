@@ -11,13 +11,14 @@ interface LogoProps {
 export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
   if (variant === 'icon') {
     return (
-      <Box className={className}>
+      <Box className={className} data-testid="logo-icon">
         <svg
           width={size}
           height={size}
           viewBox='0 0 32 32'
           fill='none'
           xmlns='http://www.w3.org/2000/svg'
+          data-testid="logo-svg"
         >
           <circle
             cx='16'
@@ -100,6 +101,7 @@ export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
       <Box
         className={className}
         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        data-testid="logo-text"
       >
         <Logo size={size} variant='icon' />
         <span
@@ -111,6 +113,7 @@ export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}
+          data-testid="logo-text-label"
         >
           NTG Ticket
         </span>
@@ -123,9 +126,10 @@ export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
     <Box
       className={className}
       style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+      data-testid="logo-full"
     >
       <Logo size={size} variant='icon' />
-      <div>
+      <div data-testid="logo-text-container">
         <div
           style={{
             fontSize: `${size * 0.5}px`,
@@ -136,6 +140,7 @@ export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
             WebkitTextFillColor: 'transparent',
             lineHeight: 1,
           }}
+          data-testid="logo-title"
         >
           NTG Ticket
         </div>
@@ -146,6 +151,7 @@ export function Logo({ size = 40, variant = 'full', className }: LogoProps) {
             fontWeight: 500,
             lineHeight: 1,
           }}
+          data-testid="logo-subtitle"
         >
           IT Support System
         </div>

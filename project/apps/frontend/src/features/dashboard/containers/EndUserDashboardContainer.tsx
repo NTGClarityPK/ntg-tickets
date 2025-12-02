@@ -82,9 +82,9 @@ export function EndUserDashboardContainer() {
 
   if (ticketsLoading || statsLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
+      <Container size='xl' py='md' data-testid="end-user-dashboard-container-loading">
+        <Group justify='center' py='xl' data-testid="end-user-dashboard-loading-group">
+          <Loader size='lg' data-testid="end-user-dashboard-loader" />
         </Group>
       </Container>
     );

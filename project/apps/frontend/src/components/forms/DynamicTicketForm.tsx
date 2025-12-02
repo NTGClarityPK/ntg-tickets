@@ -177,6 +177,7 @@ export function DynamicTicketForm({
       placeholder: field.placeholder,
       required: field.required,
       ...form.getInputProps(field.name),
+      'data-testid': `dynamic-field-${field.name}`,
     };
 
     switch (field.type) {
@@ -216,6 +217,7 @@ export function DynamicTicketForm({
           onSubmit={form.onSubmit(
             handleSubmit as (values: DynamicTicketFormValues) => void
           )}
+          data-testid="dynamic-ticket-form"
         >
           <Stack gap='md'>
             {/* Basic Fields */}
@@ -226,6 +228,7 @@ export function DynamicTicketForm({
                   placeholder='Brief description of the issue'
                   required
                   {...form.getInputProps('title')}
+                  data-testid="dynamic-ticket-title-input"
                 />
               </Grid.Col>
 
@@ -253,6 +256,7 @@ export function DynamicTicketForm({
                   allowClearFormatting={true}
                   showToolbar={true}
                   toolbarPosition='top'
+                  data-testid="dynamic-ticket-description-editor"
                 />
               </Grid.Col>
 
@@ -271,6 +275,7 @@ export function DynamicTicketForm({
                     handleCategoryChange(value);
                     form.setFieldValue('category', value as string);
                   }}
+                  data-testid="dynamic-ticket-category-select"
                 />
               </Grid.Col>
 
@@ -284,6 +289,7 @@ export function DynamicTicketForm({
                   }))}
                   disabled={!selectedCategory || loadingFields}
                   {...form.getInputProps('subcategory')}
+                  data-testid="dynamic-ticket-subcategory-select"
                 />
               </Grid.Col>
 
@@ -297,6 +303,7 @@ export function DynamicTicketForm({
                     label: pri,
                   }))}
                   {...form.getInputProps('priority')}
+                  data-testid="dynamic-ticket-priority-select"
                 />
               </Grid.Col>
 
@@ -310,6 +317,7 @@ export function DynamicTicketForm({
                     label: imp,
                   }))}
                   {...form.getInputProps('impact')}
+                  data-testid="dynamic-ticket-impact-select"
                 />
               </Grid.Col>
             </Grid>
@@ -364,6 +372,7 @@ export function DynamicTicketForm({
               maxFiles={5}
               maxSize={10}
               disabled={loading}
+              data-testid="dynamic-ticket-file-upload"
             />
 
             {/* Submit Button */}
@@ -373,6 +382,7 @@ export function DynamicTicketForm({
                 loading={loading}
                 leftSection={<IconPlus size={16} />}
                 size='md'
+                data-testid="dynamic-ticket-submit-button"
               >
                 Create Ticket
               </Button>

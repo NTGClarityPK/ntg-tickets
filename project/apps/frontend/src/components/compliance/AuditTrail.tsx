@@ -124,9 +124,10 @@ export function AuditTrail({
         onClose={onClose}
         title={tAdmin('auditTrail')}
         size='xl'
+        data-testid="audit-trail-modal"
       >
-        <Center h={200}>
-          <Text c={theme.colors[theme.primaryColor][9]}>{t('error')}</Text>
+        <Center h={200} data-testid="audit-trail-error">
+          <Text c={theme.colors[theme.primaryColor][9]} data-testid="audit-trail-error-message">{t('error')}</Text>
         </Center>
       </Modal>
     );
@@ -143,20 +144,21 @@ export function AuditTrail({
         </Group>
       }
       size='xl'
+      data-testid="audit-trail-modal"
     >
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="audit-trail-content">
         {/* Filters */}
-        <Card withBorder p='md' radius='md'>
-          <Group justify='space-between' mb='md'>
-            <Text size='sm' fw={500}>
+        <Card withBorder p='md' radius='md' data-testid="audit-trail-filters-card">
+          <Group justify='space-between' mb='md' data-testid="audit-trail-filters-header">
+            <Text size='sm' fw={500} data-testid="audit-trail-filters-title">
               {t('filters')}
             </Text>
-            <Button variant='outline' size='xs' onClick={clearFilters}>
+            <Button variant='outline' size='xs' onClick={clearFilters} data-testid="audit-trail-clear-filters-button">
               {t('clearAll')}
             </Button>
           </Group>
-          <Grid>
-            <Grid.Col span={3}>
+          <Grid data-testid="audit-trail-filters-grid">
+            <Grid.Col span={3} data-testid="audit-trail-filter-action-col">
               <Select
                 label={t('action')}
                 placeholder={t('selectAction')}
@@ -167,9 +169,10 @@ export function AuditTrail({
                 value={filters.action}
                 onChange={value => handleFilterChange('action', value)}
                 clearable
+                data-testid="audit-trail-filter-action"
               />
             </Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={3} data-testid="audit-trail-filter-user-id-col">
               <TextInput
                 label={t('userId')}
                 placeholder={t('enterUserId')}
@@ -177,9 +180,10 @@ export function AuditTrail({
                 onChange={event =>
                   handleFilterChange('userId', event.currentTarget.value)
                 }
+                data-testid="audit-trail-filter-user-id"
               />
             </Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={3} data-testid="audit-trail-filter-ticket-id-col">
               <TextInput
                 label={t('ticketId')}
                 placeholder={t('enterTicketId')}
@@ -187,32 +191,35 @@ export function AuditTrail({
                 onChange={event =>
                   handleFilterChange('ticketId', event.currentTarget.value)
                 }
+                data-testid="audit-trail-filter-ticket-id"
               />
             </Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={3} data-testid="audit-trail-filter-date-from-col">
               <DateInput
                 label={t('dateFrom')}
                 placeholder={t('selectStartDate')}
                 value={filters.dateFrom}
                 onChange={value => handleFilterChange('dateFrom', value)}
                 clearable
+                data-testid="audit-trail-filter-date-from"
               />
             </Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={3} data-testid="audit-trail-filter-date-to-col">
               <DateInput
                 label={t('dateTo')}
                 placeholder={t('selectEndDate')}
                 value={filters.dateTo}
                 onChange={value => handleFilterChange('dateTo', value)}
                 clearable
+                data-testid="audit-trail-filter-date-to"
               />
             </Grid.Col>
           </Grid>
         </Card>
 
         {/* Actions */}
-        <Group justify='space-between'>
-          <Text size='sm' c='dimmed'>
+        <Group justify='space-between' data-testid="audit-trail-actions">
+          <Text size='sm' c='dimmed' data-testid="audit-trail-total-count">
             {tAdmin('auditEntriesFound', {
               count: auditLogs?.pagination?.total || 0,
             })}
@@ -222,59 +229,61 @@ export function AuditTrail({
             size='sm'
             leftSection={<IconDownload size={16} />}
             onClick={handleExport}
+            data-testid="audit-trail-export-button"
           >
             {t('export')}
           </Button>
         </Group>
 
         {/* Audit Logs Table */}
-        <Card withBorder p='md' radius='md'>
+        <Card withBorder p='md' radius='md' data-testid="audit-trail-table-card">
           {isLoading ? (
-            <Center h={200}>
-              <Loader size='md' />
+            <Center h={200} data-testid="audit-trail-loading">
+              <Loader size='md' data-testid="audit-trail-loader" />
             </Center>
           ) : (
             <>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>{t('action')}</Table.Th>
-                    <Table.Th>{t('user')}</Table.Th>
-                    <Table.Th>{t('resource')}</Table.Th>
-                    <Table.Th>{t('changes')}</Table.Th>
-                    <Table.Th>{t('date')}</Table.Th>
-                    <Table.Th>{t('actions')}</Table.Th>
+              <Table striped highlightOnHover data-testid="audit-trail-table">
+                <Table.Thead data-testid="audit-trail-table-head">
+                  <Table.Tr data-testid="audit-trail-table-header-row">
+                    <Table.Th data-testid="audit-trail-table-header-action">{t('action')}</Table.Th>
+                    <Table.Th data-testid="audit-trail-table-header-user">{t('user')}</Table.Th>
+                    <Table.Th data-testid="audit-trail-table-header-resource">{t('resource')}</Table.Th>
+                    <Table.Th data-testid="audit-trail-table-header-changes">{t('changes')}</Table.Th>
+                    <Table.Th data-testid="audit-trail-table-header-date">{t('date')}</Table.Th>
+                    <Table.Th data-testid="audit-trail-table-header-actions">{t('actions')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
-                <Table.Tbody>
+                <Table.Tbody data-testid="audit-trail-table-body">
                         {auditLogs?.items?.map((log: AuditLog) => (
-                    <Table.Tr key={log.id}>
-                      <Table.Td>
+                    <Table.Tr key={log.id} data-testid={`audit-trail-table-row-${log.id}`}>
+                      <Table.Td data-testid={`audit-trail-table-row-action-${log.id}`}>
                         <Badge
                           color={actionColors[log.action] || 'gray'}
                           variant='light'
+                          data-testid={`audit-trail-action-badge-${log.id}`}
                         >
                           {log.action}
                         </Badge>
                       </Table.Td>
-                      <Table.Td>
-                        <Group gap='xs'>
+                      <Table.Td data-testid={`audit-trail-table-row-user-${log.id}`}>
+                        <Group gap='xs' data-testid={`audit-trail-user-group-${log.id}`}>
                           <IconUser size={14} />
-                          <Text size='sm'>
+                          <Text size='sm' data-testid={`audit-trail-user-${log.id}`}>
                             {log.user?.name || t('unknown')}
                           </Text>
                         </Group>
                       </Table.Td>
-                      <Table.Td>
-                        <Text size='sm'>{log.resource}</Text>
+                      <Table.Td data-testid={`audit-trail-table-row-resource-${log.id}`}>
+                        <Text size='sm' data-testid={`audit-trail-resource-${log.id}`}>{log.resource}</Text>
                         {log.resourceId && (
-                          <Text size='xs' c='dimmed'>
+                          <Text size='xs' c='dimmed' data-testid={`audit-trail-resource-id-${log.id}`}>
                             ID: {log.resourceId}
                           </Text>
                         )}
                       </Table.Td>
-                      <Table.Td>
-                        <Text size='sm' lineClamp={2}>
+                      <Table.Td data-testid={`audit-trail-table-row-changes-${log.id}`}>
+                        <Text size='sm' lineClamp={2} data-testid={`audit-trail-changes-${log.id}`}>
                           {log.fieldName && log.oldValue && log.newValue
                             ? `${log.fieldName}: ${log.oldValue} → ${log.newValue}`
                             : log.metadata
@@ -282,15 +291,15 @@ export function AuditTrail({
                               : 'No details'}
                         </Text>
                       </Table.Td>
-                      <Table.Td>
-                        <Group gap='xs'>
+                      <Table.Td data-testid={`audit-trail-table-row-date-${log.id}`}>
+                        <Group gap='xs' data-testid={`audit-trail-date-group-${log.id}`}>
                           <IconCalendar size={14} />
-                          <Text size='sm'>{formatDate(log.createdAt)}</Text>
+                          <Text size='sm' data-testid={`audit-trail-date-${log.id}`}>{formatDate(log.createdAt)}</Text>
                         </Group>
                       </Table.Td>
-                      <Table.Td>
+                      <Table.Td data-testid={`audit-trail-table-row-actions-${log.id}`}>
                         <Tooltip label={t('viewDetails')}>
-                          <ActionIcon variant='light' size='sm'>
+                          <ActionIcon variant='light' size='sm' data-testid={`audit-trail-view-details-${log.id}`}>
                             <IconEye size={14} />
                           </ActionIcon>
                         </Tooltip>
@@ -302,12 +311,13 @@ export function AuditTrail({
 
               {/* Pagination */}
               {auditLogs?.pagination && auditLogs.pagination.totalPages > 1 && (
-                <Group justify='center' mt='md'>
+                <Group justify='center' mt='md' data-testid="audit-trail-pagination-group">
                   <Pagination
                     value={page}
                     onChange={setPage}
                     total={auditLogs.pagination.totalPages}
                     size='sm'
+                    data-testid="audit-trail-pagination"
                   />
                 </Group>
               )}

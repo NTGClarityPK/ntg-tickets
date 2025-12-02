@@ -180,6 +180,7 @@ export default function NotificationsPage() {
           opacity: notification.isRead ? 0.7 : 1,
           borderLeft: `4px solid var(--mantine-color-${getNotificationColor(notification.type)}-6)`,
         }}
+        data-testid={`notification-card-${notification.id}`}
       >
         <Group justify='space-between' mb='sm'>
           <Group gap='sm'>
@@ -201,9 +202,9 @@ export default function NotificationsPage() {
                 New
               </Badge>
             )}
-            <Menu shadow='md' width={200}>
+            <Menu shadow='md' width={200} data-testid={`notification-menu-${notification.id}`}>
               <Menu.Target>
-                <ActionIcon variant='subtle'>
+                <ActionIcon variant='subtle' data-testid={`notification-menu-button-${notification.id}`}>
                   <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -212,6 +213,7 @@ export default function NotificationsPage() {
                   <Menu.Item
                     leftSection={<IconCheck size={14} />}
                     onClick={() => handleMarkAsRead(notification.id)}
+                    data-testid={`notification-mark-read-${notification.id}`}
                   >
                     Mark as Read
                   </Menu.Item>
@@ -220,6 +222,7 @@ export default function NotificationsPage() {
                   leftSection={<IconTrash size={14} />}
                   color={theme.colors[theme.primaryColor][9]}
                   onClick={() => handleDeleteNotification(notification.id)}
+                  data-testid={`notification-delete-${notification.id}`}
                 >
                   Delete
                 </Menu.Item>
@@ -284,6 +287,7 @@ export default function NotificationsPage() {
               leftSection={<IconCheck size={16} />}
               onClick={handleMarkAllAsRead}
               loading={markAsReadMutation.isPending}
+              data-testid="notifications-mark-all-read-button"
             >
               Mark All Read
             </Button>
@@ -294,6 +298,7 @@ export default function NotificationsPage() {
               leftSection={<IconTrash size={16} />}
               onClick={handleBulkDelete}
               loading={deleteNotificationMutation.isPending}
+              data-testid="notifications-delete-selected-button"
             >
               Delete Selected ({selectedNotifications.length})
             </Button>
@@ -301,13 +306,13 @@ export default function NotificationsPage() {
         </Group>
       </Group>
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={setActiveTab} data-testid="notifications-tabs">
         <Tabs.List>
-          <Tabs.Tab value='all'>All ({allNotifications.length})</Tabs.Tab>
-          <Tabs.Tab value='unread'>
+          <Tabs.Tab value='all' data-testid="notifications-tab-all">All ({allNotifications.length})</Tabs.Tab>
+          <Tabs.Tab value='unread' data-testid="notifications-tab-unread">
             Unread ({unreadNotifications.length})
           </Tabs.Tab>
-          <Tabs.Tab value='read'>Read ({readNotifications.length})</Tabs.Tab>
+          <Tabs.Tab value='read' data-testid="notifications-tab-read">Read ({readNotifications.length})</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value={activeTab || 'unread'} pt='md'>

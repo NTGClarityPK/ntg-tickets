@@ -212,6 +212,7 @@ function AcceptInviteContent() {
                 href="/auth/signin"
                 variant="light"
                 style={{ color: primaryColor }}
+                data-testid="accept-invite-signin-link"
               >
                 Go to Sign In
               </Button>
@@ -275,7 +276,7 @@ function AcceptInviteContent() {
               </Alert>
             )}
 
-            <form onSubmit={form.onSubmit(handleSubmit)}>
+            <form onSubmit={form.onSubmit(handleSubmit)} data-testid="accept-invite-form">
               <Stack gap="md">
                 <TextInput
                   label="Your Name"
@@ -283,6 +284,7 @@ function AcceptInviteContent() {
                   leftSection={<IconUser size={16} />}
                   required
                   {...form.getInputProps('name')}
+                  data-testid="accept-invite-name-input"
                 />
 
                 <PasswordInput
@@ -291,6 +293,7 @@ function AcceptInviteContent() {
                   leftSection={<IconLock size={16} />}
                   required
                   {...form.getInputProps('password')}
+                  data-testid="accept-invite-password-input"
                 />
 
                 <PasswordInput
@@ -299,6 +302,7 @@ function AcceptInviteContent() {
                   leftSection={<IconLock size={16} />}
                   required
                   {...form.getInputProps('confirmPassword')}
+                  data-testid="accept-invite-confirm-password-input"
                 />
 
                 <Button
@@ -310,6 +314,7 @@ function AcceptInviteContent() {
                   style={{
                     background: `linear-gradient(135deg, ${primary} 0%, ${primaryDark} 100%)`,
                   }}
+                  data-testid="accept-invite-submit-button"
                 >
                   Complete Setup
                 </Button>

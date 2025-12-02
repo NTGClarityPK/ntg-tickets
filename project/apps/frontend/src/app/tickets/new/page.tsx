@@ -230,10 +230,10 @@ export default function NewTicketsPage() {
 
   if (isLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' mt='xl'>
-          <Loader size='lg' />
-          <Text>Loading new tickets...</Text>
+      <Container size='xl' py='md' data-testid="new-tickets-page-loading">
+        <Group justify='center' mt='xl' data-testid="new-tickets-page-loading-group">
+          <Loader size='lg' data-testid="new-tickets-page-loader" />
+          <Text data-testid="new-tickets-page-loading-text">Loading new tickets...</Text>
         </Group>
       </Container>
     );
@@ -241,8 +241,8 @@ export default function NewTicketsPage() {
 
   if (error) {
     return (
-      <Container size='xl' py='md'>
-        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]}>
+      <Container size='xl' py='md' data-testid="new-tickets-page-error">
+        <Alert icon={<IconAlertCircle size={16} />} title='Error' color={theme.colors[theme.primaryColor][9]} data-testid="new-tickets-page-error-alert">
           Failed to load new tickets: {error.message}
         </Alert>
       </Container>
@@ -250,15 +250,15 @@ export default function NewTicketsPage() {
   }
 
   return (
-    <Container size='xl' py='md'>
-      <Group justify='space-between' mb='xl'>
-        <div>
-          <Title order={1}>New Tickets</Title>
-          <Text c='dimmed'>
+    <Container size='xl' py='md' data-testid="new-tickets-page">
+      <Group justify='space-between' mb='xl' data-testid="new-tickets-page-header">
+        <div data-testid="new-tickets-page-header-content">
+          <Title order={1} data-testid="new-tickets-page-title">New Tickets</Title>
+          <Text c='dimmed' data-testid="new-tickets-page-subtitle">
             Tickets requiring assignment or initial attention
           </Text>
           {hasActiveFilters() && (
-            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs'>
+            <Text size='sm' c={theme.colors[theme.primaryColor][6]} mt='xs' data-testid="new-tickets-page-filter-count">
               Showing {filteredTickets.length} of{' '}
               {needsClientSideFiltering
                 ? allFilteredTickets.length
@@ -269,8 +269,8 @@ export default function NewTicketsPage() {
         </div>
       </Group>
 
-      <Grid mb='md'>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <Grid mb='md' data-testid="new-tickets-page-toolbar">
+        <Grid.Col span={{ base: 12, md: 6 }} data-testid="new-tickets-page-search-col">
           <SearchBar
             key={searchFilters.search || 'empty'}
             value={searchFilters.search}
@@ -290,23 +290,25 @@ export default function NewTicketsPage() {
             isLoading={isFetching}
           />
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="new-tickets-page-advanced-col">
           <Button
             variant='light'
             leftSection={<IconFilter size={16} />}
             fullWidth
             onClick={() => setAdvancedSearchOpen(true)}
+            data-testid="new-tickets-page-advanced-button"
           >
             Advanced
           </Button>
         </Grid.Col>
-        <Grid.Col span={{ base: 6, md: 3 }}>
+        <Grid.Col span={{ base: 6, md: 3 }} data-testid="new-tickets-page-clear-col">
           {hasActiveFilters() && (
             <Button
               variant='outline'
               leftSection={<IconX size={16} />}
               fullWidth
               onClick={handleClearFilters}
+              data-testid="new-tickets-page-clear-filters-button"
             >
               Clear Filters
             </Button>
@@ -330,7 +332,7 @@ export default function NewTicketsPage() {
       />
 
       {filteredTickets.length > 0 && (
-        <Group mb='md'>
+        <Group mb='md' data-testid="new-tickets-page-select-all-group">
           <BulkSelectCheckbox
             checked={isAllSelected(filteredTickets.map((t: Ticket) => t.id))}
             indeterminate={isIndeterminate(
@@ -344,59 +346,65 @@ export default function NewTicketsPage() {
               }
             }}
             aria-label='Select all tickets'
+            data-testid="new-tickets-page-select-all-checkbox"
           />
-          <Text size='sm' c='dimmed'>
+          <Text size='sm' c='dimmed' data-testid="new-tickets-page-select-all-text">
             Select all tickets
           </Text>
         </Group>
       )}
 
-      <Stack gap='md'>
+      <Stack gap='md' data-testid="new-tickets-page-list">
         {filteredTickets.map((ticket: Ticket) => (
-          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder>
-            <Group justify='space-between' mb='sm'>
-              <Group gap='sm'>
+          <Card key={ticket.id} shadow='sm' padding='lg' radius='md' withBorder data-testid={`new-ticket-card-${ticket.id}`}>
+            <Group justify='space-between' mb='sm' data-testid={`new-ticket-header-${ticket.id}`}>
+              <Group gap='sm' data-testid={`new-ticket-badges-${ticket.id}`}>
                 <BulkSelectCheckbox
                   checked={isSelected(ticket.id)}
                   onChange={() => toggleTicket(ticket.id)}
                   aria-label={`Select ticket ${ticket.ticketNumber}`}
+                  data-testid={`new-ticket-checkbox-${ticket.id}`}
                 />
                 <Badge
                   color={statusColors[ticket.status as TicketStatus]}
                   variant='light'
+                  data-testid={`new-ticket-status-badge-${ticket.id}`}
                 >
                   {ticket.status.replace('_', ' ')}
                 </Badge>
                 <Badge
                   color={priorityColors[ticket.priority as TicketPriority]}
                   variant='outline'
+                  data-testid={`new-ticket-priority-badge-${ticket.id}`}
                 >
                   {ticket.priority}
                 </Badge>
-                <Text size='sm' c='dimmed'>
+                <Text size='sm' c='dimmed' data-testid={`new-ticket-number-${ticket.id}`}>
                   {ticket.ticketNumber}
                 </Text>
               </Group>
-              <Menu shadow='md' width={200}>
+              <Menu shadow='md' width={200} data-testid={`new-ticket-menu-${ticket.id}`}>
                 <Menu.Target>
-                  <ActionIcon variant='subtle'>
+                  <ActionIcon variant='subtle' data-testid={`new-ticket-menu-button-${ticket.id}`}>
                     <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown data-testid={`new-ticket-menu-dropdown-${ticket.id}`}>
                   <Menu.Item
                     leftSection={<IconEye size={14} />}
                     onClick={() => handleViewTicket(ticket.id)}
+                    data-testid={`new-ticket-view-${ticket.id}`}
                   >
                     View
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconEdit size={14} />}
                     onClick={() => handleEditTicket(ticket.id)}
+                    data-testid={`new-ticket-edit-${ticket.id}`}
                   >
                     Edit
                   </Menu.Item>
-                  <Menu.Divider />
+                  <Menu.Divider data-testid={`new-ticket-menu-divider-${ticket.id}`} />
                   <Menu.Item
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
@@ -404,6 +412,7 @@ export default function NewTicketsPage() {
                       setSelectedTicket(ticket);
                       setDeleteModalOpen(true);
                     }}
+                    data-testid={`new-ticket-delete-${ticket.id}`}
                   >
                     Delete
                   </Menu.Item>
@@ -416,34 +425,35 @@ export default function NewTicketsPage() {
               mb='xs'
               style={{ cursor: 'pointer' }}
               onClick={() => handleViewTicket(ticket.id)}
+              data-testid={`new-ticket-title-${ticket.id}`}
             >
               {ticket.title}
             </Text>
 
-            <Text size='sm' c='dimmed' mb='sm' lineClamp={2}>
+            <Text size='sm' c='dimmed' mb='sm' lineClamp={2} data-testid={`new-ticket-description-${ticket.id}`}>
               {stripHtmlTags(ticket.description)}
             </Text>
 
-            <Group justify='space-between'>
-              <Group gap='md'>
-                <Group gap={4}>
+            <Group justify='space-between' data-testid={`new-ticket-footer-${ticket.id}`}>
+              <Group gap='md' data-testid={`new-ticket-info-${ticket.id}`}>
+                <Group gap={4} data-testid={`new-ticket-requester-${ticket.id}`}>
                   <IconUser size={14} />
-                  <Text size='sm'>{ticket.requester.name}</Text>
+                  <Text size='sm' data-testid={`new-ticket-requester-name-${ticket.id}`}>{ticket.requester.name}</Text>
                 </Group>
-                <Group gap={4}>
+                <Group gap={4} data-testid={`new-ticket-created-date-${ticket.id}`}>
                   <IconCalendar size={14} />
-                  <Text size='sm'>
+                  <Text size='sm' data-testid={`new-ticket-created-date-text-${ticket.id}`}>
                     {new Date(ticket.createdAt).toLocaleDateString('en-US')}
                   </Text>
                 </Group>
                 {ticket.assignedTo && (
-                  <Group gap={4}>
+                  <Group gap={4} data-testid={`new-ticket-assigned-${ticket.id}`}>
                     <IconTicket size={14} />
-                    <Text size='sm'>Assigned to {ticket.assignedTo.name}</Text>
+                    <Text size='sm' data-testid={`new-ticket-assigned-name-${ticket.id}`}>Assigned to {ticket.assignedTo.name}</Text>
                   </Group>
                 )}
               </Group>
-              <Badge variant='light' color='gray'>
+              <Badge variant='light' color='gray' data-testid={`new-ticket-category-badge-${ticket.id}`}>
                 {ticket.category?.customName || ticket.category?.name || 'Unknown'}
               </Badge>
             </Group>
@@ -452,13 +462,13 @@ export default function NewTicketsPage() {
       </Stack>
 
       {filteredTickets.length === 0 && (
-        <Card shadow='sm' padding='xl' radius='md' withBorder>
-          <Stack align='center' gap='md'>
-            <IconTicket size={48} color='var(--mantine-color-dimmed)' />
-            <Text size='lg' fw={500}>
+        <Card shadow='sm' padding='xl' radius='md' withBorder data-testid="new-tickets-page-empty-state">
+          <Stack align='center' gap='md' data-testid="new-tickets-page-empty-state-content">
+            <IconTicket size={48} color='var(--mantine-color-dimmed)' data-testid="new-tickets-page-empty-state-icon" />
+            <Text size='lg' fw={500} data-testid="new-tickets-page-empty-state-title">
               No new tickets found
             </Text>
-            <Text c='dimmed' ta='center'>
+            <Text c='dimmed' ta='center' data-testid="new-tickets-page-empty-state-message">
               No NEW tickets match your current filters.
             </Text>
           </Stack>
@@ -467,13 +477,14 @@ export default function NewTicketsPage() {
 
       {(clientSidePagination?.totalPages || pagination?.totalPages || 0) >
         1 && (
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="new-tickets-page-pagination-group">
           <Pagination
             value={currentPage}
             onChange={setCurrentPage}
             total={
               clientSidePagination?.totalPages || pagination?.totalPages || 1
             }
+            data-testid="new-tickets-page-pagination"
           />
         </Group>
       )}
@@ -483,13 +494,14 @@ export default function NewTicketsPage() {
         onClose={() => setDeleteModalOpen(false)}
         title='Delete Ticket'
         centered
+        data-testid="new-tickets-page-delete-modal"
       >
-        <Text mb='md'>
+        <Text mb='md' data-testid="new-tickets-page-delete-modal-message">
           Are you sure you want to delete ticket #{selectedTicket?.ticketNumber}
           ? This action cannot be undone.
         </Text>
-        <Group justify='flex-end'>
-          <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
+        <Group justify='flex-end' data-testid="new-tickets-page-delete-modal-actions">
+          <Button variant='light' onClick={() => setDeleteModalOpen(false)} data-testid="new-tickets-page-delete-modal-cancel-button">
             Cancel
           </Button>
           <Button
@@ -497,6 +509,7 @@ export default function NewTicketsPage() {
             onClick={() =>
               selectedTicket?.id && handleDeleteTicket(selectedTicket.id)
             }
+            data-testid="new-tickets-page-delete-modal-confirm-button"
           >
             Delete
           </Button>

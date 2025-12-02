@@ -28,20 +28,21 @@ export function EndUserDashboardPresenter({
   onCreateTicket,
 }: EndUserDashboardPresenterProps) {
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
+    <Container size='xl' py='md' data-testid="end-user-dashboard-container">
+      <Stack gap='md' data-testid="end-user-dashboard-stack">
         {/* Header */}
-        <Group justify='space-between'>
-          <div>
-            <Title order={2}>Welcome, {userName}!</Title>
-            <Text c='dimmed'>View and manage your support tickets</Text>
+        <Group justify='space-between' data-testid="end-user-dashboard-header">
+          <div data-testid="end-user-dashboard-header-text">
+            <Title order={2} data-testid="end-user-dashboard-title">Welcome, {userName}!</Title>
+            <Text c='dimmed' data-testid="end-user-dashboard-subtitle">View and manage your support tickets</Text>
           </div>
-          <Group>
+          <Group data-testid="end-user-dashboard-actions">
             <Button
               className="pdf-hide-elements"
               variant='outline'
               leftSection={<IconSearch size={16} />}
               onClick={onViewTickets}
+              data-testid="end-user-dashboard-search-button"
             >
               Search Tickets
             </Button>
@@ -49,19 +50,19 @@ export function EndUserDashboardPresenter({
         </Group>
 
         {/* Stats Cards */}
-        <Grid>
+        <Grid data-testid="end-user-dashboard-stats-grid">
           {metrics.stats.map(stat => (
-            <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }}>
-              <Card withBorder>
-                <Group>
-                  <Avatar color={stat.color} size='lg'>
+            <Grid.Col key={stat.title} span={{ base: 12, sm: 6, md: 3 }} data-testid={`end-user-dashboard-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+              <Card withBorder data-testid={`end-user-dashboard-stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <Group data-testid={`end-user-dashboard-stat-group-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <Avatar color={stat.color} size='lg' data-testid={`end-user-dashboard-stat-avatar-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                     <stat.icon size={24} />
                   </Avatar>
-                  <div>
-                    <Text size='lg' fw={600}>
+                  <div data-testid={`end-user-dashboard-stat-content-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Text size='lg' fw={600} data-testid={`end-user-dashboard-stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {stat.value}
                     </Text>
-                    <Text size='sm' c='dimmed'>
+                    <Text size='sm' c='dimmed' data-testid={`end-user-dashboard-stat-title-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {stat.title}
                     </Text>
                   </div>
@@ -72,12 +73,13 @@ export function EndUserDashboardPresenter({
         </Grid>
 
         {/* Quick Actions */}
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' data-testid="end-user-dashboard-quick-actions">
           <Button
             variant='filled'
             leftSection={<IconSearch size={16} />}
             onClick={onViewTickets}
             size='lg'
+            data-testid="end-user-dashboard-view-tickets-button"
           >
             View All My Tickets
           </Button>
@@ -87,6 +89,7 @@ export function EndUserDashboardPresenter({
               leftSection={<IconTicket size={16} />}
               onClick={onCreateTicket}
               size='lg'
+              data-testid="end-user-dashboard-create-ticket-button"
             >
               Create New Ticket
             </Button>

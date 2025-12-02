@@ -31,13 +31,13 @@ export function ManagerDashboardPresenter({
   metrics,
 }: ManagerDashboardPresenterProps) {
   return (
-    <Container size='xl' py='md'>
-      <Stack gap='md'>
+    <Container size='xl' py='md' data-testid="manager-dashboard-container">
+      <Stack gap='md' data-testid="manager-dashboard-stack">
         {/* Header */}
-        <Group justify='space-between'>
-          <div>
-            <Title order={2}>Manager Overview</Title>
-            <Text c='dimmed'>Monitor team performance and ticket metrics</Text>
+        <Group justify='space-between' data-testid="manager-dashboard-header">
+          <div data-testid="manager-dashboard-header-text">
+            <Title order={2} data-testid="manager-dashboard-title">Manager Overview</Title>
+            <Text c='dimmed' data-testid="manager-dashboard-subtitle">Monitor team performance and ticket metrics</Text>
           </div>
         </Group>
 

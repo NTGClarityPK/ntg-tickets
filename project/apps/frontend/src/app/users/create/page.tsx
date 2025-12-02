@@ -62,6 +62,7 @@ export default function CreateUserPage() {
           variant='subtle'
           leftSection={<RTLArrowLeft size={16} />}
           onClick={handleCancel}
+          data-testid="create-user-back-button"
         >
           {t('backToUsers')}
         </Button>

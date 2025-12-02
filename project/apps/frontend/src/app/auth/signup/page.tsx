@@ -179,7 +179,7 @@ export default function SignupPage() {
           <Stepper.Step label="Security" icon={<IconLock size={18} />} />
         </Stepper>
 
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        <form onSubmit={form.onSubmit(handleSubmit)} data-testid="signup-form">
           {step === 0 && (
             <Stack gap='lg'>
               <TextInput
@@ -192,6 +192,7 @@ export default function SignupPage() {
                 styles={inputStyles}
                 disabled={isLoading}
                 {...form.getInputProps('organizationName')}
+                data-testid="signup-organization-name-input"
               />
               <Button
                 fullWidth
@@ -204,6 +205,7 @@ export default function SignupPage() {
                   border: 'none',
                   fontWeight: 600,
                 }}
+                data-testid="signup-step-0-continue"
               >
                 Continue
               </Button>
@@ -222,6 +224,7 @@ export default function SignupPage() {
                 styles={inputStyles}
                 disabled={isLoading}
                 {...form.getInputProps('adminName')}
+                data-testid="signup-admin-name-input"
               />
               <TextInput
                 label="Email Address"
@@ -235,6 +238,7 @@ export default function SignupPage() {
                 styles={inputStyles}
                 disabled={isLoading}
                 {...form.getInputProps('adminEmail')}
+                data-testid="signup-admin-email-input"
               />
               <Group grow>
                 <Button
@@ -243,6 +247,7 @@ export default function SignupPage() {
                   radius='md'
                   leftSection={<IconArrowLeft size={18} />}
                   onClick={prevStep}
+                  data-testid="signup-step-1-back"
                 >
                   Back
                 </Button>
@@ -256,6 +261,7 @@ export default function SignupPage() {
                     border: 'none',
                     fontWeight: 600,
                   }}
+                  data-testid="signup-step-1-continue"
                 >
                   Continue
                 </Button>
@@ -276,6 +282,7 @@ export default function SignupPage() {
                 styles={inputStyles}
                 disabled={isLoading}
                 {...form.getInputProps('password')}
+                data-testid="signup-password-input"
               />
               <PasswordInput
                 label="Confirm Password"
@@ -288,6 +295,7 @@ export default function SignupPage() {
                 styles={inputStyles}
                 disabled={isLoading}
                 {...form.getInputProps('confirmPassword')}
+                data-testid="signup-confirm-password-input"
               />
               <Group grow>
                 <Button
@@ -297,6 +305,7 @@ export default function SignupPage() {
                   leftSection={<IconArrowLeft size={18} />}
                   onClick={prevStep}
                   disabled={isLoading}
+                  data-testid="signup-step-2-back"
                 >
                   Back
                 </Button>
@@ -310,6 +319,7 @@ export default function SignupPage() {
                     border: 'none',
                     fontWeight: 600,
                   }}
+                  data-testid="signup-submit-button"
                 >
                   Create
                 </Button>
@@ -321,7 +331,7 @@ export default function SignupPage() {
         <Group justify="center">
           <Text size="sm" c="dimmed">
             Already have an account?{' '}
-            <Link href="/auth/signin" style={{ color: primary, textDecoration: 'none' }}>
+            <Link href="/auth/signin" style={{ color: primary, textDecoration: 'none' }} data-testid="signup-signin-link">
               Sign in
             </Link>
           </Text>

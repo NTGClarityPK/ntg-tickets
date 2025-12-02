@@ -51,6 +51,7 @@ export function SkipLink({ targetId, children }: SkipLinkProps) {
         e.currentTarget.style.top = '-100px';
       }}
       aria-label={`Skip to ${targetId}`}
+      data-testid={`skip-link-${targetId}`}
     >
       {children}
     </Button>

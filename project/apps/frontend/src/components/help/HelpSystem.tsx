@@ -338,12 +338,13 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
       }
       size='xl'
       centered
+      data-testid="help-system-modal"
     >
       <Grid>
         {/* Navigation Sidebar */}
         <Grid.Col span={4}>
-          <Stack gap='sm'>
-            <Text size='sm' fw={500} c='dimmed' mb='xs'>
+          <Stack gap='sm' data-testid="help-navigation-sidebar">
+            <Text size='sm' fw={500} c='dimmed' mb='xs' data-testid="help-topics-label">
               {t('helpTopics')}
             </Text>
             {helpSections.map(section => (
@@ -355,14 +356,15 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                 leftSection={<section.icon size={16} />}
                 onClick={() => setActiveSection(section.id)}
                 fullWidth
+                data-testid={`help-section-button-${section.id}`}
               >
                 {section.title}
               </Button>
             ))}
 
-            <Divider my='md' />
+            <Divider my='md' data-testid="help-divider-1" />
 
-            <Text size='sm' fw={500} c='dimmed' mb='xs'>
+            <Text size='sm' fw={500} c='dimmed' mb='xs' data-testid="help-quick-actions-label">
               Quick Actions
             </Text>
             {quickActions.map(action => (
@@ -373,13 +375,14 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
                 radius='md'
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleQuickAction(action.action, action.target)}
+                data-testid={`help-quick-action-${action.title.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 <Group justify='space-between'>
                   <div>
-                    <Text size='sm' fw={500}>
+                    <Text size='sm' fw={500} data-testid={`help-quick-action-title-${action.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {action.title}
                     </Text>
-                    <Text size='xs' c='dimmed'>
+                    <Text size='xs' c='dimmed' data-testid={`help-quick-action-description-${action.title.toLowerCase().replace(/\s+/g, '-')}`}>
                       {action.description}
                     </Text>
                   </div>
@@ -388,23 +391,24 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
               </Card>
             ))}
 
-            <Divider my='md' />
+            <Divider my='md' data-testid="help-divider-2" />
 
             <Alert
               icon={<IconMail size={16} />}
               title={t('needMoreHelp')}
               color={theme.colors[theme.primaryColor][9]}
               variant='light'
+              data-testid="help-contact-alert"
             >
-              <Text size='xs' mb='sm'>
+              <Text size='xs' mb='sm' data-testid="help-contact-text">
                 Contact our support team for personalized assistance.
               </Text>
-              <Group gap='xs'>
-                <Anchor href='mailto:support@ntg-ticket.com' size='xs'>
+              <Group gap='xs' data-testid="help-contact-links">
+                <Anchor href='mailto:support@ntg-ticket.com' size='xs' data-testid="help-contact-email">
                   <IconMail size={12} style={{ marginRight: 4 }} />
                   Email Support
                 </Anchor>
-                <Anchor href='tel:+1-555-0123' size='xs'>
+                <Anchor href='tel:+1-555-0123' size='xs' data-testid="help-contact-phone">
                   <IconPhone size={12} style={{ marginRight: 4 }} />
                   Call Support
                 </Anchor>
@@ -415,20 +419,20 @@ export function HelpSystem({ opened, onClose }: HelpSystemProps) {
 
         {/* Content Area */}
         <Grid.Col span={8}>
-          <Stack gap='md'>
+          <Stack gap='md' data-testid="help-content-area">
             {helpSections.map(
               section =>
                 activeSection === section.id && (
-                  <div key={section.id}>
-                    <Group mb='md'>
+                  <div key={section.id} data-testid={`help-content-section-${section.id}`}>
+                    <Group mb='md' data-testid={`help-section-header-${section.id}`}>
                       <ThemeIcon size='lg' variant='light' color={theme.colors[theme.primaryColor][9]}>
                         <section.icon size={20} />
                       </ThemeIcon>
                       <div>
-                        <Text size='xl' fw={600}>
+                        <Text size='xl' fw={600} data-testid={`help-section-title-${section.id}`}>
                           {section.title}
                         </Text>
-                        <Text size='sm' c='dimmed'>
+                        <Text size='sm' c='dimmed' data-testid={`help-section-overview-${section.id}`}>
                           {section.content.overview}
                         </Text>
                       </div>

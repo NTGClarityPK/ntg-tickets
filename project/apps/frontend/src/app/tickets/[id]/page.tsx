@@ -422,6 +422,7 @@ export default function TicketDetailPage() {
             variant='subtle'
             leftSection={<RTLArrowLeft size={16} />}
             onClick={() => router.back()}
+            data-testid="ticket-detail-back-button"
           >
             Back
           </Button>
@@ -435,19 +436,20 @@ export default function TicketDetailPage() {
             <Button
               leftSection={<IconEdit size={16} />}
               onClick={() => router.push(`/tickets/${ticketId}/edit`)}
+              data-testid="ticket-detail-edit-button"
             >
               Edit
             </Button>
           )}
-          <Menu shadow='md' width={200}>
+          <Menu shadow='md' width={200} data-testid="ticket-detail-menu">
             <Menu.Target>
-              <ActionIcon variant='subtle'>
+              <ActionIcon variant='subtle' data-testid="ticket-detail-menu-button">
                 <IconDots size={16} />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item leftSection={<IconShare size={14} />}>Share</Menu.Item>
-              <Menu.Item leftSection={<IconBell size={14} />}>
+              <Menu.Item leftSection={<IconShare size={14} />} data-testid="ticket-detail-share-menu-item">Share</Menu.Item>
+              <Menu.Item leftSection={<IconBell size={14} />} data-testid="ticket-detail-subscribe-menu-item">
                 Subscribe
               </Menu.Item>
               {canDelete && (
@@ -457,6 +459,7 @@ export default function TicketDetailPage() {
                     leftSection={<IconTrash size={14} />}
                     color={theme.colors[theme.primaryColor][9]}
                     onClick={() => setDeleteModalOpen(true)}
+                    data-testid="ticket-detail-delete-menu-item"
                   >
                     Delete
                   </Menu.Item>
@@ -470,24 +473,26 @@ export default function TicketDetailPage() {
       <Grid>
         {/* Main Content */}
         <Grid.Col span={{ base: 12, md: 8 }}>
-          <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs value={activeTab} onChange={setActiveTab} data-testid="ticket-detail-tabs">
             <Tabs.List>
-              <Tabs.Tab value='details' leftSection={<IconEye size={16} />}>
+              <Tabs.Tab value='details' leftSection={<IconEye size={16} />} data-testid="ticket-detail-tab-details">
                 Details
               </Tabs.Tab>
               <Tabs.Tab
                 value='comments'
                 leftSection={<IconMessage size={16} />}
+                data-testid="ticket-detail-tab-comments"
               >
                 Comments ({ticket.comments?.length || 0})
               </Tabs.Tab>
               <Tabs.Tab
                 value='attachments'
                 leftSection={<IconPaperclip size={16} />}
+                data-testid="ticket-detail-tab-attachments"
               >
                 Attachments ({ticket.attachments?.length || 0})
               </Tabs.Tab>
-              <Tabs.Tab value='history' leftSection={<IconHistory size={16} />}>
+              <Tabs.Tab value='history' leftSection={<IconHistory size={16} />} data-testid="ticket-detail-tab-history">
                 History
               </Tabs.Tab>
             </Tabs.List>
@@ -715,6 +720,7 @@ export default function TicketDetailPage() {
                         autosize
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
+                        data-testid="ticket-detail-comment-input"
                       />
                       <Group justify='flex-end'>
                         <Button
@@ -723,6 +729,7 @@ export default function TicketDetailPage() {
                             setNewComment('');
                           }}
                           disabled={!newComment.trim()}
+                          data-testid="ticket-detail-comment-cancel"
                         >
                           Cancel
                         </Button>
@@ -730,6 +737,7 @@ export default function TicketDetailPage() {
                           onClick={handleAddComment}
                           disabled={!newComment.trim() || isSubmittingComment}
                           loading={isSubmittingComment}
+                          data-testid="ticket-detail-comment-submit"
                         >
                           Add Comment
                         </Button>
@@ -787,6 +795,7 @@ export default function TicketDetailPage() {
                       input?.click();
                     }}
                     loading={uploadAttachmentMutation.isPending}
+                    data-testid="ticket-detail-upload-button"
                   >
                     Upload File
                   </Button>
@@ -1035,6 +1044,7 @@ export default function TicketDetailPage() {
                       setStatusComment('');
                       setStatusModalOpen(true);
                     }}
+                    data-testid="ticket-detail-update-status-button"
                   >
                     Update Status
                       </Button>
@@ -1085,6 +1095,7 @@ export default function TicketDetailPage() {
                     variant='light'
                     size='sm'
                     onClick={() => setAssignModalOpen(true)}
+                    data-testid="ticket-detail-assign-button"
                   >
                     Assign Ticket
                   </Button>
@@ -1165,6 +1176,7 @@ export default function TicketDetailPage() {
         }}
         title='Update Ticket Status'
         centered
+        data-testid="ticket-detail-status-modal"
       >
         <Stack gap='md'>
           <Select
@@ -1176,6 +1188,7 @@ export default function TicketDetailPage() {
             }))}
             value={newStatus}
             onChange={value => setNewStatus(value as TicketStatus)}
+            data-testid="ticket-detail-status-select"
           />
           <Textarea
             label='Comment'
@@ -1184,17 +1197,19 @@ export default function TicketDetailPage() {
             value={statusComment}
             onChange={e => setStatusComment(e.target.value)}
             minRows={2}
+            data-testid="ticket-detail-status-comment"
           />
           <Group justify='flex-end'>
             <Button variant='outline' onClick={() => {
               setStatusModalOpen(false);
               setStatusComment('');
-            }}>
+            }} data-testid="ticket-detail-status-modal-cancel">
               Cancel
             </Button>
             <Button
               onClick={handleStatusUpdate}
               loading={updateStatusMutation.isPending}
+              data-testid="ticket-detail-status-modal-submit"
             >
               Update Status
             </Button>
@@ -1208,6 +1223,7 @@ export default function TicketDetailPage() {
         onClose={() => setAssignModalOpen(false)}
         title='Assign Ticket'
         centered
+        data-testid="ticket-detail-assign-modal"
       >
         <Stack gap='md'>
           <Select
@@ -1223,15 +1239,17 @@ export default function TicketDetailPage() {
             onChange={value => setSelectedAssignee(value || '')}
             searchable
             disabled={supportStaffLoading}
+            data-testid="ticket-detail-assign-select"
           />
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setAssignModalOpen(false)}>
+            <Button variant='outline' onClick={() => setAssignModalOpen(false)} data-testid="ticket-detail-assign-modal-cancel">
               Cancel
             </Button>
             <Button
               onClick={handleAssignTicket}
               loading={assignTicketMutation.isPending}
               disabled={!selectedAssignee}
+              data-testid="ticket-detail-assign-modal-submit"
             >
               Assign
             </Button>
@@ -1307,6 +1325,7 @@ export default function TicketDetailPage() {
         onClose={() => setDeleteModalOpen(false)}
         title='Delete Ticket'
         centered
+        data-testid="ticket-detail-delete-modal"
       >
         <Stack gap='md'>
           <Text>
@@ -1314,10 +1333,10 @@ export default function TicketDetailPage() {
             action cannot be undone.
           </Text>
           <Group justify='flex-end'>
-            <Button variant='outline' onClick={() => setDeleteModalOpen(false)}>
+            <Button variant='outline' onClick={() => setDeleteModalOpen(false)} data-testid="ticket-detail-delete-modal-cancel">
               Cancel
             </Button>
-            <Button color={theme.colors[theme.primaryColor][9]}>Delete</Button>
+            <Button color={theme.colors[theme.primaryColor][9]} data-testid="ticket-detail-delete-modal-confirm">Delete</Button>
           </Group>
         </Stack>
       </Modal>

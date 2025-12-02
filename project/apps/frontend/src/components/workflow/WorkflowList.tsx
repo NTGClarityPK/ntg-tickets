@@ -203,26 +203,28 @@ export function WorkflowList({
   };
 
   return (
-    <Container size="xl">
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Title order={2}>Workflow Management</Title>
+    <Container size="xl" data-testid="workflow-list-container">
+      <Stack gap="md" data-testid="workflow-list-stack">
+        <Group justify="space-between" data-testid="workflow-list-header">
+          <Title order={2} data-testid="workflow-list-title">Workflow Management</Title>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={handleCreateWorkflow}
+            data-testid="workflow-list-create-button"
           >
             Create Workflow
           </Button>
         </Group>
 
-        <Card withBorder>
-          <Stack gap="md">
-            <Group>
+        <Card withBorder data-testid="workflow-list-card">
+          <Stack gap="md" data-testid="workflow-list-filters-stack">
+            <Group data-testid="workflow-list-filters-group">
               <TextInput
                 placeholder="Search workflows..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ flex: 1 }}
+                data-testid="workflow-list-search-input"
               />
               <Select
                 placeholder="Filter by status"
@@ -234,20 +236,22 @@ export function WorkflowList({
                 value={statusFilter}
                 onChange={setStatusFilter}
                 clearable
+                data-testid="workflow-list-status-filter"
               />
               <ActionIcon
                 variant="outline"
                 size="lg"
                 onClick={onRefresh}
                 title="Refresh"
+                data-testid="workflow-list-refresh-button"
               >
                 <IconRefresh size={20} />
               </ActionIcon>
             </Group>
 
-            <ScrollArea>
-              <Table>
-                <Table.Thead>
+            <ScrollArea data-testid="workflow-list-scroll-area">
+              <Table data-testid="workflow-list-table">
+                <Table.Thead data-testid="workflow-list-table-head">
                   <Table.Tr>
                     <Table.Th>Name</Table.Th>
                     <Table.Th>Status</Table.Th>
@@ -256,9 +260,9 @@ export function WorkflowList({
                     <Table.Th>Actions</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
-                <Table.Tbody>
+                <Table.Tbody data-testid="workflow-list-table-body">
                   {filteredWorkflows.map((workflow) => (
-                    <Table.Tr key={workflow.id}>
+                    <Table.Tr key={workflow.id} data-testid={`workflow-row-${workflow.id}`}>
                       <Table.Td>
                         <Stack gap={4}>
                           <Group gap="xs">
@@ -299,7 +303,7 @@ export function WorkflowList({
                           {new Date(workflow.createdAt).toLocaleDateString()}
                         </Text>
                       </Table.Td>
-                      <Table.Td>
+                      <Table.Td data-testid={`workflow-actions-${workflow.id}`}>
                         <Group gap="xs">
                           <Tooltip label={workflow.isSystemDefault ? "System default cannot be edited" : "Edit Workflow"}>
                             <ActionIcon
@@ -307,28 +311,30 @@ export function WorkflowList({
                               onClick={() => !workflow.isSystemDefault && handleEditWorkflow(workflow)}
                               disabled={workflow.isSystemDefault}
                               style={{ cursor: workflow.isSystemDefault ? 'not-allowed' : 'pointer' }}
+                              data-testid={`workflow-edit-button-${workflow.id}`}
                             >
                               <IconEdit size={16} />
                             </ActionIcon>
                           </Tooltip>
                           
                           <Tooltip label="View Details">
-                            <ActionIcon variant="subtle" onClick={() => handleViewWorkflow(workflow)}>
+                            <ActionIcon variant="subtle" onClick={() => handleViewWorkflow(workflow)} data-testid={`workflow-view-button-${workflow.id}`}>
                               <IconEye size={16} />
                             </ActionIcon>
                           </Tooltip>
 
-                          <Menu>
+                          <Menu data-testid={`workflow-menu-${workflow.id}`}>
                             <Menu.Target>
-                              <ActionIcon variant="subtle">
+                              <ActionIcon variant="subtle" data-testid={`workflow-menu-button-${workflow.id}`}>
                                 <IconDots size={16} />
                               </ActionIcon>
                             </Menu.Target>
-                            <Menu.Dropdown>
+                            <Menu.Dropdown data-testid={`workflow-menu-dropdown-${workflow.id}`}>
                               {workflow.status === 'ACTIVE' && !workflow.isSystemDefault && (
                                 <Menu.Item
                                   leftSection={<IconX size={16} />}
                                   onClick={() => onDeactivate(workflow.id)}
+                                  data-testid={`workflow-deactivate-${workflow.id}`}
                                 >
                                   Deactivate
                                 </Menu.Item>
@@ -338,6 +344,7 @@ export function WorkflowList({
                                 <Menu.Item
                                   leftSection={<IconCheck size={16} />}
                                   onClick={() => handleActivateClick(workflow)}
+                                  data-testid={`workflow-activate-${workflow.id}`}
                                 >
                                   Activate
                                 </Menu.Item>
@@ -347,6 +354,7 @@ export function WorkflowList({
                                 <Menu.Item
                                   disabled
                                   leftSection={<IconX size={16} />}
+                                  data-testid={`workflow-deactivate-disabled-${workflow.id}`}
                                 >
                                   Deactivate (System Default)
                                 </Menu.Item>
@@ -362,17 +370,19 @@ export function WorkflowList({
                                     color: theme.primaryColor,
                                   });
                                 }}
+                                data-testid={`workflow-duplicate-${workflow.id}`}
                               >
                                 Duplicate
                               </Menu.Item>
                               
-                              <Divider />
+                              <Divider data-testid={`workflow-menu-divider-${workflow.id}`} />
                               
                               {!workflow.isSystemDefault && (
                                 <Menu.Item
                                   color={theme.colors[theme.primaryColor][9]}
                                   leftSection={<IconTrash size={16} />}
                                   onClick={() => setDeleteModalOpen(workflow.id)}
+                                  data-testid={`workflow-delete-${workflow.id}`}
                                 >
                                   Delete
                                 </Menu.Item>
@@ -382,6 +392,7 @@ export function WorkflowList({
                                 <Menu.Item
                                   disabled
                                   leftSection={<IconTrash size={16} />}
+                                  data-testid={`workflow-delete-disabled-${workflow.id}`}
                                 >
                                   Delete (System Default)
                                 </Menu.Item>
@@ -397,8 +408,8 @@ export function WorkflowList({
             </ScrollArea>
 
             {filteredWorkflows.length === 0 && (
-              <Alert color={theme.primaryColor} variant="light">
-                <Text>No workflows found. Create your first workflow to get started.</Text>
+              <Alert color={theme.primaryColor} variant="light" data-testid="workflow-list-empty-alert">
+                <Text data-testid="workflow-list-empty-message">No workflows found. Create your first workflow to get started.</Text>
               </Alert>
             )}
           </Stack>
@@ -411,6 +422,7 @@ export function WorkflowList({
           title={editingWorkflow ? 'Edit Workflow' : 'Create Workflow'}
           size="95%"
           centered
+          data-testid="workflow-editor-modal"
         >
           <WorkflowEditor
             workflow={editingWorkflow || undefined}
@@ -424,18 +436,19 @@ export function WorkflowList({
           opened={!!deleteModalOpen}
           onClose={() => setDeleteModalOpen(null)}
           title="Delete Workflow"
+          data-testid="workflow-delete-modal"
         >
-          <Stack gap="md">
-            <Text>
+          <Stack gap="md" data-testid="workflow-delete-modal-stack">
+            <Text data-testid="workflow-delete-modal-message">
               Are you sure you want to delete this workflow? This action cannot be undone.
             </Text>
-            <Alert color={theme.colors[theme.primaryColor][9]} variant="light">
-              <Text size="sm">
+            <Alert color={theme.colors[theme.primaryColor][9]} variant="light" data-testid="workflow-delete-modal-warning">
+              <Text size="sm" data-testid="workflow-delete-modal-warning-text">
                 Note: If this workflow is being used by any tickets, it cannot be deleted.
               </Text>
             </Alert>
-            <Group justify="flex-end">
-              <Button variant="outline" onClick={() => setDeleteModalOpen(null)}>
+            <Group justify="flex-end" data-testid="workflow-delete-modal-actions">
+              <Button variant="outline" onClick={() => setDeleteModalOpen(null)} data-testid="workflow-delete-modal-cancel-button">
                 Cancel
               </Button>
               <Button
@@ -445,6 +458,7 @@ export function WorkflowList({
                     handleDeleteWorkflow(deleteModalOpen);
                   }
                 }}
+                data-testid="workflow-delete-modal-confirm-button"
               >
                 Delete
               </Button>
@@ -462,6 +476,7 @@ export function WorkflowList({
           title={viewingWorkflow ? `View Workflow: ${viewingWorkflow.name}` : 'View Workflow'}
           size="95%"
           centered
+          data-testid="workflow-view-modal"
         >
           {viewingWorkflow && (
             <WorkflowEditor

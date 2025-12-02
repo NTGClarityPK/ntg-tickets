@@ -254,12 +254,14 @@ export default function SavedSearchesPage() {
             leftSection={<IconRefresh size={16} />}
             onClick={() => refetch()}
             loading={isLoading}
+            data-testid="saved-searches-refresh-button"
           >
             Refresh
           </Button>
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setCreateModalOpen(true)}
+            data-testid="saved-searches-create-button"
           >
             Create Search
           </Button>
@@ -269,15 +271,16 @@ export default function SavedSearchesPage() {
       <Tabs
         value={activeTab}
         onChange={value => setActiveTab(value || 'my-searches')}
+        data-testid="saved-searches-tabs"
       >
         <Tabs.List>
-          <Tabs.Tab value='my-searches' leftSection={<IconSearch size={16} />}>
+          <Tabs.Tab value='my-searches' leftSection={<IconSearch size={16} />} data-testid="saved-searches-tab-my-searches">
             My Searches
           </Tabs.Tab>
-          <Tabs.Tab value='public' leftSection={<IconUsers size={16} />}>
+          <Tabs.Tab value='public' leftSection={<IconUsers size={16} />} data-testid="saved-searches-tab-public">
             Public Searches
           </Tabs.Tab>
-          <Tabs.Tab value='popular' leftSection={<IconStar size={16} />}>
+          <Tabs.Tab value='popular' leftSection={<IconStar size={16} />} data-testid="saved-searches-tab-popular">
             Popular
           </Tabs.Tab>
         </Tabs.List>
@@ -293,6 +296,7 @@ export default function SavedSearchesPage() {
                   onChange={e => setSearchQuery(e.target.value)}
                   leftSection={<IconSearch size={16} />}
                   style={{ width: 300 }}
+                  data-testid="saved-searches-search-input"
                 />
               </Group>
 
@@ -368,6 +372,7 @@ export default function SavedSearchesPage() {
                                   createdAt: search.createdAt,
                                 })
                               }
+                              data-testid={`saved-search-edit-${search.id}`}
                             >
                               <IconEdit size={14} />
                             </ActionIcon>
@@ -386,6 +391,7 @@ export default function SavedSearchesPage() {
                                   createdAt: search.createdAt,
                                 })
                               }
+                              data-testid={`saved-search-duplicate-${search.id}`}
                             >
                               <IconCopy size={14} />
                             </ActionIcon>
@@ -404,6 +410,7 @@ export default function SavedSearchesPage() {
                                   createdAt: search.createdAt,
                                 })
                               }
+                              data-testid={`saved-search-delete-${search.id}`}
                             >
                               <IconTrash size={14} />
                             </ActionIcon>
@@ -539,14 +546,16 @@ export default function SavedSearchesPage() {
         onClose={() => setCreateModalOpen(false)}
         title='Create Saved Search'
         size='lg'
+        data-testid="saved-searches-create-modal"
       >
-        <Stack>
+        <Stack data-testid="saved-searches-create-modal-stack">
           <TextInput
             label='Name'
             placeholder='Enter search name'
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
             required
+            data-testid="saved-searches-create-name-input"
           />
           <Textarea
             label='Description'
@@ -555,6 +564,7 @@ export default function SavedSearchesPage() {
             onChange={e =>
               setFormData({ ...formData, description: e.target.value })
             }
+            data-testid="saved-searches-create-description-input"
           />
           <Grid>
             <Grid.Col span={6}>
@@ -574,6 +584,7 @@ export default function SavedSearchesPage() {
                     filters: { ...formData.filters, status: value },
                   })
                 }
+                data-testid="saved-searches-create-status-select"
               />
             </Grid.Col>
             <Grid.Col span={6}>
@@ -596,6 +607,7 @@ export default function SavedSearchesPage() {
                     },
                   })
                 }
+                data-testid="saved-searches-create-priority-select"
               />
             </Grid.Col>
           </Grid>
@@ -607,6 +619,7 @@ export default function SavedSearchesPage() {
               onChange={e =>
                 setFormData({ ...formData, isPublic: e.currentTarget.checked })
               }
+              data-testid="saved-searches-create-public-switch"
             />
             <Switch
               label='Default Search'
@@ -615,15 +628,17 @@ export default function SavedSearchesPage() {
               onChange={e =>
                 setFormData({ ...formData, isDefault: e.currentTarget.checked })
               }
+              data-testid="saved-searches-create-default-switch"
             />
           </Group>
           <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setCreateModalOpen(false)}>
+            <Button variant='light' onClick={() => setCreateModalOpen(false)} data-testid="saved-searches-create-cancel-button">
               Cancel
             </Button>
             <Button
               onClick={handleCreateSearch}
               loading={createSearch.isPending}
+              data-testid="saved-searches-create-submit-button"
             >
               Create Search
             </Button>
@@ -637,14 +652,16 @@ export default function SavedSearchesPage() {
         onClose={() => setEditModalOpen(false)}
         title='Edit Saved Search'
         size='lg'
+        data-testid="saved-searches-edit-modal"
       >
-        <Stack>
+        <Stack data-testid="saved-searches-edit-modal-stack">
           <TextInput
             label='Name'
             placeholder='Enter search name'
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
             required
+            data-testid="saved-searches-edit-name-input"
           />
           <Textarea
             label='Description'
@@ -653,6 +670,7 @@ export default function SavedSearchesPage() {
             onChange={e =>
               setFormData({ ...formData, description: e.target.value })
             }
+            data-testid="saved-searches-edit-description-input"
           />
           <Grid>
             <Grid.Col span={6}>
@@ -672,6 +690,7 @@ export default function SavedSearchesPage() {
                     filters: { ...formData.filters, status: value },
                   })
                 }
+                data-testid="saved-searches-edit-status-select"
               />
             </Grid.Col>
             <Grid.Col span={6}>
@@ -694,6 +713,7 @@ export default function SavedSearchesPage() {
                     },
                   })
                 }
+                data-testid="saved-searches-edit-priority-select"
               />
             </Grid.Col>
           </Grid>
@@ -705,6 +725,7 @@ export default function SavedSearchesPage() {
               onChange={e =>
                 setFormData({ ...formData, isPublic: e.currentTarget.checked })
               }
+              data-testid="saved-searches-edit-public-switch"
             />
             <Switch
               label='Default Search'
@@ -713,15 +734,17 @@ export default function SavedSearchesPage() {
               onChange={e =>
                 setFormData({ ...formData, isDefault: e.currentTarget.checked })
               }
+              data-testid="saved-searches-edit-default-switch"
             />
           </Group>
           <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setEditModalOpen(false)}>
+            <Button variant='light' onClick={() => setEditModalOpen(false)} data-testid="saved-searches-edit-cancel-button">
               Cancel
             </Button>
             <Button
               onClick={handleUpdateSearch}
               loading={updateSearch.isPending}
+              data-testid="saved-searches-edit-submit-button"
             >
               Update Search
             </Button>
@@ -734,20 +757,22 @@ export default function SavedSearchesPage() {
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         title='Delete Saved Search'
+        data-testid="saved-searches-delete-modal"
       >
-        <Stack>
-          <Text>
+        <Stack data-testid="saved-searches-delete-modal-stack">
+          <Text data-testid="saved-searches-delete-message">
             Are you sure you want to delete "{selectedSearch?.name}"? This
             action cannot be undone.
           </Text>
           <Group justify='flex-end'>
-            <Button variant='light' onClick={() => setDeleteModalOpen(false)}>
+            <Button variant='light' onClick={() => setDeleteModalOpen(false)} data-testid="saved-searches-delete-cancel-button">
               Cancel
             </Button>
             <Button
               color={theme.colors[theme.primaryColor][9]}
               onClick={handleDeleteSearch}
               loading={deleteSearch.isPending}
+              data-testid="saved-searches-delete-confirm-button"
             >
               Delete
             </Button>

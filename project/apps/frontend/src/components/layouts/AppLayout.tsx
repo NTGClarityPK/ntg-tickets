@@ -125,6 +125,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           collapsed: { mobile: !mobileOpened },
         }}
         padding='md'
+        data-testid="app-shell"
       >
         <AppHeader
           onHelpClick={() => setHelpModalOpened(true)}
@@ -132,7 +133,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           toggleMobile={toggleMobile}
         />
         <AppNavbar onMobileClose={() => mobileOpened && toggleMobile()} />
-        <AppShell.Main>{children}</AppShell.Main>
+        <AppShell.Main data-testid="app-shell-main">{children}</AppShell.Main>
       </AppShell>
       <HelpSystem
         opened={helpModalOpened}

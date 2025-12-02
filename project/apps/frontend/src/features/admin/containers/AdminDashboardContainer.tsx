@@ -165,10 +165,10 @@ export function AdminDashboardContainer() {
 
   if (isLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
-          <Text>Loading administrative data...</Text>
+      <Container size='xl' py='md' data-testid="admin-dashboard-container-loading">
+        <Group justify='center' py='xl' data-testid="admin-dashboard-loading-group">
+          <Loader size='lg' data-testid="admin-dashboard-loader" />
+          <Text data-testid="admin-dashboard-loading-text">Loading administrative data...</Text>
         </Group>
       </Container>
     );

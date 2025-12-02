@@ -187,9 +187,9 @@ export function ManagerDashboardContainer() {
 
   if (ticketsLoading || statsLoading) {
     return (
-      <Container size='xl' py='md'>
-        <Group justify='center' py='xl'>
-          <Loader size='lg' />
+      <Container size='xl' py='md' data-testid="manager-dashboard-container-loading">
+        <Group justify='center' py='xl' data-testid="manager-dashboard-loading-group">
+          <Loader size='lg' data-testid="manager-dashboard-loader" />
         </Group>
       </Container>
     );

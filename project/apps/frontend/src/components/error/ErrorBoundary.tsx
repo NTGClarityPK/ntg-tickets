@@ -45,17 +45,19 @@ function ErrorDetails({ error, errorInfo, onCopyError }: { error: Error; errorIn
       color={theme.colors[theme.primaryColor][9]}
       variant='light'
       style={{ width: '100%' }}
+      data-testid="error-boundary-details"
     >
-      <Stack gap='sm'>
-        <Text size='sm' fw={500}>
+      <Stack gap='sm' data-testid="error-boundary-details-content">
+        <Text size='sm' fw={500} data-testid="error-boundary-details-message">
           {error.message}
         </Text>
-        <Group>
+        <Group data-testid="error-boundary-details-actions">
           <ActionIcon
             variant='subtle'
             size='sm'
             onClick={onCopyError}
             title='Copy error details'
+            data-testid="error-boundary-details-copy-button"
           >
             <IconCopy size={14} />
           </ActionIcon>
@@ -67,6 +69,7 @@ function ErrorDetails({ error, errorInfo, onCopyError }: { error: Error; errorIn
             maxHeight: '200px',
             overflow: 'auto',
           }}
+          data-testid="error-boundary-details-stack"
         >
           {error.stack}
         </Code>
@@ -78,6 +81,7 @@ function ErrorDetails({ error, errorInfo, onCopyError }: { error: Error; errorIn
               maxHeight: '200px',
               overflow: 'auto',
             }}
+            data-testid="error-boundary-details-component-stack"
           >
             {errorInfo.componentStack}
           </Code>
@@ -147,26 +151,27 @@ Component Stack: ${this.state.errorInfo?.componentStack}
       }
 
       return (
-        <Container size='md' py='xl'>
-          <Paper withBorder p='xl' radius='md'>
-            <Stack gap='lg' align='center'>
-              <IconAlertTriangle size={64} color='var(--mantine-color-red-6)' />
+        <Container size='md' py='xl' data-testid="error-boundary">
+          <Paper withBorder p='xl' radius='md' data-testid="error-boundary-paper">
+            <Stack gap='lg' align='center' data-testid="error-boundary-content">
+              <IconAlertTriangle size={64} color='var(--mantine-color-red-6)' data-testid="error-boundary-icon" />
 
-              <div style={{ textAlign: 'center' }}>
-                <Title order={2} mb='sm'>
+              <div style={{ textAlign: 'center' }} data-testid="error-boundary-message">
+                <Title order={2} mb='sm' data-testid="error-boundary-title">
                   Oops! Something went wrong
                 </Title>
-                <Text c='dimmed' size='lg'>
+                <Text c='dimmed' size='lg' data-testid="error-boundary-description">
                   We encountered an unexpected error. Please try refreshing the
                   page or contact support if the problem persists.
                 </Text>
               </div>
 
-              <Group>
+              <Group data-testid="error-boundary-actions">
                 <Button
                   leftSection={<IconRefresh size={16} />}
                   onClick={this.handleRetry}
                   variant='filled'
+                  data-testid="error-boundary-retry-button"
                 >
                   Try Again
                 </Button>
@@ -174,6 +179,7 @@ Component Stack: ${this.state.errorInfo?.componentStack}
                   leftSection={<IconHome size={16} />}
                   onClick={this.handleGoHome}
                   variant='outline'
+                  data-testid="error-boundary-home-button"
                 >
                   Go to Dashboard
                 </Button>

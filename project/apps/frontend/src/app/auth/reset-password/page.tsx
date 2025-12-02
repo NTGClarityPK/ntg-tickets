@@ -179,9 +179,9 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthLayout title={t('resetPassword')} subtitle={t('subtitle')} type='signin'>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} data-testid="reset-password-form">
         <Stack gap='lg'>
-          <Box>
+          <Box data-testid="reset-password-header">
             <Title order={2} size='1.8rem' fw={700} mb='xs'>
               {t('resetPassword')}
             </Title>
@@ -197,6 +197,7 @@ export default function ResetPasswordPage() {
               color={theme.colors[theme.primaryColor][9]}
               variant='light'
               radius='md'
+              data-testid="reset-password-error-alert"
             >
               {error}
             </Alert>
@@ -228,6 +229,7 @@ export default function ResetPasswordPage() {
               },
             })}
             disabled={loading}
+            data-testid="reset-password-new-password-input"
           />
 
           <PasswordInput
@@ -256,6 +258,7 @@ export default function ResetPasswordPage() {
               },
             })}
             disabled={loading}
+            data-testid="reset-password-confirm-password-input"
           />
 
           <Button
@@ -269,6 +272,7 @@ export default function ResetPasswordPage() {
               border: 'none',
               fontWeight: 600,
             }}
+            data-testid="reset-password-submit-button"
           >
             {t('resetPassword')}
           </Button>
@@ -280,6 +284,7 @@ export default function ResetPasswordPage() {
             fullWidth
             size='md'
             radius='md'
+            data-testid="reset-password-back-button"
           >
             {t('backToSignIn') || 'Back to Sign In'}
           </Button>

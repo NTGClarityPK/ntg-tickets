@@ -129,16 +129,16 @@ export default function EditCustomFieldPage({
 
   if (isLoading) {
     return (
-      <Container size='lg' py='md'>
-        <LoadingOverlay visible />
+      <Container size='lg' py='md' data-testid="edit-custom-field-page-loading">
+        <LoadingOverlay visible data-testid="edit-custom-field-page-loading-overlay" />
       </Container>
     );
   }
 
   if (!customField) {
     return (
-      <Container size='lg' py='md'>
-        <Alert color={theme.colors[theme.primaryColor][9]} title='Error'>
+      <Container size='lg' py='md' data-testid="edit-custom-field-page-error">
+        <Alert color={theme.colors[theme.primaryColor][9]} title='Error' data-testid="edit-custom-field-page-error-alert">
           Custom field not found
         </Alert>
       </Container>
@@ -146,44 +146,46 @@ export default function EditCustomFieldPage({
   }
 
   return (
-    <Container size='lg' py='md'>
-      <Group mb='xl'>
+    <Container size='lg' py='md' data-testid="edit-custom-field-page">
+      <Group mb='xl' data-testid="edit-custom-field-page-header">
         <Button
           variant='light'
           leftSection={<IconArrowLeft size={16} />}
           onClick={() => router.back()}
+          data-testid="edit-custom-field-page-back-button"
         >
           Back
         </Button>
-        <div>
-          <Title order={2}>Edit Custom Field</Title>
-          <Text c='dimmed' size='sm'>
+        <div data-testid="edit-custom-field-page-header-content">
+          <Title order={2} data-testid="edit-custom-field-page-title">Edit Custom Field</Title>
+          <Text c='dimmed' size='sm' data-testid="edit-custom-field-page-subtitle">
             Update custom field: {customField.name}
           </Text>
         </div>
       </Group>
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Grid>
-          <Grid.Col span={8}>
-            <Stack>
-              <Card>
-                <Stack>
-                  <Title order={4}>Basic Information</Title>
-                  <Grid>
-                    <Grid.Col span={6}>
+      <form onSubmit={form.onSubmit(handleSubmit)} data-testid="edit-custom-field-page-form">
+        <Grid data-testid="edit-custom-field-page-form-grid">
+          <Grid.Col span={8} data-testid="edit-custom-field-page-form-left-col">
+            <Stack data-testid="edit-custom-field-page-form-left-stack">
+              <Card data-testid="edit-custom-field-page-basic-info-card">
+                <Stack data-testid="edit-custom-field-page-basic-info-stack">
+                  <Title order={4} data-testid="edit-custom-field-page-basic-info-title">Basic Information</Title>
+                  <Grid data-testid="edit-custom-field-page-basic-info-grid">
+                    <Grid.Col span={6} data-testid="edit-custom-field-page-name-col">
                       <TextInput
                         label='Name'
                         placeholder='field_name'
                         description='Internal field name (used in API)'
                         required
                         {...form.getInputProps('name')}
+                        data-testid="edit-custom-field-page-name-input"
                       />
                     </Grid.Col>
                   </Grid>
 
-                  <Grid>
-                    <Grid.Col span={6}>
+                  <Grid data-testid="edit-custom-field-page-type-grid">
+                    <Grid.Col span={6} data-testid="edit-custom-field-page-type-col">
                       <Select
                         label='Type'
                         placeholder='Select field type'
@@ -191,6 +193,7 @@ export default function EditCustomFieldPage({
                         required
                         data={fieldTypeOptions}
                         {...form.getInputProps('fieldType')}
+                        data-testid="edit-custom-field-page-type-select"
                       />
                     </Grid.Col>
                   </Grid>
@@ -198,15 +201,15 @@ export default function EditCustomFieldPage({
               </Card>
 
               {isSelectType && (
-                <Card>
-                  <Stack>
-                    <Title order={4}>Options</Title>
-                    <Text size='sm' c='dimmed'>
+                <Card data-testid="edit-custom-field-page-options-card">
+                  <Stack data-testid="edit-custom-field-page-options-stack">
+                    <Title order={4} data-testid="edit-custom-field-page-options-title">Options</Title>
+                    <Text size='sm' c='dimmed' data-testid="edit-custom-field-page-options-description">
                       Define the available options for this field
                     </Text>
 
                     {form.values.options?.map((option, index) => (
-                      <Group key={`option-${option}-${Date.now()}`}>
+                      <Group key={`option-${option}-${Date.now()}`} data-testid={`edit-custom-field-page-option-group-${index}`}>
                         <TextInput
                           placeholder={`Option ${index + 1}`}
                           value={option}
@@ -214,12 +217,14 @@ export default function EditCustomFieldPage({
                             handleOptionChange(index, e.target.value)
                           }
                           style={{ flex: 1 }}
+                          data-testid={`edit-custom-field-page-option-input-${index}`}
                         />
                         <Button
                           variant='light'
                           color={theme.colors[theme.primaryColor][9]}
                           size='sm'
                           onClick={() => handleRemoveOption(index)}
+                          data-testid={`edit-custom-field-page-option-remove-button-${index}`}
                         >
                           <IconTrash size={14} />
                         </Button>
@@ -230,6 +235,7 @@ export default function EditCustomFieldPage({
                       variant='light'
                       leftSection={<IconPlus size={14} />}
                       onClick={handleAddOption}
+                      data-testid="edit-custom-field-page-add-option-button"
                     >
                       Add Option
                     </Button>
@@ -239,38 +245,40 @@ export default function EditCustomFieldPage({
             </Stack>
           </Grid.Col>
 
-          <Grid.Col span={4}>
-            <Stack>
-              <Card>
-                <Stack>
-                  <Title order={4}>Settings</Title>
+          <Grid.Col span={4} data-testid="edit-custom-field-page-form-right-col">
+            <Stack data-testid="edit-custom-field-page-form-right-stack">
+              <Card data-testid="edit-custom-field-page-settings-card">
+                <Stack data-testid="edit-custom-field-page-settings-stack">
+                  <Title order={4} data-testid="edit-custom-field-page-settings-title">Settings</Title>
 
                   <Switch
                     label='Required Field'
                     description='Make this field mandatory'
                     {...form.getInputProps('isRequired', { type: 'checkbox' })}
+                    data-testid="edit-custom-field-page-required-switch"
                   />
 
                   <Switch
                     label='Active'
                     description='Enable this field'
                     {...form.getInputProps('isActive', { type: 'checkbox' })}
+                    data-testid="edit-custom-field-page-active-switch"
                   />
                 </Stack>
               </Card>
 
-              <Card>
-                <Stack>
-                  <Title order={4}>Preview</Title>
-                  <Text size='sm' c='dimmed'>
+              <Card data-testid="edit-custom-field-page-preview-card">
+                <Stack data-testid="edit-custom-field-page-preview-stack">
+                  <Title order={4} data-testid="edit-custom-field-page-preview-title">Preview</Title>
+                  <Text size='sm' c='dimmed' data-testid="edit-custom-field-page-preview-description">
                     How this field will appear in forms
                   </Text>
 
-                  <div>
-                    <Text size='sm' fw={500} mb={4}>
+                  <div data-testid="edit-custom-field-page-preview-content">
+                    <Text size='sm' fw={500} mb={4} data-testid="edit-custom-field-page-preview-label">
                       {form.values.name}
                       {form.values.isRequired && (
-                        <Text component='span' c={theme.colors[theme.primaryColor][9]}>
+                        <Text component='span' c={theme.colors[theme.primaryColor][9]} data-testid="edit-custom-field-page-preview-required-indicator">
                           {' '}
                           *
                         </Text>
@@ -278,11 +286,11 @@ export default function EditCustomFieldPage({
                     </Text>
 
                     {form.values.fieldType === CustomFieldType.TEXT && (
-                      <TextInput placeholder='Enter text...' disabled />
+                      <TextInput placeholder='Enter text...' disabled data-testid="edit-custom-field-page-preview-text-input" />
                     )}
 
                     {form.values.fieldType === CustomFieldType.NUMBER && (
-                      <NumberInput placeholder='Enter number...' disabled />
+                      <NumberInput placeholder='Enter number...' disabled data-testid="edit-custom-field-page-preview-number-input" />
                     )}
 
                     {form.values.fieldType === CustomFieldType.SELECT && (
@@ -290,15 +298,16 @@ export default function EditCustomFieldPage({
                         placeholder='Select option...'
                         data={form.values.options || []}
                         disabled
+                        data-testid="edit-custom-field-page-preview-select"
                       />
                     )}
 
                     {form.values.fieldType === CustomFieldType.DATE && (
-                      <TextInput placeholder='Select date...' disabled />
+                      <TextInput placeholder='Select date...' disabled data-testid="edit-custom-field-page-preview-date-input" />
                     )}
 
                     {form.values.fieldType === CustomFieldType.BOOLEAN && (
-                      <Switch label='Yes/No' disabled />
+                      <Switch label='Yes/No' disabled data-testid="edit-custom-field-page-preview-boolean-switch" />
                     )}
                   </div>
                 </Stack>
@@ -307,11 +316,11 @@ export default function EditCustomFieldPage({
           </Grid.Col>
         </Grid>
 
-        <Group justify='flex-end' mt='xl'>
-          <Button variant='light' onClick={() => router.back()}>
+        <Group justify='flex-end' mt='xl' data-testid="edit-custom-field-page-form-actions">
+          <Button variant='light' onClick={() => router.back()} data-testid="edit-custom-field-page-cancel-button">
             Cancel
           </Button>
-          <Button type='submit' loading={isSubmitting}>
+          <Button type='submit' loading={isSubmitting} data-testid="edit-custom-field-page-submit-button">
             Update Custom Field
           </Button>
         </Group>
