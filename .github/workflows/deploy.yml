@@ -50,7 +50,7 @@ jobs:
           ls -la ~/.ssh/deploy_key  # Show file was created
           head -1 ~/.ssh/deploy_key  # Show first line (should be -----BEGIN)
           tail -1 ~/.ssh/deploy_key  # Show last line (should be -----END)
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy to Server
         run: |
