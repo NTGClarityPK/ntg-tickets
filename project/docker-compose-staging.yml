@@ -1,0 +1,63 @@
+name: ntgticketv2-staging
+
+services:
+  redis-staging:
+    image: redis:7-alpine
+    container_name: ntg-redis-staging
+    networks: [ntgnet-staging]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 50
+
+  elasticsearch-staging:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: ntg-elasticsearch-staging
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    networks: [ntgnet-staging]
+
+  backend-staging:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      network: host
+    container_name: ntg-backend-staging
+    env_file:
+      - .env.staging
+    depends_on:
+      redis-staging: { condition: service_healthy }
+    networks: [ntgnet-staging]
+    ports:
+      - "7001:4000"
+    command: ["node","dist/src/main.js"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+  frontend-staging:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      network: host
+    container_name: ntg-frontend-staging
+    env_file:
+      - .env.staging
+    networks: [ntgnet-staging]
+    ports:
+      - "7000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+networks:
+  ntgnet-staging:

@@ -1,0 +1,115 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+env:
+  PRODUCTION_DIR: /home/dev/ntgticketv2/ntg-tickets/project
+  STAGING_DIR: /home/dev/ntgticketv2/ntg-tickets/project
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ÌæØ Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "deploy_dir=${{ env.PRODUCTION_DIR }}" >> $GITHUB_OUTPUT
+            echo "frontend_port=8080" >> $GITHUB_OUTPUT
+            echo "backend_port=4000" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "deploy_dir=${{ env.STAGING_DIR }}" >> $GITHUB_OUTPUT
+            echo "frontend_port=7000" >> $GITHUB_OUTPUT
+            echo "backend_port=7001" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Ì≥ù Deployment Info
+        run: |
+          echo "Ì∫Ä Deploying to: ${{ steps.env.outputs.environment }}"
+          echo "Ì≥¶ Commit: ${{ github.sha }}"
+          echo "Ì±§ Triggered by: ${{ github.actor }}"
+          echo "Ìºê Frontend Port: ${{ steps.env.outputs.frontend_port }}"
+          echo "Ì¥å Backend Port: ${{ steps.env.outputs.backend_port }}"
+
+      - name: Ì¥ë Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Ì∫Ä Deploy to Server
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "cd ${{ steps.env.outputs.deploy_dir }} && \
+               bash /home/dev/deployments/scripts/deploy.sh \
+               ${{ steps.env.outputs.environment }} \
+               ${{ github.sha }}"
+
+      - name: Ìø• Post-Deployment Health Check
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "curl -f http://localhost:${{ steps.env.outputs.backend_port }}/health && \
+               curl -f http://localhost:${{ steps.env.outputs.frontend_port }}"
+
+      - name: Ì≥ß Send Teams Notification (Success)
+        if: success() && env.TEAMS_WEBHOOK_URL != ''
+        run: |
+          curl -H 'Content-Type: application/json' \
+               -d '{
+                 "@type": "MessageCard",
+                 "@context": "https://schema.org/extensions",
+                 "summary": "Deployment Success",
+                 "themeColor": "00FF00",
+                 "title": "‚úÖ Deployment Successful",
+                 "sections": [{
+                   "activityTitle": "NTG Tickets Deployed",
+                   "facts": [
+                     {"name": "Environment:", "value": "${{ steps.env.outputs.environment }}"},
+                     {"name": "Branch:", "value": "${{ github.ref_name }}"},
+                     {"name": "Commit:", "value": "${{ github.sha }}"},
+                     {"name": "Deployed by:", "value": "${{ github.actor }}"},
+                     {"name": "Frontend:", "value": "http://${{ secrets.SSH_HOST }}:${{ steps.env.outputs.frontend_port }}"},
+                     {"name": "Backend:", "value": "http://${{ secrets.SSH_HOST }}:${{ steps.env.outputs.backend_port }}"}
+                   ]
+                 }]
+               }' \
+               ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+      - name: Ì≥ß Send Teams Notification (Failure)
+        if: failure() && env.TEAMS_WEBHOOK_URL != ''
+        run: |
+          curl -H 'Content-Type: application/json' \
+               -d '{
+                 "@type": "MessageCard",
+                 "@context": "https://schema.org/extensions",
+                 "summary": "Deployment Failed",
+                 "themeColor": "FF0000",
+                 "title": "‚ùå Deployment Failed",
+                 "sections": [{
+                   "activityTitle": "NTG Tickets Deployment",
+                   "facts": [
+                     {"name": "Environment:", "value": "${{ steps.env.outputs.environment }}"},
+                     {"name": "Branch:", "value": "${{ github.ref_name }}"},
+                     {"name": "Commit:", "value": "${{ github.sha }}"},
+                     {"name": "Failed step:", "value": "Check GitHub Actions logs"}
+                   ]
+                 }]
+               }' \
+               ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+      - name: Ì∑π Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
