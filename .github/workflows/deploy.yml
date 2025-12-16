@@ -30,10 +30,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add Known Hosts
-        run: |
-          ssh-keyscan -H 192.168.50.50 >> ~/.ssh/known_hosts
-
       - name: Test SSH Connection
         run: |
           ssh -o StrictHostKeyChecking=no dev@192.168.50.50 'echo "Connected successfully"'
