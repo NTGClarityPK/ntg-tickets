@@ -8,7 +8,6 @@ import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-
   try {
     // Create NestJS application
     const app = await NestFactory.create(AppModule, {
@@ -28,46 +27,16 @@ async function bootstrap() {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     });
 
-    // Security middleware
-    app.use(
-      helmet({
-        contentSecurityPolicy: {
-          directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'"],
-            imgSrc: ["'self'", 'data:', 'https:'],
-          },
-        },
-        crossOriginEmbedderPolicy: false,
-      })
-    );
-
-    // Compression middleware
-    app.use(compression());
-
-    // Socket.IO will be handled by WebSocketGateway module
-
-    // Global validation pipe
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
-      })
-    );
-
-    // Global prefix
+    // Global prefix - MUST be set before Swagger setup
     app.setGlobalPrefix(apiPrefix);
 
-    // Swagger documentation
+    // ⭐ Swagger documentation - MOVED BEFORE HELMET
     const config = new DocumentBuilder()
       .setTitle('NTG Ticket API')
       .setDescription('Complete IT Support - Ticket Management System API')
       .setVersion('1.0')
+      .addServer(`http://localhost:${port}`, 'Local Development')
+      .addServer('http://192.168.50.50:4000', 'Production Server')
       .addBearerAuth()
       .addTag('Auth', 'Authentication endpoints')
       .addTag('Users', 'User management endpoints')
@@ -85,6 +54,36 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
+
+    // ⭐ Security middleware - NOW AFTER SWAGGER
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+          },
+        },
+        crossOriginEmbedderPolicy: false,
+      })
+    );
+
+    // Compression middleware
+    app.use(compression());
+
+    // Global validation pipe
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+      })
+    );
 
     // Start the server
     await app.listen(port, () => {
