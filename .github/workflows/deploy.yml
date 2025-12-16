@@ -9,8 +9,8 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    
+    runs-on: self-hosted
+
     steps:
       - name: Determine Environment
         id: env
@@ -36,7 +36,5 @@ jobs:
 
       - name: Deploy to Server
         run: |
-          ssh dev@192.168.50.50 << 'ENDSSH'
-            cd /home/dev/ntgticketv2/ntg-tickets/project
-            bash /home/dev/deployments/scripts/deploy.sh ${{ steps.env.outputs.environment }} ${{ github.sha }}
-          ENDSSH
+          cd /home/dev/ntgticketv2/ntg-tickets/project
+          bash /home/dev/deployments/scripts/deploy.sh ${{ steps.env.outputs.environment }} ${{ github.sha }}
