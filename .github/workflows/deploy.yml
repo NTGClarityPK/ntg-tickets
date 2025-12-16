@@ -33,11 +33,11 @@ jobs:
 
       - name: Deployment Info
         run: |
-          echo "Ì∫Ä Deploying to: ${{ steps.env.outputs.environment }}"
-          echo "Ì≥¶ Commit: ${{ github.sha }}"
-          echo "Ì±§ Triggered by: ${{ github.actor }}"
-          echo "Ìºê Frontend Port: ${{ steps.env.outputs.frontend_port }}"
-          echo "Ì¥å Backend Port: ${{ steps.env.outputs.backend_port }}"
+          echo "Deploying to: ${{ steps.env.outputs.environment }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Frontend Port: ${{ steps.env.outputs.frontend_port }}"
+          echo "Backend Port: ${{ steps.env.outputs.backend_port }}"
 
       - name: Setup SSH
         run: |
