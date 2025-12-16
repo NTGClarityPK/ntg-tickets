@@ -40,17 +40,11 @@ jobs:
           echo "Backend Port: ${{ steps.env.outputs.backend_port }}"
 
       - name: Setup SSH
-        env:
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          set -x  # Enable debug mode
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key || echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ls -la ~/.ssh/deploy_key  # Show file was created
-          head -1 ~/.ssh/deploy_key  # Show first line (should be -----BEGIN)
-          tail -1 ~/.ssh/deploy_key  # Show last line (should be -----END)
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || ssh-keyscan -H 192.168.50.50 >> ~/.ssh/known_hosts
 
       - name: Deploy to Server
         run: |
