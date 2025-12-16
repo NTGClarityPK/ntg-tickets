@@ -25,26 +25,22 @@ jobs:
             echo "backend_port=7001" >> $GITHUB_OUTPUT
           fi
 
-      - name: Setup SSH
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add Known Hosts
         run: |
-          mkdir -p ~/.ssh
-          cat > ~/.ssh/deploy_key << 'SSHKEY'
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          SSHKEY
-          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 192.168.50.50 >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no dev@192.168.50.50 'echo "SSH connection successful"'
+          ssh -o StrictHostKeyChecking=no dev@192.168.50.50 'echo "Connected successfully"'
 
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no dev@192.168.50.50 << 'ENDSSH'
+          ssh dev@192.168.50.50 << 'ENDSSH'
             cd /home/dev/ntgticketv2/ntg-tickets/project
             bash /home/dev/deployments/scripts/deploy.sh ${{ steps.env.outputs.environment }} ${{ github.sha }}
           ENDSSH
-
-      - name: Cleanup
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
