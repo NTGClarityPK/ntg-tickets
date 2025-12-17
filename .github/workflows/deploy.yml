@@ -10,43 +10,52 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-
+    
     steps:
-      - name: Determine Environment
+      - name: Determine Environment and Directory
         id: env
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
+            echo "deploy_dir=/home/dev/production/ntg-tickets/project" >> $GITHUB_OUTPUT
             echo "frontend_port=8080" >> $GITHUB_OUTPUT
             echo "backend_port=4000" >> $GITHUB_OUTPUT
+            echo "branch=main" >> $GITHUB_OUTPUT
           else
             echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "deploy_dir=/home/dev/staging/ntg-tickets/project" >> $GITHUB_OUTPUT
             echo "frontend_port=7000" >> $GITHUB_OUTPUT
             echo "backend_port=7001" >> $GITHUB_OUTPUT
+            echo "branch=dev" >> $GITHUB_OUTPUT
           fi
-
-      - name: Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Test SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=no dev@192.168.50.50 'echo "Connected successfully"'
 
       - name: Deploy
         run: |
-          cd /home/dev/ntgticketv2/ntg-tickets/project
+          echo "🚀 Deploying ${{ steps.env.outputs.environment }} from branch ${{ steps.env.outputs.branch }}"
+          echo "📁 Target directory: ${{ steps.env.outputs.deploy_dir }}"
           
-          # Pull latest code
-          git config pull.rebase false
-          git pull origin ${{ github.ref_name }} || echo "Already up to date"
+          cd ${{ steps.env.outputs.deploy_dir }}
+          
+          # Pull latest code for this specific branch
+          git fetch origin
+          git reset --hard origin/${{ steps.env.outputs.branch }}
           
           # Deploy based on environment
           if [ "${{ steps.env.outputs.environment }}" = "production" ]; then
-            docker-compose down || true
-            docker-compose up -d --build
+            echo "🏭 Deploying PRODUCTION..."
+            docker-compose --env-file ./.env.prod -f docker-compose.yml down || true
+            docker-compose --env-file ./.env.prod -f docker-compose.yml up -d --build
           else
-            docker-compose -f docker-compose-staging.yml down || true
-            docker-compose -f docker-compose-staging.yml up -d --build
+            echo "🧪 Deploying STAGING..."
+            docker-compose --env-file ./.env.staging -f docker-compose-staging.yml down || true
+            docker-compose --env-file ./.env.staging -f docker-compose-staging.yml up -d --build
           fi
+          
+          echo "✅ ${{ steps.env.outputs.environment }} deployment complete!"
+          echo "🌐 Frontend: http://192.168.50.50:${{ steps.env.outputs.frontend_port }}"
+          echo "🔌 Backend: http://192.168.50.50:${{ steps.env.outputs.backend_port }}"
+
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f http://localhost:${{ steps.env.outputs.backend_port }}/health || echo "Health check failed"
