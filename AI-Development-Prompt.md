@@ -1,5 +1,5 @@
 # AI Development Prompt: NTG-Ticket System
-
+as
 ## System Overview
 Generate a complete, production-ready IT Ticket Management System called **NTG-Ticket** based on the following comprehensive specifications. This system must be fully operational, deployable, and include all specified features without modifications or additions.
 
