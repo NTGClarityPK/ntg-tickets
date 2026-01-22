@@ -37,11 +37,7 @@ services:
       - "7001:4000"
     command: ["node","dist/src/main.js"]
     healthcheck:
-<<<<<<< HEAD
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
-=======
       test: ["CMD-SHELL", "wget -qO- http://localhost:7001/health || exit 1"]
->>>>>>> 2458d3f4ca63a724fb6179132aded018d6149916
       interval: 10s
       timeout: 5s
       retries: 50
@@ -65,11 +61,7 @@ services:
     ports:
       - "7000:3000"
     healthcheck:
-<<<<<<< HEAD
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
-=======
       test: ["CMD-SHELL", "wget -qO- http://localhost:7000 || exit 1"]
->>>>>>> 2458d3f4ca63a724fb6179132aded018d6149916
       interval: 10s
       timeout: 5s
       retries: 50
